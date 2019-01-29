@@ -1,0 +1,10 @@
+*.stash
+*.db
+*.vcxproj
+*.filters
+*.rc
+build/windows/src
+build/windows/test
+build/windows/cgParse.sln
+*.opendb
+test/parsesecret.h
