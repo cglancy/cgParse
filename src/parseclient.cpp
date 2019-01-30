@@ -18,6 +18,7 @@
 #include "parseobject.h"
 #include "parseuser.h"
 #include "parsequery.h"
+#include "parsefile.h"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -33,6 +34,7 @@
 
 namespace cg {
     ParseClient * ParseClientPrivate::instance = nullptr;
+    const QString ParseClientPrivate::JsonContentType = "application/json";
 
     ParseClientPrivate::ParseClientPrivate(ParseClient *pParseClient)
         : QObject(pParseClient),
@@ -46,6 +48,7 @@ namespace cg {
         // register so these types can be used in signals/slots
         qRegisterMetaType<ParseObject*>();
         qRegisterMetaType<ParseUser*>();
+        qRegisterMetaType<ParseFile*>();
     }
 
     ParseClientPrivate::~ParseClientPrivate()
@@ -78,7 +81,7 @@ namespace cg {
         Q_D(ParseClient);
         d->applicationId = appId;
         d->clientKey = clientKey;
-        d->server = server;
+        d->apiHost = server;
     }
 
     QByteArray ParseClient::applicationId() const
@@ -93,15 +96,15 @@ namespace cg {
         return d->clientKey;
     }
 
-    QByteArray ParseClient::server() const
+    QByteArray ParseClient::apiHost() const
     {
         Q_D(const ParseClient);
-        return d->server;
+        return d->apiHost;
     }
 
-    QNetworkRequest ParseClientPrivate::buildRequest(const QString &apiRoute, const QUrlQuery &query, bool addContentHeader) const
+    QNetworkRequest ParseClientPrivate::buildRequest(const QString &apiRoute, const QString &contentType, const QUrlQuery &query) const
     {
-        QString fullUrlStr = "https://" + server;
+        QString fullUrlStr = "https://" + apiHost;
         if (apiRoute.startsWith("/"))
             fullUrlStr += apiRoute;
         else
@@ -116,8 +119,8 @@ namespace cg {
         req.setRawHeader("X-Parse-Application-Id", applicationId);
         req.setRawHeader("X-Parse-REST-API-Key", clientKey);
 
-        if (addContentHeader)
-            req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        if (!contentType.isEmpty())
+            req.setHeader(QNetworkRequest::ContentTypeHeader, contentType.toUtf8());
 
         return req;
     }
@@ -136,7 +139,7 @@ namespace cg {
         query.addQueryItem("username", username);
         query.addQueryItem("password", password);
         
-        QNetworkRequest request = d->buildRequest("/parse/login", query, false);
+        QNetworkRequest request = d->buildRequest("/parse/login", QString(), query);
         request.setRawHeader("X-Parse-Revocable-Session", "1");
         QNetworkReply *pReply = d->nam->get(request);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::loginFinished);
@@ -182,7 +185,7 @@ namespace cg {
         if (!d->currentUser)
             return;
 
-        QNetworkRequest request = d->buildRequest("/parse/logout", QUrlQuery(), false);
+        QNetworkRequest request = d->buildRequest("/parse/logout");
         request.setRawHeader("X-Parse-Session-Token", d->currentUser->sessionToken().toUtf8());
         QNetworkReply *pReply = d->nam->post(request, QByteArray());
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::logoutFinished);
@@ -231,7 +234,7 @@ namespace cg {
         QJsonDocument doc(object);
         QByteArray content = doc.toJson();
 
-        QNetworkRequest request = d->buildRequest("/parse/users");
+        QNetworkRequest request = d->buildRequest("/parse/users", ParseClientPrivate::JsonContentType);
         request.setRawHeader("X-Parse-Revocable-Session", "1");
         QNetworkReply *pReply = d->nam->post(request, content);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::signUpUserFinished);
@@ -274,7 +277,7 @@ namespace cg {
         if (!pUser || pUser->objectId().isEmpty() || pUser->sessionToken().isEmpty())
             return;
 
-        QNetworkRequest request = d->buildRequest("/parse/users/" + pUser->objectId(), QUrlQuery(), false);
+        QNetworkRequest request = d->buildRequest("/parse/users/" + pUser->objectId());
         request.setRawHeader("X-Parse-Session-Token", pUser->sessionToken().toUtf8());
         QNetworkReply *pReply = d->nam->deleteResource(request);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::deleteUserFinished);
@@ -309,7 +312,7 @@ namespace cg {
         QJsonDocument doc(object);
         QByteArray content = doc.toJson();
 
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className());
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className(), ParseClientPrivate::JsonContentType);
         QNetworkReply *pReply = d->nam->post(request, content);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::createObjectFinished);
         d->replyObjectMap.insert(pReply, pObject);
@@ -347,8 +350,7 @@ namespace cg {
         if (!pObject)
             return;
 
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId(), 
-            QUrlQuery(), false);
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId());
         QNetworkReply *pReply = d->nam->get(request);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::fetchObjectFinished);
         d->replyObjectMap.insert(pReply, pObject);
@@ -390,7 +392,8 @@ namespace cg {
         QJsonDocument doc(object);
         QByteArray content = doc.toJson();
 
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId());
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId(), 
+            ParseClientPrivate::JsonContentType);
         QNetworkReply *pReply = d->nam->put(request, content);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::updateObjectFinished);
         d->replyObjectMap.insert(pReply, pObject);
@@ -428,7 +431,7 @@ namespace cg {
         if (!pObject || pObject->objectId().isEmpty())
             return;
 
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId(), QUrlQuery(), false);
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId());
         QNetworkReply *pReply = d->nam->deleteResource(request);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::deleteObjectFinished);
         d->replyObjectMap.insert(pReply, pObject);
@@ -478,7 +481,7 @@ namespace cg {
         QJsonDocument doc(contentObject);
         QByteArray content = doc.toJson();
 
-        QNetworkRequest request = d->buildRequest("/parse/batch");
+        QNetworkRequest request = d->buildRequest("/parse/batch", ParseClientPrivate::JsonContentType);
         QNetworkReply *pReply = d->nam->post(request, content);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::createAllFinished);
         d->replyObjectListMap.insert(pReply, objects);
@@ -542,7 +545,7 @@ namespace cg {
         QJsonDocument doc(contentObject);
         QByteArray content = doc.toJson();
 
-        QNetworkRequest request = d->buildRequest("/parse/batch");
+        QNetworkRequest request = d->buildRequest("/parse/batch", ParseClientPrivate::JsonContentType);
         QNetworkReply *pReply = d->nam->post(request, content);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::updateAllFinished);
         d->replyObjectListMap.insert(pReply, objects);
@@ -599,7 +602,7 @@ namespace cg {
         QJsonDocument doc(contentObject);
         QByteArray content = doc.toJson();
 
-        QNetworkRequest request = d->buildRequest("/parse/batch");
+        QNetworkRequest request = d->buildRequest("/parse/batch", ParseClientPrivate::JsonContentType);
         QNetworkReply *pReply = d->nam->post(request, content);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::deleteAllFinished);
         d->replyObjectListMap.insert(pReply, objects);
@@ -652,7 +655,7 @@ namespace cg {
         QUrlQuery urlQuery;
         urlQuery.setQuery(queryStr);
 
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className(), urlQuery, false);
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className());
         QNetworkReply *pReply = d->nam->get(request);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::getObjectFinished);
         d->replyQueryMap.insert(pReply, pQuery);
@@ -713,7 +716,7 @@ namespace cg {
         if (!pQuery || pQuery->className().isEmpty())
             return;
 
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className(), pQuery->urlQuery(), false);
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className(), QString(), pQuery->urlQuery());
         QNetworkReply *pReply = d->nam->get(request);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::findObjectsFinished);
         d->replyQueryMap.insert(pReply, pQuery);
@@ -776,7 +779,7 @@ namespace cg {
         if (!pQuery || pQuery->className().isEmpty())
             return;
 
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className(), pQuery->urlQuery(), false);
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className(), QString(), pQuery->urlQuery());
         QNetworkReply *pReply = d->nam->get(request);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::countObjectsFinished);
         d->replyQueryMap.insert(pReply, pQuery);
@@ -808,6 +811,83 @@ namespace cg {
         }
     }
 
+    void ParseClient::saveFile(ParseFile * pFile)
+    {
+        Q_D(ParseClient);
+
+        if (!pFile)
+        {
+            emit saveFileFinished(-1);
+            return;
+        }
+
+        QNetworkRequest request = d->buildRequest("/parse/files/" + pFile->name(), pFile->contentType());
+        QNetworkReply *pReply = d->nam->post(request, pFile->data());
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::saveFileFinished);
+        d->replyFileMap.insert(pReply, pFile);
+    }
+
+    void ParseClientPrivate::saveFileFinished()
+    {
+        Q_Q(ParseClient);
+
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            ParseFile *pFile = replyFileMap.value(pReply);
+            if (pFile)
+            {
+                int statusCode = pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+                if (doc.isObject() && statusCode == 201)  // 201 = Created
+                {
+                    QJsonObject obj = doc.object();
+                    pFile->setProperty("url", obj.value("url").toString());
+                    pFile->setProperty("name", obj.value("name").toString());
+                }
+
+                emit pFile->saveFinished(statusCode);
+                emit q->saveFileFinished(statusCode);
+            }
+
+            replyFileMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+
+    void ParseClient::deleteFile(const QString &urlStr, const QString &masterKey)
+    {
+        Q_D(ParseClient);
+
+        if (urlStr.isEmpty() || masterKey.isEmpty())
+        {
+            emit deleteFileFinished(-1);
+            return;
+        }
+
+        QUrl url("https://" + d->apiHost + "/parse/files/" + urlStr);
+        QNetworkRequest request(url);
+        request.setRawHeader("User-Agent", d->userAgent);
+        request.setRawHeader("X-Parse-Application-Id", d->applicationId);
+        request.setRawHeader("X-Parse-Master-Key", masterKey.toUtf8());
+
+        QNetworkReply *pReply = d->nam->deleteResource(request);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::deleteFileFinished);
+    }
+
+    void ParseClientPrivate::deleteFileFinished()
+    {
+        Q_Q(ParseClient);
+
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            int statusCode = pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            emit q->deleteFileFinished(statusCode);
+            pReply->deleteLater();
+        }
+    }
+
     QVariant ParseClientPrivate::toVariant(const QJsonValue &jsonValue, ParseObject *pParent)
     {
         Q_UNUSED(pParent);
@@ -825,6 +905,13 @@ namespace cg {
                 ParseObject *pObject = new ParseObject(className);
                 pObject->setProperty(ParseObject::ObjectIdPropertyName, objectId);
                 variant = QVariant::fromValue<ParseObject*>(pObject);
+            }
+            else if (typeStr == "File")
+            {
+                ParseFile *pFile = new ParseFile(pParent);
+                pFile->setProperty("name", object.value("name").toString());
+                pFile->setProperty("url", object.value("url").toString());
+                variant = QVariant::fromValue<ParseFile*>(pFile);
             }
             else if (typeStr == "Date")
             {
@@ -876,6 +963,18 @@ namespace cg {
                 jsonObject.insert("__type", "Pointer");
                 jsonObject.insert("className", pObject->className());
                 jsonObject.insert(ParseObject::ObjectIdPropertyName, pObject->objectId());
+                jsonValue = jsonObject;
+            }
+        }
+        else if (variant.canConvert<ParseFile*>())
+        {
+            ParseFile *pFile = qvariant_cast<ParseFile*>(variant);
+            if (pFile)
+            {
+                QJsonObject jsonObject;
+                jsonObject.insert("__type", "File");
+                jsonObject.insert("name", pFile->name());
+                jsonObject.insert("url", pFile->url());
                 jsonValue = jsonObject;
             }
         }

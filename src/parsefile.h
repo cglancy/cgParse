@@ -13,57 +13,57 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEUSER_H
-#define CGPARSE_PARSEUSER_H
+#ifndef CGPARSE_PARSEFILE_H
+#define CGPARSE_PARSEFILE_H
 #pragma once
 
 #include "cgparse.h"
-#include "parseobject.h"
+#include <QObject>
+#include <QByteArray>
+
+class QFile;
 
 namespace cg
 {
-    class CGPARSE_API ParseUser : public ParseObject
+    class CGPARSE_API ParseFile : public QObject
     {
         Q_OBJECT
-        Q_DISABLE_COPY(ParseUser)
-        Q_PROPERTY(QString username READ username WRITE setUsername)
-        Q_PROPERTY(QString password READ password WRITE setPassword)
-        Q_PROPERTY(QString email READ email WRITE setEmail)
-        Q_PROPERTY(QString sessionToken READ sessionToken WRITE setSessionToken)
+        Q_DISABLE_COPY(ParseFile)
+        Q_PROPERTY(QString name READ name WRITE setName)
+        Q_PROPERTY(QString url READ url WRITE setUrl)
+        Q_PROPERTY(QString contentType READ contentType WRITE setContentType)
 
     public:
-        ParseUser();
-        ~ParseUser();
+        ParseFile(QObject *pParent = nullptr);
+        ParseFile(const QString &localPath);
+        ParseFile(const QString &name, const QByteArray &data, const QString &contentType);
+        ~ParseFile();
 
-        bool isAuthenticated() const;
+        bool isDirty() const;
 
-        QString username() const;
-        void setUsername(const QString &username);
+        QString name() const;
+        void setName(const QString &name);
 
-        QString password() const;
-        void setPassword(const QString &password);
+        QString url() const;
+        void setUrl(const QString &url);
 
-        QString email() const;
-        void setEmail(const QString &email);
+        QString contentType() const;
+        void setContentType(const QString &contentType);
 
-        QString sessionToken() const;
+        QByteArray data() const;
 
     public slots:
-        void signUp();
-        void deleteUser();
+        void save();
 
     signals:
-        void signUpFinished(int errorCode);
-        void deleteUserFinished(int errorCode);
+        void saveFinished(int errorCode);
 
     private:
-        void setSessionToken(const QString &sessionToken);
-
-    private:
-        QString _username, _password, _email, _sessionToken;
+        QString _name, _url, _contentType;
+        QByteArray _data;
     };
 
-    Q_DECLARE_METATYPE(ParseUser*);
+    Q_DECLARE_METATYPE(ParseFile*);
 }
 
-#endif // CGPARSE_PARSEUSER_H
+#endif // CGPARSE_PARSEFILE_H

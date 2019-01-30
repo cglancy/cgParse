@@ -27,6 +27,7 @@ namespace cg
     class ParseObject;
     class ParseUser;
     class ParseQuery;
+    class ParseFile;
 
     class CGPARSE_API ParseClient : public QObject
     {
@@ -40,10 +41,10 @@ namespace cg
     public:
         static ParseClient * instance();
 
-        void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &server);
+        void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost);
         QByteArray applicationId() const;
         QByteArray clientKey() const;
-        QByteArray server() const;
+        QByteArray apiHost() const;
 
         ParseUser * currentUser() const;
         void login(const QString &username, const QString &password);
@@ -66,6 +67,9 @@ namespace cg
         void findObjects(ParseQuery *pQuery);
         void countObjects(ParseQuery *pQuery);
 
+        void saveFile(ParseFile *pFile);
+        void deleteFile(const QString &url, const QString &masterKey);
+
     signals:
         void loginFinished(ParseUser *pUser, int errorCode);
         void logoutFinished(int errorCode);
@@ -86,6 +90,9 @@ namespace cg
         void getObjectFinished(int errorCode);
         void findObjectsFinished(int count, int errorCode);
         void countObjectsFinished(int count, int errorCode);
+
+        void saveFileFinished(int errorCode);
+        void deleteFileFinished(int errorCode);
     };
 }
 

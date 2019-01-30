@@ -29,15 +29,6 @@ namespace cg {
     {
     }
 
-    ParseObject::ParseObject(const ParseObject &object)
-    {
-        _className = object._className;
-        _objectId = object._objectId;
-        //_createdAt = object._createdAt;
-        //_updatedAt = object._updatedAt;
-        //_fetchedMap = object._fetchedMap;
-    }
-
     ParseObject::~ParseObject()
     {
     }

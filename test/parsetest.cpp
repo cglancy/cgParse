@@ -18,6 +18,7 @@
 #include "parseobject.h"
 #include "parseuser.h"
 #include "parsequery.h"
+#include "parsefile.h"
 
 // used to define your own PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY
 #include "parsesecret.h"
@@ -27,6 +28,7 @@
 #include <QSignalSpy>
 #include <QDebug>
 #include <QScopedPointer>
+#include <QFileInfo>
 
 using namespace cg;
 
@@ -40,12 +42,38 @@ void ParseTest::initTestCase()
     QCoreApplication::setApplicationName("ParseTest");
     QCoreApplication::setApplicationVersion("0.1");
 
+    QString appDirPath = QCoreApplication::applicationDirPath();
+    _testImagesDir.setPath(appDirPath + "/../../../../test/images");
+
     createTestObjects();
 }
 
-TestCharacter * ParseTest::createCharacter(const QString &name)
+TestCharacter::TestCharacter(const QString &name)
+    : cg::ParseObject("TestCharacter"),
+    _name(name),
+    _picture(nullptr)
 {
+}
+
+TestCharacter * ParseTest::createCharacter(const QString &name, const QString &imageFile)
+{
+    ParseFile *pFile = nullptr;
+
+    if (!imageFile.isEmpty())
+    {
+        QString imagePath = _testImagesDir.absolutePath() + "/" + imageFile;
+        pFile = new ParseFile(imagePath);
+        _files.append(pFile);
+
+        pFile->save();
+        QSignalSpy saveSpy(pFile, &ParseFile::saveFinished);
+        saveSpy.wait(100000);
+    }
+
     TestCharacter * character = new TestCharacter(name);
+    if (pFile)
+        character->setPicture(pFile);
+
     _characters.append(character);
     return character;
 }
@@ -59,13 +87,13 @@ TestQuote * ParseTest::createQuote(TestCharacter *character, int rank, const QSt
 
 void ParseTest::createTestObjects()
 {
-    leia = createCharacter("Leia Organa");            
+    luke = createCharacter("Luke Skywalker", "luke.png");        
+    leia = createCharacter("Leia Organa", "leia.jpg");            
     anakin = createCharacter("Anakin Skywalker");
     vader = createCharacter("Darth Vader");
     han = createCharacter("Han Solo");               
     obiwan = createCharacter("Obi-wan Kenobi");      
     yoda = createCharacter("Yoda");                   
-    luke = createCharacter("Luke Skywalker");        
     palpatine = createCharacter("Emperor Palpatine"); 
     quigon = createCharacter("Qui-Gon Jinn");         
     nute = createCharacter("Nute Gunray");            
@@ -138,6 +166,14 @@ void ParseTest::deleteTestObjects()
     for (auto & pQuote : _quotes)
         delete pQuote;
     _quotes.clear();
+
+    for (auto *pFile : _files)
+    {
+        cg::ParseClient::instance()->deleteFile(pFile->url(), PARSE_MASTER_KEY);
+        QSignalSpy fileSpy(cg::ParseClient::instance(), &ParseClient::deleteFileFinished);
+        QVERIFY(fileSpy.wait(10000));
+    }
+    _files.clear();
 }
 
 void ParseTest::cleanupTestCase()

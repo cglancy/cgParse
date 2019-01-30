@@ -7,6 +7,7 @@ TEMPLATE = lib
 VERSION	= 0.1.1
 
 SOURCES += parseclient.cpp \
+	parsefile.cpp \
 	parseobject.cpp \
 	parsequery.cpp \
 	parseuser.cpp \
@@ -14,6 +15,7 @@ SOURCES += parseclient.cpp \
 HEADERS += cgparse.h \
 	parseclient.h \
 	parseclient_p.h \
+	parsefile.h \
     parseobject.h \
 	parsequery.h \
 	parseuser.h

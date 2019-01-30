@@ -17,24 +17,29 @@
 #define CGPARSE_PARSETEST_H
 #pragma once
 
-#include <QObject>
 #include "parseobject.h"
+#include "parsefile.h"
+#include <QObject>
+#include <QDir>
 
 class TestCharacter : public cg::ParseObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name WRITE setName)
+    Q_PROPERTY(cg::ParseFile* picture READ picture WRITE setPicture)
+
 public:
-    TestCharacter(const QString &name) 
-        : cg::ParseObject("TestCharacter"),
-        _name(name)
-    {}
+    TestCharacter(const QString &name);
 
     QString name() const { return _name; }
+    cg::ParseFile * picture() const { return _picture; }
+    void setPicture(cg::ParseFile* pFile) { _picture = pFile; }
 
 private:
     void setName(const QString &name) { _name = name; }
+
     QString _name;
+    cg::ParseFile *_picture;
 };
 
 Q_DECLARE_METATYPE(TestCharacter*);
@@ -71,8 +76,9 @@ private:
 class ParseTest : public QObject
 {
     Q_OBJECT
+
     void createTestObjects();
-    TestCharacter * createCharacter(const QString &name);
+    TestCharacter * createCharacter(const QString &name, const QString &imageFile = QString());
     TestQuote * createQuote(TestCharacter *character, int rank, const QString &quote);
     void deleteTestObjects();
 
@@ -91,6 +97,8 @@ private:
     TestCharacter *leia, *han, *obiwan, *yoda, *luke, *palpatine, *anakin, *vader, *quigon, *nute, 
         *shmi, *jamillia, *jango, *dooku, *padme, *rey, *c3po, *chirrut, *cassian, *k2so;
     QList<cg::ParseObject*> _characters, _quotes;
+    QList<cg::ParseFile*> _files;
+    QDir _testImagesDir;
 };
 
 #endif // CGPARSE_PARSETEST_H

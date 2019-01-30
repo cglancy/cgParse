@@ -44,8 +44,7 @@ namespace cg
         ParseClientPrivate(ParseClient *pParseClient);
         ~ParseClientPrivate();
 
-        QNetworkRequest buildRequest(const QString &apiRoute, const QUrlQuery &query = QUrlQuery(),
-            bool addContentHeader = true) const;
+        QNetworkRequest buildRequest(const QString &apiRoute, const QString &contentType = QString(), const QUrlQuery &query = QUrlQuery()) const;
         void setObjectProperties(ParseObject *pObject, const QJsonObject &jsonObject);
         QJsonObject toJsonObject(ParseObject *pObject, bool onlyDirtyProperties = false);
         QVariant toVariant(const QJsonValue &jsonValue, ParseObject *pParent);
@@ -55,14 +54,17 @@ namespace cg
         static ParseClient *instance;
         QByteArray applicationId;
         QByteArray clientKey;
-        QByteArray server;
+        QByteArray apiHost;
 
         QNetworkAccessManager *nam;
         QByteArray userAgent;
         QMap<QNetworkReply*, ParseObject*> replyObjectMap;
         QMap<QNetworkReply*, QList<ParseObject*>> replyObjectListMap;
         QMap<QNetworkReply*, ParseQuery*> replyQueryMap;
+        QMap<QNetworkReply*, ParseFile*> replyFileMap;
         ParseUser *currentUser;
+
+        static const QString JsonContentType;
 
     public slots:
         void loginFinished();
@@ -84,6 +86,9 @@ namespace cg
         void getObjectFinished();
         void findObjectsFinished();
         void countObjectsFinished();
+
+        void saveFileFinished();
+        void deleteFileFinished();
     };
 }
 

@@ -32,6 +32,7 @@ namespace cg
     class CGPARSE_API ParseObject : public QObject
     {
         Q_OBJECT
+        Q_DISABLE_COPY(ParseObject)
         Q_PROPERTY(QString objectId READ objectId WRITE setObjectId)
         Q_PROPERTY(QDateTime createdAt READ createdAt WRITE setCreatedAt)
         Q_PROPERTY(QDateTime updatedAt READ updatedAt WRITE setUpdatedAt)
@@ -43,7 +44,6 @@ namespace cg
 
     public:
         Q_INVOKABLE ParseObject(const QString &className);
-        ParseObject(const ParseObject &object);
         virtual ~ParseObject();
 
         QString className() const;

@@ -23,11 +23,6 @@ namespace cg
     {
     }
 
-    ParseUser::ParseUser(const ParseUser &user)
-        : ParseObject(user)
-    {
-    }
-
     ParseUser::~ParseUser()
     {
     }
