@@ -46,6 +46,11 @@ namespace cg
 
         QNetworkRequest buildRequest(const QString &apiRoute, const QUrlQuery &query = QUrlQuery(),
             bool addContentHeader = true) const;
+        void setObjectProperties(ParseObject *pObject, const QJsonObject &jsonObject);
+        QJsonObject toJsonObject(ParseObject *pObject, bool onlyDirtyProperties = false);
+        QVariant toVariant(const QJsonValue &jsonValue, ParseObject *pParent);
+        QJsonValue toJsonValue(const QVariant &variant);
+        static bool isWritableProperty(const QByteArray &name);
 
         static ParseClient *instance;
         QByteArray applicationId;
@@ -58,6 +63,8 @@ namespace cg
         QMap<QNetworkReply*, QList<ParseObject*>> replyObjectListMap;
         QMap<QNetworkReply*, ParseQuery*> replyQueryMap;
         ParseUser *currentUser;
+        int objectMetaType;
+        int userMetaType;
 
     public slots:
         void loginFinished();

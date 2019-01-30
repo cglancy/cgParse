@@ -86,9 +86,9 @@ void ParseTest::createTestObjects()
 
     int rank = 1;
     QList<ParseObject*> quotes;
-    createQuote(leia, rank++, "Help me, Obi-Wan Kenobi. You’re my only hope.");
+    createQuote(leia, rank++, "Help me, Obi-Wan Kenobi. You're my only hope.");
     createQuote(vader, rank++, "I find your lack of faith disturbing.");
-    createQuote(han, rank++, "It’s the ship that made the Kessel run in less than twelve parsecs.");
+    createQuote(han, rank++, "It's the ship that made the Kessel run in less than twelve parsecs.");
     createQuote(obiwan, rank++, "The Force will be with you. Always.");
     createQuote(leia, rank++, "Why, you stuck-up, half-witted, scruffy-looking nerf herder!");
     createQuote(han, rank++, "Never tell me the odds!");
@@ -98,29 +98,29 @@ void ParseTest::createTestObjects()
     createQuote(luke, rank++, "I am a Jedi, like my father before me.");
     createQuote(palpatine, rank++, "Now, young Skywalker, you will die.");
     createQuote(anakin, rank++, "Just for once, let me look on you with my own eyes.");
-    createQuote(quigon, rank++, "There’s always a bigger fish.");
+    createQuote(quigon, rank++, "There's always a bigger fish.");
     createQuote(nute, rank++, "In time, the suffering of your people will persuade you to see our point of view.");
-    createQuote(shmi, rank++, "You can’t stop the change, any more than you can stop the suns from setting.");
+    createQuote(shmi, rank++, "You can't stop the change, any more than you can stop the suns from setting.");
     createQuote(yoda, rank++, "Fear is the path to the dark side. Fear leads to anger; anger leads to hate; hate leads to suffering.");
-    createQuote(obiwan, rank++, "Well, if droids could think, there’d be none of us here, would there?");
+    createQuote(obiwan, rank++, "Well, if droids could think, there'd be none of us here, would there?");
     createQuote(jamillia, rank++, "We must keep our faith in the Republic. The day we stop believing democracy can work is the day we lose it.");
-    createQuote(jango, rank++, "I’m just a simple man trying to make my way in the universe.");
+    createQuote(jango, rank++, "I'm just a simple man trying to make my way in the universe.");
     createQuote(dooku, rank++, "What if I told you that the Republic was now under the control of a Dark Lord of the Sith?");
     createQuote(palpatine, rank++, "The dark side of the Force is a pathway to many abilities some consider to be unnatural.");
     createQuote(palpatine, rank++, "Power! Unlimited power!");
     createQuote(padme, rank++, "So this is how liberty dies. With thunderous applause.");
     createQuote(obiwan, rank++, "You were my brother, Anakin. I loved you.");
-    createQuote(rey, rank++, "The garbage’ll do!");
-    createQuote(han, rank++, "Chewie, we’re home.");
-    createQuote(leia, rank++, "You know, no matter how much we fought, I’ve always hated watching you leave.");
-    createQuote(c3po, rank++, "Oh, my dear friend. How I’ve missed you.");
-    createQuote(chirrut, rank++, "I’m one with the Force. The Force is with me.");
-    createQuote(cassian, rank++, "Every time I walked away from something I wanted to forget, I told myself it was for a cause that I believed in. A cause that was worth it. Without that, we’re lost.");
-    createQuote(k2so, rank++, "Jyn, I’ll be there for you. Cassian said I had to.");
+    createQuote(rey, rank++, "The garbage'll do!");
+    createQuote(han, rank++, "Chewie, we're home.");
+    createQuote(leia, rank++, "You know, no matter how much we fought, I've always hated watching you leave.");
+    createQuote(c3po, rank++, "Oh, my dear friend. How I've missed you.");
+    createQuote(chirrut, rank++, "I'm one with the Force. The Force is with me.");
+    createQuote(cassian, rank++, "Every time I walked away from something I wanted to forget, I told myself it was for a cause that I believed in. A cause that was worth it. Without that, we're lost.");
+    createQuote(k2so, rank++, "Jyn, I'll be there for you. Cassian said I had to.");
     createQuote(leia, rank++, "Hope.");
 
-    //cg::ParseClient::instance()->createAll(_quotes);
-    //QVERIFY(createSpy.wait(10000));
+    cg::ParseClient::instance()->createAll(_quotes);
+    QVERIFY(createSpy.wait(10000));
 }
 
 void ParseTest::deleteTestObjects()
@@ -133,8 +133,8 @@ void ParseTest::deleteTestObjects()
         delete pCharacter;
     _characters.clear();
 
-    //cg::ParseClient::instance()->deleteAll(_quotes);
-    //QVERIFY(deleteSpy.wait(10000));
+    cg::ParseClient::instance()->deleteAll(_quotes);
+    QVERIFY(deleteSpy.wait(10000));
     for (auto & pQuote : _quotes)
         delete pQuote;
     _quotes.clear();
