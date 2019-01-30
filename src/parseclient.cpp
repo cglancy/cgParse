@@ -37,16 +37,15 @@ namespace cg {
     ParseClientPrivate::ParseClientPrivate(ParseClient *pParseClient)
         : QObject(pParseClient),
         q_ptr(pParseClient),
-        currentUser(nullptr),
-        objectMetaType(0),
-        userMetaType(0)
+        currentUser(nullptr)
     {
         userAgent = QString("%1 %2").arg(QCoreApplication::applicationName())
             .arg(QCoreApplication::applicationVersion()).toUtf8();
         nam = new QNetworkAccessManager(this);
 
-        objectMetaType = qRegisterMetaType<ParseObject*>();
-        userMetaType = qRegisterMetaType<ParseUser*>();
+        // register so these types can be used in signals/slots
+        qRegisterMetaType<ParseObject*>();
+        qRegisterMetaType<ParseUser*>();
     }
 
     ParseClientPrivate::~ParseClientPrivate()

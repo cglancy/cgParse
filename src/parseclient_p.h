@@ -63,8 +63,6 @@ namespace cg
         QMap<QNetworkReply*, QList<ParseObject*>> replyObjectListMap;
         QMap<QNetworkReply*, ParseQuery*> replyQueryMap;
         ParseUser *currentUser;
-        int objectMetaType;
-        int userMetaType;
 
     public slots:
         void loginFinished();
