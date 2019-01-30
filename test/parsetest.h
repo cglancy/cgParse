@@ -84,6 +84,8 @@ private slots:
     void testObjectSubclass();
     void testUser();
     void testGetQuery();
+    void testFindAllQuery();
+    void testCountQuery();
 
 private:
     TestCharacter *leia, *han, *obiwan, *yoda, *luke, *palpatine, *anakin, *vader, *quigon, *nute, 

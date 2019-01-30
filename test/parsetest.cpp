@@ -243,3 +243,29 @@ void ParseTest::testGetQuery()
 
     delete gameScore;
 }
+
+void ParseTest::testFindAllQuery()
+{
+    ParseQuery *pQuery = new ParseQuery("TestCharacter");
+    pQuery->find();
+    QSignalSpy findSpy(pQuery, &ParseQuery::findFinished);
+    QVERIFY(findSpy.wait(10000));
+
+    QCOMPARE(pQuery->resultObjects().size(), 20);
+    pQuery->clearResults();
+
+    delete pQuery;
+}
+
+void ParseTest::testCountQuery()
+{
+    ParseQuery *pQuery = new ParseQuery("TestQuote");
+    pQuery->count();
+    QSignalSpy countSpy(pQuery, &ParseQuery::countFinished);
+    QVERIFY(countSpy.wait(10000));
+
+    QList<QVariant> arguments = countSpy.takeFirst();
+    QCOMPARE(arguments.at(0).toInt(), 32);
+
+    delete pQuery;
+}

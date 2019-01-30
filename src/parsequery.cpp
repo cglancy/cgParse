@@ -25,6 +25,11 @@ namespace cg
         _className = className;
     }
 
+    ParseQuery::~ParseQuery()
+    {
+        clearResults();
+    }
+
     void ParseQuery::get(const QString &objectId)
     {
         ParseClient::instance()->getObject(this, objectId);

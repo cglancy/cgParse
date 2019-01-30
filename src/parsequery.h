@@ -32,6 +32,7 @@ namespace cg
         Q_OBJECT
     public:
         ParseQuery(const QString &className);
+        ~ParseQuery();
 
         template <class T>
         static ParseQuery * createQuery()
