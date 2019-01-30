@@ -20,23 +20,75 @@
 #include <QObject>
 #include "parseobject.h"
 
+class TestCharacter : public cg::ParseObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString name READ name WRITE setName)
+public:
+    TestCharacter(const QString &name) 
+        : cg::ParseObject("TestCharacter"),
+        _name(name)
+    {}
+
+    QString name() const { return _name; }
+
+private:
+    void setName(const QString &name) { _name = name; }
+    QString _name;
+};
+
+Q_DECLARE_METATYPE(TestCharacter*);
+
+class TestQuote : public cg::ParseObject
+{
+    Q_OBJECT
+    Q_PROPERTY(int rank READ rank WRITE setRank)
+    Q_PROPERTY(QString quote READ quote WRITE setQuote)
+    Q_PROPERTY(TestCharacter* character READ character WRITE setCharacter)
+public:
+    TestQuote(TestCharacter *character, int rank, const QString &quote)
+        : cg::ParseObject("TestQuote"),
+        _character(character),
+        _rank(rank),
+        _quote(quote)
+    {}
+
+    int rank() const { return _rank; }
+    QString quote() const { return _quote; }
+    TestCharacter* character() const { return _character; }
+
+private:
+    void setRank(int rank) { _rank = rank; }
+    void setQuote(const QString &quote) { _quote = quote; }
+    void setCharacter(TestCharacter *pCharacter) { _character = pCharacter; }
+
+private:
+    int _rank;
+    QString _quote;
+    TestCharacter *_character;
+};
+
 class ParseTest : public QObject
 {
     Q_OBJECT
+    void createTestObjects();
+    TestCharacter * createCharacter(const QString &name);
+    TestQuote * createQuote(TestCharacter *character, int rank, const QString &quote);
+    void deleteTestObjects();
+
 private slots:
     void initTestCase();
     void cleanupTestCase();
 
-    void testParseObject();
-    void testParseObjectSubclass();
-    void testParseUser();
-};
+    void testObject();
+    void testObjectSubclass();
+    void testUser();
+    void testGetQuery();
 
-class TestSubclass : public cg::ParseObject
-{
-    Q_OBJECT
-public:
-    TestSubclass();
+private:
+    TestCharacter *leia, *han, *obiwan, *yoda, *luke, *palpatine, *anakin, *vader, *quigon, *nute, 
+        *shmi, *jamillia, *jango, *dooku, *padme, *rey, *c3po, *chirrut, *cassian, *k2so;
+    QList<cg::ParseObject*> _characters, _quotes;
 };
 
 #endif // CGPARSE_PARSETEST_H

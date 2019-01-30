@@ -27,6 +27,8 @@
 
 namespace cg
 {
+    class ParseQuery;
+
     class CGPARSE_API ParseObject : public QObject
     {
         Q_OBJECT

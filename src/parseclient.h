@@ -26,6 +26,7 @@ namespace cg
     class ParseClientPrivate;
     class ParseObject;
     class ParseUser;
+    class ParseQuery;
 
     class CGPARSE_API ParseClient : public QObject
     {
@@ -57,6 +58,14 @@ namespace cg
         void updateObject(ParseObject *pObject);
         void deleteObject(ParseObject *pObject);
 
+        void createAll(const QList<ParseObject*> &objects);
+        void updateAll(const QList<ParseObject*> &objects);
+        void deleteAll(const QList<ParseObject*> &objects);
+
+        void getObject(ParseQuery *pQuery, const QString &objectId);
+        void findObjects(ParseQuery *pQuery);
+        void countObjects(ParseQuery *pQuery);
+
     signals:
         void loginFinished(ParseUser *pUser, int errorCode);
         void logoutFinished(int errorCode);
@@ -64,10 +73,19 @@ namespace cg
         void requestPasswordResetFinished(int errorCode);
         void signUpUserFinished(ParseUser *pUser, int errorCode);
         void deleteUserFinished(ParseUser *pUser, int errorCode);
+
         void createObjectFinished(ParseObject *pObject, int errorCode);
         void fetchObjectFinished(ParseObject *pObject, int errorCode);
         void updateObjectFinished(ParseObject *pObject, int errorCode);
         void deleteObjectFinished(ParseObject *pObject, int errorCode);
+
+        void createAllFinished(int errorCode);
+        void updateAllFinished(int errorCode);
+        void deleteAllFinished(int errorCode);
+
+        void getObjectFinished(int errorCode);
+        void findObjectsFinished(int count, int errorCode);
+        void countObjectsFinished(int count, int errorCode);
     };
 }
 

@@ -54,7 +54,9 @@ namespace cg
 
         QNetworkAccessManager *nam;
         QByteArray userAgent;
-        QMap<QNetworkReply*, ParseObject*> replyMap;
+        QMap<QNetworkReply*, ParseObject*> replyObjectMap;
+        QMap<QNetworkReply*, QList<ParseObject*>> replyObjectListMap;
+        QMap<QNetworkReply*, ParseQuery*> replyQueryMap;
         ParseUser *currentUser;
 
     public slots:
@@ -69,6 +71,14 @@ namespace cg
         void fetchObjectFinished();
         void updateObjectFinished();
         void deleteObjectFinished();
+
+        void createAllFinished();
+        void updateAllFinished();
+        void deleteAllFinished();
+
+        void getObjectFinished();
+        void findObjectsFinished();
+        void countObjectsFinished();
     };
 }
 

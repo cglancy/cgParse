@@ -18,24 +18,77 @@
 #pragma once
 
 #include "cgparse.h"
+#include "parseclient.h"
 #include <QObject>
+#include <QList>
+#include <QUrlQuery>
 
 namespace cg
 {
-    class ParseQueryPrivate;
+    class ParseObject;
 
     class CGPARSE_API ParseQuery : public QObject
     {
         Q_OBJECT
-        Q_DECLARE_PRIVATE(ParseQuery)
-        Q_DISABLE_COPY(ParseQuery)
-        ParseQueryPrivate * const d_ptr;
-
-        friend class ParseObject;
-        ParseQuery();
-
     public:
-        ~ParseQuery();
+        ParseQuery(const QString &className);
+
+        template <class T>
+        static ParseQuery * createQuery()
+        {
+            return new ParseQuery(T::staticMetaObject->className());
+        }
+
+        template <class T>
+        T * first() const
+        {
+            T * pObject = nullptr;
+            if (_list.size() > 0)
+                pObject = qobject_cast<T*>(_list.first());
+
+            return pObject;
+        }
+
+        template <class T>
+        const QList<T*> & results() const
+        {
+            QList<T*> objects;
+
+            for (auto & pObject : _list)
+                objects.append(qobject_cast<T*>(pObject));
+
+            return objects;
+        }
+
+        void clearResults();
+        ParseObject * firstObject() const;
+        const QList<ParseObject*> & resultObjects() const;
+
+        QString className() const { return _className; }
+        ParseQuery * orderByAscending(const QByteArray &propertyName);
+        ParseQuery * orderByDescending(const QByteArray &propertyName);
+        ParseQuery * setLimit(int limit);
+        ParseQuery * setSkip(int skip);
+
+        QUrlQuery urlQuery() const;
+
+    public slots:
+        void get(const QString &objectId);
+        void find();
+        void count();
+
+    signals:
+        void getFinished(int errorCode);
+        void findFinished(int count, int errorCode);
+        void countFinished(int count, int errorCode);
+
+    private:
+        friend class ParseClientPrivate;
+        void setResults(const QList<ParseObject*> &objects);
+
+    private:
+        QString _className;
+        QList<ParseObject*> _list;
     };
 }
 

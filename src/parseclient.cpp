@@ -17,6 +17,7 @@
 #include "parseclient_p.h"
 #include "parseobject.h"
 #include "parseuser.h"
+#include "parsequery.h"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -26,7 +27,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QJsonArray>
 #include <QCoreApplication>
+#include <QDebug>
 
 namespace cg {
     ParseClient * ParseClientPrivate::instance = nullptr;
@@ -39,6 +42,9 @@ namespace cg {
         userAgent = QString("%1 %2").arg(QCoreApplication::applicationName())
             .arg(QCoreApplication::applicationVersion()).toUtf8();
         nam = new QNetworkAccessManager(this);
+
+        qRegisterMetaType<ParseObject*>();
+        qRegisterMetaType<ParseUser*>();
     }
 
     ParseClientPrivate::~ParseClientPrivate()
@@ -135,248 +141,6 @@ namespace cg {
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::loginFinished);
     }
 
-    void ParseClient::logout()
-    {
-        Q_D(ParseClient);
-
-        if (!d->currentUser)
-            return;
-
-        QNetworkRequest request = d->buildRequest("/parse/logout", QUrlQuery(), false);
-        request.setRawHeader("X-Parse-Session-Token", d->currentUser->sessionToken().toUtf8());
-        QNetworkReply *pReply = d->nam->post(request, QByteArray());
-        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::logoutFinished);
-    }
-
-    void ParseClient::become(const QString &sessionToken)
-    {
-        sessionToken;
-    }
-
-    void ParseClient::requestPasswordReset(const QString &email)
-    {
-        email;
-    }
-
-    void ParseClient::signUpUser(ParseUser *pUser)
-    {
-        Q_D(ParseClient);
-
-        if (!pUser)
-            return;
-
-        QVariantMap map;
-        QList<QByteArray> names = pUser->propertyNames();
-        for (auto & name : names)
-            map.insert(name, pUser->property(name));
-
-        QJsonObject object = QJsonObject::fromVariantMap(map);
-        QJsonDocument doc(object);
-        QByteArray content = doc.toJson();
-
-        QNetworkRequest request = d->buildRequest("/parse/users");
-        request.setRawHeader("X-Parse-Revocable-Session", "1");
-        QNetworkReply *pReply = d->nam->post(request, content);
-        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::signUpUserFinished);
-        d->replyMap.insert(pReply, pUser);
-    }
-
-    void ParseClient::deleteUser(ParseUser * pUser)
-    {
-        Q_D(ParseClient);
-
-        if (!pUser || pUser->objectId().isEmpty() || pUser->sessionToken().isEmpty())
-            return;
-
-        QNetworkRequest request = d->buildRequest("/parse/users/" + pUser->objectId(), QUrlQuery(), false);
-        request.setRawHeader("X-Parse-Session-Token", pUser->sessionToken().toUtf8());
-        QNetworkReply *pReply = d->nam->deleteResource(request);
-        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::deleteUserFinished);
-        d->replyMap.insert(pReply, pUser);
-    }
-
-    void ParseClient::createObject(ParseObject *pObject)
-    {
-        Q_D(ParseClient);
-
-        if (!pObject)
-            return;
-
-        QVariantMap map;
-        for (auto & name : pObject->propertyNames())
-            map.insert(name, pObject->property(name));
-
-        QJsonObject object = QJsonObject::fromVariantMap(map);
-        QJsonDocument doc(object);
-        QByteArray content = doc.toJson();
-
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className());
-        QNetworkReply *pReply = d->nam->post(request, content);
-        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::createObjectFinished);
-        d->replyMap.insert(pReply, pObject);
-    }
-
-    void ParseClient::fetchObject(ParseObject *pObject)
-    {
-        Q_D(ParseClient);
-
-        if (!pObject)
-            return;
-
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId(), 
-            QUrlQuery(), false);
-        QNetworkReply *pReply = d->nam->get(request);
-        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::fetchObjectFinished);
-        d->replyMap.insert(pReply, pObject);
-    }
-
-    void ParseClient::updateObject(ParseObject *pObject)
-    {
-        Q_D(ParseClient);
-
-        if (!pObject || pObject->objectId().isEmpty())
-            return;
-
-        QVariantMap map;
-        for (auto & name : pObject->propertyNames())
-        {
-            if (pObject->isDirty(name))
-                map.insert(name, pObject->property(name));
-        }
-
-        QJsonObject object = QJsonObject::fromVariantMap(map);
-        QJsonDocument doc(object);
-        QByteArray content = doc.toJson();
-
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId());
-        QNetworkReply *pReply = d->nam->put(request, content);
-        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::updateObjectFinished);
-        d->replyMap.insert(pReply, pObject);
-    }
-
-    void ParseClient::deleteObject(ParseObject *pObject)
-    {
-        Q_D(ParseClient);
-
-        if (!pObject || pObject->objectId().isEmpty())
-            return;
-
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId(), QUrlQuery(), false);
-        QNetworkReply *pReply = d->nam->deleteResource(request);
-        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::deleteObjectFinished);
-        d->replyMap.insert(pReply, pObject);
-    }
-
-    void ParseClientPrivate::createObjectFinished()
-    {
-        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
-        if (pReply)
-        {
-            ParseObject *pObject = replyMap.value(pReply);
-            if (pObject)
-            {
-                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
-                if (doc.isObject())
-                {
-                    QVariantMap map;
-                    QJsonObject obj = doc.object();
-                    map = obj.toVariantMap();
-
-                    QDateTime createdAtDateTime = map.value(ParseObject::CreatedAtPropertyName).toDateTime();
-
-                    pObject->setProperty(ParseObject::ObjectIdPropertyName, map.value(ParseObject::ObjectIdPropertyName));
-                    pObject->setProperty(ParseObject::CreatedAtPropertyName, createdAtDateTime);
-                    pObject->setProperty(ParseObject::UpdatedAtPropertyName, createdAtDateTime);
-                    pObject->setDirty(false);
-                }
-
-                emit pObject->saveFinished(pReply->error());
-                emit q_ptr->createObjectFinished(pObject, pReply->error());
-            }
-
-            replyMap.remove(pReply);
-            pReply->deleteLater();
-        }
-    }
-
-    void ParseClientPrivate::fetchObjectFinished()
-    {
-        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
-        if (pReply)
-        {
-            ParseObject *pObject = replyMap.value(pReply);
-            if (pObject)
-            {
-                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
-                if (doc.isObject())
-                {
-                    QVariantMap map;
-                    QJsonObject obj = doc.object();
-                    map = obj.toVariantMap();
-
-                    for (auto & key : map.keys())
-                    {
-                        pObject->setProperty(key.toUtf8(), map.value(key));
-                    }
-
-                    pObject->setDirty(false);
-                }
-
-                emit pObject->fetchFinished(pReply->error());
-                emit q_ptr->fetchObjectFinished(pObject, pReply->error());
-            }
-
-            replyMap.remove(pReply);
-            pReply->deleteLater();
-        }
-    }
-
-    void ParseClientPrivate::updateObjectFinished()
-    {
-        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
-        if (pReply)
-        {
-            ParseObject *pObject = replyMap.value(pReply);
-            if (pObject)
-            {
-                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
-                if (doc.isObject())
-                {
-                    QVariantMap map;
-                    QJsonObject obj = doc.object();
-                    map = obj.toVariantMap();
-
-                    pObject->setProperty(ParseObject::UpdatedAtPropertyName, 
-                        map.value(ParseObject::UpdatedAtPropertyName).toDateTime());
-                    pObject->setDirty(false);
-                }
-
-                emit pObject->saveFinished(pReply->error());
-                emit q_ptr->updateObjectFinished(pObject, pReply->error());
-            }
-
-            replyMap.remove(pReply);
-            pReply->deleteLater();
-        }
-    }
-
-    void ParseClientPrivate::deleteObjectFinished()
-    {
-        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
-        if (pReply)
-        {
-            ParseObject *pObject = replyMap.value(pReply);
-            if (pObject)
-            {
-                emit pObject->deleteFinished(pReply->error());
-                emit q_ptr->deleteObjectFinished(pObject, pReply->error());
-            }
-
-            replyMap.remove(pReply);
-            pReply->deleteLater();
-        }
-    }
-
     void ParseClientPrivate::loginFinished()
     {
         QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
@@ -410,6 +174,19 @@ namespace cg {
         pReply->deleteLater();
     }
 
+    void ParseClient::logout()
+    {
+        Q_D(ParseClient);
+
+        if (!d->currentUser)
+            return;
+
+        QNetworkRequest request = d->buildRequest("/parse/logout", QUrlQuery(), false);
+        request.setRawHeader("X-Parse-Session-Token", d->currentUser->sessionToken().toUtf8());
+        QNetworkReply *pReply = d->nam->post(request, QByteArray());
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::logoutFinished);
+    }
+
     void ParseClientPrivate::logoutFinished()
     {
         QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
@@ -427,12 +204,37 @@ namespace cg {
         pReply->deleteLater();
     }
 
-    void ParseClientPrivate::becomeFinished()
+    void ParseClient::become(const QString &sessionToken)
     {
+        sessionToken;
     }
 
-    void ParseClientPrivate::requestPasswordResetFinished()
+    void ParseClient::requestPasswordReset(const QString &email)
     {
+        email;
+    }
+
+    void ParseClient::signUpUser(ParseUser *pUser)
+    {
+        Q_D(ParseClient);
+
+        if (!pUser)
+            return;
+
+        QVariantMap map;
+        QList<QByteArray> names = pUser->propertyNames();
+        for (auto & name : names)
+            map.insert(name, pUser->property(name));
+
+        QJsonObject object = QJsonObject::fromVariantMap(map);
+        QJsonDocument doc(object);
+        QByteArray content = doc.toJson();
+
+        QNetworkRequest request = d->buildRequest("/parse/users");
+        request.setRawHeader("X-Parse-Revocable-Session", "1");
+        QNetworkReply *pReply = d->nam->post(request, content);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::signUpUserFinished);
+        d->replyObjectMap.insert(pReply, pUser);
     }
 
     void ParseClientPrivate::signUpUserFinished()
@@ -440,7 +242,7 @@ namespace cg {
         QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
         if (pReply)
         {
-            ParseUser *pUser = static_cast<ParseUser*>(replyMap.value(pReply));
+            ParseUser *pUser = static_cast<ParseUser*>(replyObjectMap.value(pReply));
             if (pUser)
             {
                 int statusCode = pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -466,9 +268,23 @@ namespace cg {
                 emit q_ptr->signUpUserFinished(pUser, statusCode);
             }
 
-            replyMap.remove(pReply);
+            replyObjectMap.remove(pReply);
             pReply->deleteLater();
         }
+    }
+
+    void ParseClient::deleteUser(ParseUser * pUser)
+    {
+        Q_D(ParseClient);
+
+        if (!pUser || pUser->objectId().isEmpty() || pUser->sessionToken().isEmpty())
+            return;
+
+        QNetworkRequest request = d->buildRequest("/parse/users/" + pUser->objectId(), QUrlQuery(), false);
+        request.setRawHeader("X-Parse-Session-Token", pUser->sessionToken().toUtf8());
+        QNetworkReply *pReply = d->nam->deleteResource(request);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::deleteUserFinished);
+        d->replyObjectMap.insert(pReply, pUser);
     }
 
     void ParseClientPrivate::deleteUserFinished()
@@ -476,14 +292,570 @@ namespace cg {
         QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
         if (pReply)
         {
-            ParseUser *pUser = static_cast<ParseUser*>(replyMap.value(pReply));
+            ParseUser *pUser = static_cast<ParseUser*>(replyObjectMap.value(pReply));
             if (pUser)
             {
                 emit pUser->deleteUserFinished(pReply->error());
                 emit q_ptr->deleteUserFinished(pUser, pReply->error());
             }
 
-            replyMap.remove(pReply);
+            replyObjectMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+
+    void ParseClient::createObject(ParseObject *pObject)
+    {
+        Q_D(ParseClient);
+
+        if (!pObject)
+            return;
+
+        QVariantMap map;
+        for (auto & name : pObject->propertyNames())
+            map.insert(name, pObject->property(name));
+
+        QJsonObject object = QJsonObject::fromVariantMap(map);
+        QJsonDocument doc(object);
+        QByteArray content = doc.toJson();
+
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className());
+        QNetworkReply *pReply = d->nam->post(request, content);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::createObjectFinished);
+        d->replyObjectMap.insert(pReply, pObject);
+    }
+
+    void ParseClientPrivate::createObjectFinished()
+    {
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            ParseObject *pObject = replyObjectMap.value(pReply);
+            if (pObject)
+            {
+                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+                if (doc.isObject())
+                {
+                    QVariantMap map;
+                    QJsonObject obj = doc.object();
+                    map = obj.toVariantMap();
+
+                    QDateTime createdAtDateTime = map.value(ParseObject::CreatedAtPropertyName).toDateTime();
+
+                    pObject->setProperty(ParseObject::ObjectIdPropertyName, map.value(ParseObject::ObjectIdPropertyName));
+                    pObject->setProperty(ParseObject::CreatedAtPropertyName, createdAtDateTime);
+                    pObject->setProperty(ParseObject::UpdatedAtPropertyName, createdAtDateTime);
+                    pObject->setDirty(false);
+                }
+
+                emit pObject->saveFinished(pReply->error());
+                emit q_ptr->createObjectFinished(pObject, pReply->error());
+            }
+
+            replyObjectMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+
+    void ParseClient::fetchObject(ParseObject *pObject)
+    {
+        Q_D(ParseClient);
+
+        if (!pObject)
+            return;
+
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId(), 
+            QUrlQuery(), false);
+        QNetworkReply *pReply = d->nam->get(request);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::fetchObjectFinished);
+        d->replyObjectMap.insert(pReply, pObject);
+    }
+
+    void ParseClientPrivate::fetchObjectFinished()
+    {
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            ParseObject *pObject = replyObjectMap.value(pReply);
+            if (pObject)
+            {
+                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+                if (doc.isObject())
+                {
+                    QVariantMap map;
+                    QJsonObject obj = doc.object();
+                    map = obj.toVariantMap();
+
+                    for (auto & key : map.keys())
+                    {
+                        pObject->setProperty(key.toUtf8(), map.value(key));
+                    }
+
+                    pObject->setDirty(false);
+                }
+
+                emit pObject->fetchFinished(pReply->error());
+                emit q_ptr->fetchObjectFinished(pObject, pReply->error());
+            }
+
+            replyObjectMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+
+    void ParseClient::updateObject(ParseObject *pObject)
+    {
+        Q_D(ParseClient);
+
+        if (!pObject || pObject->objectId().isEmpty())
+            return;
+
+        QVariantMap map;
+        for (auto & name : pObject->propertyNames())
+        {
+            if (pObject->isDirty(name))
+                map.insert(name, pObject->property(name));
+        }
+
+        QJsonObject object = QJsonObject::fromVariantMap(map);
+        QJsonDocument doc(object);
+        QByteArray content = doc.toJson();
+
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId());
+        QNetworkReply *pReply = d->nam->put(request, content);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::updateObjectFinished);
+        d->replyObjectMap.insert(pReply, pObject);
+    }
+
+    void ParseClientPrivate::updateObjectFinished()
+    {
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            ParseObject *pObject = replyObjectMap.value(pReply);
+            if (pObject)
+            {
+                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+                if (doc.isObject())
+                {
+                    QVariantMap map;
+                    QJsonObject obj = doc.object();
+                    map = obj.toVariantMap();
+
+                    pObject->setProperty(ParseObject::UpdatedAtPropertyName,
+                        map.value(ParseObject::UpdatedAtPropertyName).toDateTime());
+                    pObject->setDirty(false);
+                }
+
+                emit pObject->saveFinished(pReply->error());
+                emit q_ptr->updateObjectFinished(pObject, pReply->error());
+            }
+
+            replyObjectMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+
+    void ParseClient::deleteObject(ParseObject *pObject)
+    {
+        Q_D(ParseClient);
+
+        if (!pObject || pObject->objectId().isEmpty())
+            return;
+
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId(), QUrlQuery(), false);
+        QNetworkReply *pReply = d->nam->deleteResource(request);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::deleteObjectFinished);
+        d->replyObjectMap.insert(pReply, pObject);
+    }
+
+    void ParseClientPrivate::deleteObjectFinished()
+    {
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            ParseObject *pObject = replyObjectMap.value(pReply);
+            if (pObject)
+            {
+                emit pObject->deleteFinished(pReply->error());
+                emit q_ptr->deleteObjectFinished(pObject, pReply->error());
+            }
+
+            replyObjectMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+
+    void ParseClient::createAll(const QList<ParseObject*> &objects)
+    {
+        Q_D(ParseClient);
+
+        if (objects.size() == 0)
+            return;
+
+        QString pathStr = "/parse/classes/";
+        QJsonArray requestsArray;
+
+        for (auto & pObject : objects)
+        {
+            QVariantMap map;
+            for (auto & name : pObject->propertyNames())
+                map.insert(name, pObject->property(name));
+
+            QJsonObject bodyObject = QJsonObject::fromVariantMap(map);
+
+            QString apiPath = pathStr + pObject->className();
+            QJsonObject requestObject;
+            requestObject.insert("method", "POST");
+            requestObject.insert("path", apiPath);
+            requestObject.insert("body", bodyObject);
+            requestsArray.append(requestObject);
+        }
+
+        QJsonObject contentObject;
+        contentObject.insert("requests", requestsArray);
+        QJsonDocument doc(contentObject);
+        QByteArray content = doc.toJson();
+
+        QNetworkRequest request = d->buildRequest("/parse/batch");
+        QNetworkReply *pReply = d->nam->post(request, content);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::createAllFinished);
+        d->replyObjectListMap.insert(pReply, objects);
+    }
+
+    void ParseClientPrivate::createAllFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            QList<ParseObject*> objects = replyObjectListMap.value(pReply);
+            QByteArray bytes = pReply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(bytes);
+            if (doc.isArray())
+            {
+                QJsonArray resultsArray = doc.array();
+                for (int i = 0; i < resultsArray.size(); i++)
+                {
+                    QJsonObject arrayObject = resultsArray.at(i).toObject();
+                    if (arrayObject.contains("success"))
+                    {
+                        QJsonObject successObject = arrayObject.value("success").toObject();
+                        QString objectId = successObject.value(ParseObject::ObjectIdPropertyName).toString();
+                        QString createdAtStr = successObject.value(ParseObject::CreatedAtPropertyName).toString();
+                        QDateTime createdAt = QDateTime::fromString(createdAtStr, Qt::ISODateWithMs);
+
+                        ParseObject *pObject = objects.at(i);
+                        pObject->setProperty(ParseObject::ObjectIdPropertyName, objectId);
+                        pObject->setProperty(ParseObject::CreatedAtPropertyName, createdAt);
+                        pObject->setProperty(ParseObject::UpdatedAtPropertyName, createdAt);
+                        pObject->setDirty(false);
+                    }
+                }
+            }
+
+            emit q_ptr->createAllFinished(pReply->error());
+
+            replyObjectListMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+
+    void ParseClient::updateAll(const QList<ParseObject*> &objects)
+    {
+        Q_D(ParseClient);
+
+        if (objects.size() == 0)
+            return;
+
+        QString pathStr = "/parse/classes/";
+        QJsonArray requestsArray;
+
+        for (auto & pObject : objects)
+        {
+            QVariantMap map;
+            for (auto & name : pObject->propertyNames())
+            {
+                if (pObject->isDirty(name))
+                    map.insert(name, pObject->property(name));
+            }
+
+            QJsonObject bodyObject = QJsonObject::fromVariantMap(map);
+
+            QString apiPath = pathStr + pObject->className() + "/" + pObject->objectId();
+            QJsonObject requestObject;
+            requestObject.insert("method", "PUT");
+            requestObject.insert("path", apiPath);
+            requestObject.insert("body", bodyObject);
+            requestsArray.append(requestObject);
+        }
+
+        QJsonObject contentObject;
+        contentObject.insert("requests", requestsArray);
+        QJsonDocument doc(contentObject);
+        QByteArray content = doc.toJson();
+
+        QNetworkRequest request = d->buildRequest("/parse/batch");
+        QNetworkReply *pReply = d->nam->post(request, content);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::updateAllFinished);
+        d->replyObjectListMap.insert(pReply, objects);
+    }
+
+    void ParseClientPrivate::updateAllFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            QList<ParseObject*> objects = replyObjectListMap.value(pReply);
+            QByteArray bytes = pReply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(bytes);
+            if (doc.isArray())
+            {
+                QJsonArray resultsArray = doc.array();
+                for (int i = 0; i < resultsArray.size(); i++)
+                {
+                    QJsonObject arrayObject = resultsArray.at(i).toObject();
+                    if (arrayObject.contains("success"))
+                    {
+                    }
+                }
+            }
+
+            emit q_ptr->updateAllFinished(pReply->error());
+
+            replyObjectListMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+
+    void ParseClient::deleteAll(const QList<ParseObject*> &objects)
+    {
+        Q_D(ParseClient);
+
+        if (objects.size() == 0)
+            return;
+
+        QString pathStr = "/parse/classes/";
+        QJsonArray requestsArray;
+
+        for (auto & pObject : objects)
+        {
+            QString apiPath = pathStr + pObject->className() + "/" + pObject->objectId();
+            QJsonObject requestObject;
+            requestObject.insert("method", "DELETE");
+            requestObject.insert("path", apiPath);
+            requestsArray.append(requestObject);
+        }
+
+        QJsonObject contentObject;
+        contentObject.insert("requests", requestsArray);
+        QJsonDocument doc(contentObject);
+        QByteArray content = doc.toJson();
+
+        QNetworkRequest request = d->buildRequest("/parse/batch");
+        QNetworkReply *pReply = d->nam->post(request, content);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::deleteAllFinished);
+        d->replyObjectListMap.insert(pReply, objects);
+    }
+
+    void ParseClientPrivate::deleteAllFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            QList<ParseObject*> objects = replyObjectListMap.value(pReply);
+            QByteArray bytes = pReply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(bytes);
+            if (doc.isArray())
+            {
+                QJsonArray resultsArray = doc.array();
+                for (int i = 0; i < resultsArray.size(); i++)
+                {
+                    QJsonObject arrayObject = resultsArray.at(i).toObject();
+                    if (arrayObject.contains("success"))
+                    {
+                    }
+                }
+            }
+
+            emit q_ptr->deleteAllFinished(pReply->error());
+
+            replyObjectListMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+        
+    void ParseClientPrivate::becomeFinished()
+    {
+    }
+
+    void ParseClientPrivate::requestPasswordResetFinished()
+    {
+    }
+
+    void ParseClient::getObject(ParseQuery *pQuery, const QString &objectId)
+    {
+        Q_D(ParseClient);
+
+        if (!pQuery || pQuery->className().isEmpty())
+            return;
+
+        QString queryStr = QString("where={\"objectId\":\"%1\"}").arg(objectId);
+
+        QUrlQuery urlQuery;
+        urlQuery.setQuery(queryStr);
+
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className(), urlQuery, false);
+        QNetworkReply *pReply = d->nam->get(request);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::getObjectFinished);
+        d->replyQueryMap.insert(pReply, pQuery);
+    }
+
+    void ParseClientPrivate::getObjectFinished()
+    {
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            ParseQuery *pQuery = replyQueryMap.value(pReply);
+            if (pQuery)
+            {
+                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+                if (doc.isObject())
+                {
+                    QJsonObject obj = doc.object();
+                    QJsonArray resultsArray = obj.value("results").toArray();
+
+                    QList<ParseObject*> objects;
+                    for (auto & value : resultsArray)
+                    {
+                        if (value.isObject())
+                        {
+                            QVariantMap map = value.toObject().toVariantMap();
+                            QString objectId = map.value(ParseObject::ObjectIdPropertyName).toString();
+                            if (!objectId.isEmpty())
+                            {
+                                ParseObject *pObject = new ParseObject(pQuery->className());
+                                for (auto &key : map.keys())
+                                {
+                                    pObject->setProperty(key.toUtf8(), map.value(key));
+                                }
+                                pObject->setDirty(false);
+                                objects.append(pObject);
+                            }
+                        }
+                    }
+                    if (objects.size() > 0)
+                    {
+                        pQuery->setResults(objects);
+                    }
+                }
+
+                emit pQuery->getFinished(pReply->error());
+                emit q_ptr->getObjectFinished(pReply->error());
+            }
+
+            replyQueryMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+
+    void ParseClient::findObjects(ParseQuery *pQuery)
+    {
+        Q_D(ParseClient);
+
+        if (!pQuery || pQuery->className().isEmpty())
+            return;
+
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className(), pQuery->urlQuery(), false);
+        QNetworkReply *pReply = d->nam->get(request);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::findObjectsFinished);
+        d->replyQueryMap.insert(pReply, pQuery);
+    }
+
+    void ParseClientPrivate::findObjectsFinished()
+    {
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            ParseQuery *pQuery = replyQueryMap.value(pReply);
+            if (pQuery)
+            {
+                int count = 0;
+                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+                if (doc.isObject())
+                {
+                    QJsonObject obj = doc.object();
+                    QJsonArray resultsArray = obj.value("results").toArray();
+
+                    QList<ParseObject*> objects;
+                    for (auto & value : resultsArray)
+                    {
+                        if (value.isObject())
+                        {
+                            QVariantMap map = value.toObject().toVariantMap();
+                            QString objectId = map.value(ParseObject::ObjectIdPropertyName).toString();
+                            if (!objectId.isEmpty())
+                            {
+                                ParseObject *pObject = new ParseObject(pQuery->className());
+                                for (auto &key : map.keys())
+                                {
+                                    pObject->setProperty(key.toUtf8(), map.value(key));
+                                }
+                                pObject->setDirty(false);
+                                objects.append(pObject);
+                            }
+                        }
+                    }
+                    if (objects.size() > 0)
+                    {
+                        pQuery->setResults(objects);
+                        count = objects.size();
+                    }
+                }
+
+                emit pQuery->findFinished(count, pReply->error());
+                emit q_ptr->findObjectsFinished(count, pReply->error());
+            }
+
+            replyQueryMap.remove(pReply);
+            pReply->deleteLater();
+        }
+    }
+
+    void ParseClient::countObjects(ParseQuery *pQuery)
+    {
+        Q_D(ParseClient);
+
+        if (!pQuery || pQuery->className().isEmpty())
+            return;
+
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className(), pQuery->urlQuery(), false);
+        QNetworkReply *pReply = d->nam->get(request);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::countObjectsFinished);
+        d->replyQueryMap.insert(pReply, pQuery);
+    }
+
+    void ParseClientPrivate::countObjectsFinished()
+    {
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (pReply)
+        {
+            ParseQuery *pQuery = replyQueryMap.value(pReply);
+            if (pQuery)
+            {
+                int count = 0;
+                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+                if (doc.isObject())
+                {
+                    QJsonObject obj = doc.object();
+                    QJsonArray resultsArray = obj.value("results").toArray();
+                    count = resultsArray.size();
+                }
+
+                emit pQuery->countFinished(count, pReply->error());
+                emit q_ptr->countObjectsFinished(count, pReply->error());
+            }
+
+            replyQueryMap.remove(pReply);
             pReply->deleteLater();
         }
     }

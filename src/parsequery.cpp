@@ -14,4 +14,61 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parsequery.h"
+#include "parseclient.h"
+#include "parseobject.h"
+
+namespace cg
+{
+    ParseQuery::ParseQuery(const QString &className)
+        : QObject(ParseClient::instance())
+    {
+        _className = className;
+    }
+
+    void ParseQuery::get(const QString &objectId)
+    {
+        ParseClient::instance()->getObject(this, objectId);
+    }
+
+    void ParseQuery::find()
+    {
+        QStringList parameters;
+        ParseClient::instance()->findObjects(this);
+    }
+
+    void ParseQuery::count()
+    {
+        QStringList parameters;
+        ParseClient::instance()->countObjects(this);
+    }
+
+    void ParseQuery::setResults(const QList<ParseObject*> &objects)
+    {
+        clearResults();
+        _list = objects;
+    }
+
+    void ParseQuery::clearResults()
+    {
+        for (auto & pObject : _list)
+            delete pObject;
+
+        _list.clear();
+    }
+
+    ParseObject * ParseQuery::firstObject() const
+    {
+        return _list.first();
+    }
+
+    const QList<ParseObject*> & ParseQuery::resultObjects() const
+    {
+        return _list;
+    }
+
+    QUrlQuery ParseQuery::urlQuery() const
+    {
+        return QUrlQuery();
+    }
+}
 
