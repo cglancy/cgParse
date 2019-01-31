@@ -35,6 +35,8 @@ namespace cg
         ParseUser();
         ~ParseUser();
 
+        ParseUser * clone() const override;
+
         bool isAuthenticated() const;
 
         QString username() const;

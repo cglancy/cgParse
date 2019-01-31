@@ -55,6 +55,20 @@ namespace cg {
     {
     }
 
+    void ParseClientPrivate::setCurrentUser(ParseUser *pUser)
+    {
+        if (currentUser)
+        {
+            delete currentUser;
+            currentUser = nullptr;
+        }
+
+        if (pUser)
+        {
+            currentUser = pUser->clone();
+        }
+    }
+
     //
     // ParseClient
     //
@@ -147,6 +161,7 @@ namespace cg {
 
     void ParseClientPrivate::loginFinished()
     {
+        ParseUser *pUser = nullptr;
         QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
         if (pReply)
         {
@@ -157,22 +172,18 @@ namespace cg {
                 QJsonObject obj = doc.object();
                 map = obj.toVariantMap();
 
-                if (currentUser)
-                {
-                    delete currentUser;
-                    currentUser = nullptr;
-                }
+                pUser = new ParseUser();
+                pUser->setProperty(ParseObject::ObjectIdPropertyName, map.value(ParseObject::ObjectIdPropertyName));
+                pUser->setProperty(ParseObject::CreatedAtPropertyName, map.value(ParseObject::CreatedAtPropertyName).toDateTime());
+                pUser->setProperty(ParseObject::UpdatedAtPropertyName, map.value(ParseObject::UpdatedAtPropertyName).toDateTime());
+                pUser->setProperty("username", map.value("username"));
+                pUser->setProperty("sessionToken", map.value("sessionToken"));
+                pUser->setDirty(false);
 
-                currentUser = new ParseUser();
-                currentUser->setProperty(ParseObject::ObjectIdPropertyName, map.value(ParseObject::ObjectIdPropertyName));
-                currentUser->setProperty(ParseObject::CreatedAtPropertyName, map.value(ParseObject::CreatedAtPropertyName).toDateTime());
-                currentUser->setProperty(ParseObject::UpdatedAtPropertyName, map.value(ParseObject::UpdatedAtPropertyName).toDateTime());
-                currentUser->setProperty("username", map.value("username"));
-                currentUser->setProperty("sessionToken", map.value("sessionToken"));
-                currentUser->setDirty(false);
+                setCurrentUser(pUser);
             }
 
-            emit q_ptr->loginFinished(currentUser, pReply->error());
+            emit q_ptr->loginFinished(pUser, pReply->error());
         }
 
         pReply->deleteLater();
@@ -196,12 +207,7 @@ namespace cg {
         QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
         if (pReply)
         {
-            if (currentUser)
-            {
-                delete currentUser;
-                currentUser = nullptr;
-            }
-
+            setCurrentUser(nullptr);
             emit q_ptr->logoutFinished(pReply->error());
         }
 

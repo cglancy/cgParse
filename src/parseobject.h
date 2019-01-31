@@ -46,6 +46,8 @@ namespace cg
         Q_INVOKABLE ParseObject(const QString &className);
         virtual ~ParseObject();
 
+        virtual ParseObject * clone() const;
+
         QString className() const;
         QString objectId() const;
         QDateTime createdAt() const;
@@ -58,7 +60,9 @@ namespace cg
         bool hasSameId(ParseObject *pObject) const;
 
         bool hasProperty(const QByteArray &propertyName) const;
-        QList<QByteArray> propertyNames() const;
+        QList<QByteArray> propertyNames(bool includeSystemProperites = false) const;
+        QVariantMap propertyMap(bool includeSystemProperites = false) const;
+        void setProperties(const QVariantMap &propertyMap);
 
     public slots:
         void save();
@@ -75,6 +79,7 @@ namespace cg
         void setObjectId(const QString &objectId);
         void setCreatedAt(const QDateTime &createdAt);
         void setUpdatedAt(const QDateTime &updatedAt);
+        static bool includeProperty(const QByteArray &name, bool includeSystemProperties);
 
     private:
         QString _className, _objectId;

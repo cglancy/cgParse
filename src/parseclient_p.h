@@ -62,6 +62,8 @@ namespace cg
         QMap<QNetworkReply*, QList<ParseObject*>> replyObjectListMap;
         QMap<QNetworkReply*, ParseQuery*> replyQueryMap;
         QMap<QNetworkReply*, ParseFile*> replyFileMap;
+
+        void setCurrentUser(ParseUser *pUser);
         ParseUser *currentUser;
 
         static const QString JsonContentType;

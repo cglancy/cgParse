@@ -33,6 +33,13 @@ namespace cg {
     {
     }
 
+    ParseObject * ParseObject::clone() const
+    {
+        ParseObject *pClone = new ParseObject(_className);
+        pClone->setProperties(propertyMap(true));
+        return pClone;
+    }
+
     bool ParseObject::isNew() const
     {
         return _createdAt.isNull();
@@ -120,7 +127,7 @@ namespace cg {
         return names.contains(propertyName);
     }
 
-    QList<QByteArray> ParseObject::propertyNames() const
+    QList<QByteArray> ParseObject::propertyNames(bool includeSystemProperties) const
     {
         QList<QByteArray> names = dynamicPropertyNames();
 
@@ -129,16 +136,43 @@ namespace cg {
         {
             QMetaProperty property = metaObject()->property(i);
             QByteArray name = property.name();
-            if (name != ObjectIdPropertyName &&
-                name != CreatedAtPropertyName &&
-                name != UpdatedAtPropertyName &&
-                name != "objectName")
+            if (includeProperty(name, includeSystemProperties))
             {
                 names.append(name);
             }
         }
 
         return names;
+    }
+
+    bool ParseObject::includeProperty(const QByteArray &name, bool includeSystemProperties)
+    {
+        bool include = true;
+
+        if (!includeSystemProperties &&
+           (name == ObjectIdPropertyName ||
+            name == CreatedAtPropertyName ||
+            name == UpdatedAtPropertyName ||
+            name == "objectName"))
+            include = false;
+
+        return include;
+    }
+
+    QVariantMap ParseObject::propertyMap(bool includeSystemProperties) const
+    {
+        QVariantMap map;
+        QList<QByteArray> names = propertyNames(includeSystemProperties);
+        for (auto & name : names)
+            map.insert(name, property(name));
+
+        return map;
+    }
+
+    void ParseObject::setProperties(const QVariantMap &propertyMap)
+    {
+        for (auto & name : propertyMap.keys())
+            setProperty(name.toUtf8(), propertyMap.value(name));
     }
 
     void ParseObject::save()
