@@ -52,6 +52,7 @@ namespace cg
         void become(const QString &sessionToken);
         void requestPasswordReset(const QString &email);
         void signUpUser(ParseUser *pUser);
+        void deleteSession(const QString &sessionToken);
         void deleteUser(ParseUser *pUser);
 
         void createObject(ParseObject *pObject);
@@ -74,9 +75,10 @@ namespace cg
         void loginFinished(ParseUser *pUser, int errorCode);
         void logoutFinished(int errorCode);
         void becomeFinished(ParseUser *pUser, int errorCode);
-        void requestPasswordResetFinished(int errorCode);
+        void requestPasswordResetFinished(const QString &email, int errorCode);
         void signUpUserFinished(ParseUser *pUser, int errorCode);
         void deleteUserFinished(ParseUser *pUser, int errorCode);
+        void deleteSessionFinished(const QString &sessionToken, int errorCode);
 
         void createObjectFinished(ParseObject *pObject, int errorCode);
         void fetchObjectFinished(ParseObject *pObject, int errorCode);
@@ -87,12 +89,12 @@ namespace cg
         void updateAllFinished(int errorCode);
         void deleteAllFinished(int errorCode);
 
-        void getObjectFinished(int errorCode);
-        void findObjectsFinished(int count, int errorCode);
-        void countObjectsFinished(int count, int errorCode);
+        void getObjectFinished(ParseQuery *pQuery, ParseObject *pObject, int errorCode);
+        void findObjectsFinished(ParseQuery *pQuery, const QList<ParseObject*> &objects, int errorCode);
+        void countObjectsFinished(ParseQuery *pQuery, int count, int errorCode);
 
-        void saveFileFinished(int errorCode);
-        void deleteFileFinished(int errorCode);
+        void saveFileFinished(ParseFile *pFile, int errorCode);
+        void deleteFileFinished(const QString &url, int errorCode);
     };
 }
 

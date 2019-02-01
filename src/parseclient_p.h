@@ -50,8 +50,14 @@ namespace cg
         QVariant toVariant(const QJsonValue &jsonValue, ParseObject *pParent);
         QJsonValue toJsonValue(const QVariant &variant);
         static bool isWritableProperty(const QByteArray &name);
+        void setCurrentUser(ParseUser *pUser);
+        static bool isError(int status);
+        static int statusCode(QNetworkReply *pReply);
+        static int errorCode(QNetworkReply *pReply);
 
         static ParseClient *instance;
+        static const QString JsonContentType;
+
         QByteArray applicationId;
         QByteArray clientKey;
         QByteArray apiHost;
@@ -62,11 +68,8 @@ namespace cg
         QMap<QNetworkReply*, QList<ParseObject*>> replyObjectListMap;
         QMap<QNetworkReply*, ParseQuery*> replyQueryMap;
         QMap<QNetworkReply*, ParseFile*> replyFileMap;
-
-        void setCurrentUser(ParseUser *pUser);
+        QMap<QNetworkReply*, QString> replyStringMap;
         ParseUser *currentUser;
-
-        static const QString JsonContentType;
 
     public slots:
         void loginFinished();
@@ -91,6 +94,7 @@ namespace cg
 
         void saveFileFinished();
         void deleteFileFinished();
+        void deleteSessionFinished();
     };
 }
 

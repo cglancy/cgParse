@@ -22,6 +22,9 @@
 #include <QObject>
 #include <QDir>
 
+
+class QSignalSpy;
+
 class TestCharacter : public cg::ParseObject
 {
     Q_OBJECT
@@ -81,14 +84,15 @@ class ParseTest : public QObject
     TestCharacter * createCharacter(const QString &name, const QString &imageFile = QString());
     TestQuote * createQuote(TestCharacter *character, int rank, const QString &quote);
     void deleteTestObjects();
+    static int getListCount(QSignalSpy &spy, int argIndex);
 
 private slots:
     void initTestCase();
     void cleanupTestCase();
 
     void testObject();
-    void testObjectSubclass();
-    void testUser();
+    void testUserSignUp();
+    void testUserLogin();
     void testGetQuery();
     void testFindAllQuery();
     void testCountQuery();

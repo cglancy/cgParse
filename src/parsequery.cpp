@@ -27,7 +27,6 @@ namespace cg
 
     ParseQuery::~ParseQuery()
     {
-        clearResults();
     }
 
     void ParseQuery::get(const QString &objectId)
@@ -45,30 +44,6 @@ namespace cg
     {
         QStringList parameters;
         ParseClient::instance()->countObjects(this);
-    }
-
-    void ParseQuery::setResults(const QList<ParseObject*> &objects)
-    {
-        clearResults();
-        _list = objects;
-    }
-
-    void ParseQuery::clearResults()
-    {
-        for (auto & pObject : _list)
-            delete pObject;
-
-        _list.clear();
-    }
-
-    ParseObject * ParseQuery::firstObject() const
-    {
-        return _list.first();
-    }
-
-    const QList<ParseObject*> & ParseQuery::resultObjects() const
-    {
-        return _list;
     }
 
     QUrlQuery ParseQuery::urlQuery() const

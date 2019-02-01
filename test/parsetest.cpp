@@ -29,6 +29,7 @@
 #include <QDebug>
 #include <QScopedPointer>
 #include <QFileInfo>
+#include <QSequentialIterable>
 
 using namespace cg;
 
@@ -153,27 +154,27 @@ void ParseTest::createTestObjects()
 
 void ParseTest::deleteTestObjects()
 {
-    cg::ParseClient::instance()->deleteAll(_characters);
-    QSignalSpy deleteSpy(cg::ParseClient::instance(), &ParseClient::deleteAllFinished);
-    QVERIFY(deleteSpy.wait(10000));
-
-    for (auto & pCharacter : _characters)
-        delete pCharacter;
-    _characters.clear();
+    //for (auto *pFile : _files)
+    //{
+    //    cg::ParseClient::instance()->deleteFile(pFile->url(), PARSE_MASTER_KEY);
+    //    QSignalSpy fileSpy(cg::ParseClient::instance(), &ParseClient::deleteFileFinished);
+    //    QVERIFY(fileSpy.wait(10000));
+    //}
+    //_files.clear();
 
     cg::ParseClient::instance()->deleteAll(_quotes);
+    QSignalSpy deleteSpy(cg::ParseClient::instance(), &ParseClient::deleteAllFinished);
     QVERIFY(deleteSpy.wait(10000));
     for (auto & pQuote : _quotes)
         delete pQuote;
     _quotes.clear();
 
-    for (auto *pFile : _files)
-    {
-        cg::ParseClient::instance()->deleteFile(pFile->url(), PARSE_MASTER_KEY);
-        QSignalSpy fileSpy(cg::ParseClient::instance(), &ParseClient::deleteFileFinished);
-        QVERIFY(fileSpy.wait(10000));
-    }
-    _files.clear();
+    cg::ParseClient::instance()->deleteAll(_characters);
+    QVERIFY(deleteSpy.wait(10000));
+
+    for (auto & pCharacter : _characters)
+        delete pCharacter;
+    _characters.clear();
 }
 
 void ParseTest::cleanupTestCase()
@@ -183,7 +184,7 @@ void ParseTest::cleanupTestCase()
 
 void ParseTest::testObject()
 {
-    ParseObject *gameScore = new ParseObject("GameScore");
+    ParseObject *gameScore = new ParseObject("TestGameScore");
     gameScore->setProperty("score", 1337);
     gameScore->setProperty("playerName", "Sean Plott");
 
@@ -217,34 +218,50 @@ void ParseTest::testObject()
     delete gameScore;
 }
 
-void ParseTest::testObjectSubclass()
-{
-
-}
-
-void ParseTest::testUser()
+void ParseTest::testUserLogin()
 {
     ParseClient *client = ParseClient::instance();
 
+#if 0
     ParseUser *testUser = new ParseUser();
-    testUser->setUsername("testUser1");
-    testUser->setPassword("pa55w0rd");
+    testUser->setUsername("TestLogin");
+    testUser->setPassword("Parse123");
+    testUser->setEmail("charles.glancy@gmail.com");
+    QVERIFY(testUser->sessionToken().isEmpty());
+
     testUser->signUp();
     QSignalSpy signUpSpy(testUser, &ParseUser::signUpFinished);
     QVERIFY(signUpSpy.wait(10000));
+#endif
 
-    client->login(testUser->username(), testUser->password());
+    client->login("TestLogin", "Parse123");
     QSignalSpy loginSpy(client, &ParseClient::loginFinished);
     QVERIFY(loginSpy.wait(10000));
 
     ParseUser *currentUser = client->currentUser();
     QVERIFY(currentUser != nullptr);
-    QVERIFY(currentUser->hasSameId(testUser));
     QVERIFY(currentUser->isAuthenticated());
 
     client->logout();
     QSignalSpy logoutSpy(client, &ParseClient::logoutFinished);
     QVERIFY(logoutSpy.wait(10000));
+
+    currentUser = client->currentUser();
+    QVERIFY(currentUser == nullptr);
+}
+
+void ParseTest::testUserSignUp()
+{
+    ParseUser *testUser = new ParseUser();
+    testUser->setUsername("testUser1");
+    testUser->setPassword("pa55w0rd");
+    QVERIFY(testUser->sessionToken().isEmpty());
+
+    testUser->signUp();
+    QSignalSpy signUpSpy(testUser, &ParseUser::signUpFinished);
+    QVERIFY(signUpSpy.wait(10000));
+
+    QVERIFY(!testUser->sessionToken().isEmpty());
 
     testUser->deleteUser();
     QSignalSpy deleteSpy(testUser, &ParseUser::deleteUserFinished);
@@ -255,7 +272,7 @@ void ParseTest::testUser()
 
 void ParseTest::testGetQuery()
 {
-    ParseObject *gameScore = new ParseObject("GameScore");
+    ParseObject *gameScore = new ParseObject("TestGameScore");
     gameScore->setProperty("score", 1337);
     gameScore->setProperty("playerName", "Sean Plott");
     gameScore->save();
@@ -263,13 +280,13 @@ void ParseTest::testGetQuery()
     QVERIFY(saveSpy.wait(10000));
     QString id = gameScore->objectId();
 
-    ParseQuery *pQuery = new ParseQuery("GameScore");
+    ParseQuery *pQuery = new ParseQuery("TestGameScore");
     pQuery->get(id);
     QSignalSpy getSpy(pQuery, &ParseQuery::getFinished);
     QVERIFY(getSpy.wait(10000));
 
-    QCOMPARE(pQuery->resultObjects().size(), 1);
-    ParseObject *gotObject = pQuery->firstObject();
+    QList<QVariant> arguments = getSpy.takeFirst();
+    ParseObject *gotObject = qvariant_cast<ParseObject*>(arguments.at(0));
     QVERIFY(gotObject != nullptr);
     QVERIFY(gotObject->objectId() == id);
 
@@ -280,6 +297,21 @@ void ParseTest::testGetQuery()
     delete gameScore;
 }
 
+int ParseTest::getListCount(QSignalSpy &spy, int argIndex)
+{
+    int count = 0;
+
+    QList<QVariant> arguments = spy.takeFirst();
+    QVariant variant = arguments.at(argIndex);
+    if (variant.canConvert<QVariantList>())
+    {
+        QSequentialIterable iterable = variant.value<QSequentialIterable>();
+        count = iterable.size();
+    }
+
+    return count;
+}
+
 void ParseTest::testFindAllQuery()
 {
     ParseQuery *pQuery = new ParseQuery("TestCharacter");
@@ -287,8 +319,7 @@ void ParseTest::testFindAllQuery()
     QSignalSpy findSpy(pQuery, &ParseQuery::findFinished);
     QVERIFY(findSpy.wait(10000));
 
-    QCOMPARE(pQuery->resultObjects().size(), 20);
-    pQuery->clearResults();
+    QCOMPARE(getListCount(findSpy, 0), 20);
 
     delete pQuery;
 }
