@@ -154,13 +154,13 @@ void ParseTest::createTestObjects()
 
 void ParseTest::deleteTestObjects()
 {
-    //for (auto *pFile : _files)
-    //{
-    //    cg::ParseClient::instance()->deleteFile(pFile->url(), PARSE_MASTER_KEY);
-    //    QSignalSpy fileSpy(cg::ParseClient::instance(), &ParseClient::deleteFileFinished);
-    //    QVERIFY(fileSpy.wait(10000));
-    //}
-    //_files.clear();
+    for (auto *pFile : _files)
+    {
+        cg::ParseClient::instance()->deleteFile(pFile->url(), PARSE_MASTER_KEY);
+        QSignalSpy fileSpy(cg::ParseClient::instance(), &ParseClient::deleteFileFinished);
+        QVERIFY(fileSpy.wait(10000));
+    }
+    _files.clear();
 
     cg::ParseClient::instance()->deleteAll(_quotes);
     QSignalSpy deleteSpy(cg::ParseClient::instance(), &ParseClient::deleteAllFinished);
@@ -226,7 +226,7 @@ void ParseTest::testUserLogin()
     ParseUser *testUser = new ParseUser();
     testUser->setUsername("TestLogin");
     testUser->setPassword("Parse123");
-    testUser->setEmail("charles.glancy@gmail.com");
+    testUser->setEmail(PARSE_TEST_EMAIL);
     QVERIFY(testUser->sessionToken().isEmpty());
 
     testUser->signUp();
@@ -248,6 +248,13 @@ void ParseTest::testUserLogin()
 
     currentUser = client->currentUser();
     QVERIFY(currentUser == nullptr);
+}
+
+void ParseTest::testResetPassword()
+{
+#if 0
+    ParseClient::instance()->requestPasswordReset(PARSE_TEST_EMAIL);
+#endif
 }
 
 void ParseTest::testUserSignUp()

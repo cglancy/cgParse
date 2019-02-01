@@ -93,6 +93,7 @@ private slots:
     void testObject();
     void testUserSignUp();
     void testUserLogin();
+    void testResetPassword();
     void testGetQuery();
     void testFindAllQuery();
     void testCountQuery();

@@ -296,12 +296,92 @@ namespace cg {
 
     void ParseClient::become(const QString &sessionToken)
     {
-        sessionToken;
+        Q_D(ParseClient);
+
+        if (sessionToken.isEmpty())
+        {
+            emit becomeFinished(nullptr, -1);
+        }
+
+        QNetworkRequest request = d->buildRequest("/parse/users/me");
+        QNetworkReply *pReply = d->nam->get(request);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::becomeFinished);
+        d->replyStringMap.insert(pReply, sessionToken);
+    }
+
+    void ParseClientPrivate::becomeFinished()
+    {
+        Q_Q(ParseClient);
+
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = statusCode(pReply);
+        QString sessionToken = replyStringMap.take(pReply);
+        ParseUser *pUser = nullptr;
+
+        if (isError(status))
+        {
+            status = errorCode(pReply);
+        }
+        else
+        {
+            QByteArray data = pReply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            if (doc.isObject())
+            {
+                pUser = new ParseUser();
+                setObjectProperties(pUser, doc.object());
+                pUser->setDirty(false);
+
+                setCurrentUser(pUser);
+            }
+        }
+
+        emit q->becomeFinished(pUser, status);
+
+        pReply->deleteLater();
     }
 
     void ParseClient::requestPasswordReset(const QString &email)
     {
-        email;
+        Q_D(ParseClient);
+
+        if (email.isEmpty())
+        {
+            emit requestPasswordResetFinished(email, -1);
+        }
+
+        QByteArray content;
+        QJsonObject jsonObject;
+        jsonObject.insert("email", email);
+        QJsonDocument doc(jsonObject);
+        content = doc.toJson();
+
+        QNetworkRequest request = d->buildRequest("/parse/requestPasswordReset", ParseClientPrivate::JsonContentType);
+        QNetworkReply *pReply = d->nam->post(request, content);
+        connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::requestPasswordResetFinished);
+        d->replyStringMap.insert(pReply, email);
+    }
+
+    void ParseClientPrivate::requestPasswordResetFinished()
+    {
+        Q_Q(ParseClient);
+
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = statusCode(pReply);
+        QString email = replyStringMap.take(pReply);
+
+        if (isError(status))
+            status = errorCode(pReply);
+
+        emit q->requestPasswordResetFinished(email, status);
+
+        pReply->deleteLater();
     }
 
     void ParseClient::signUpUser(ParseUser *pUser)
@@ -816,14 +896,6 @@ namespace cg {
 
         emit q->deleteAllFinished(status);
         pReply->deleteLater();
-    }
-        
-    void ParseClientPrivate::becomeFinished()
-    {
-    }
-
-    void ParseClientPrivate::requestPasswordResetFinished()
-    {
     }
 
     void ParseClient::getObject(ParseQuery *pQuery, const QString &objectId)
