@@ -46,6 +46,9 @@ namespace cg
         ParseQuery * setLimit(int limit);
         ParseQuery * setSkip(int skip);
 
+        ParseQuery * whereEqualTo(const QByteArray &propertyName, const QVariant &value);
+        ParseQuery * whereFullText(const QByteArray &propertyName, const QString &text);
+
         QUrlQuery urlQuery() const;
 
     public slots:
