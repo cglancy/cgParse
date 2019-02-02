@@ -27,6 +27,7 @@ namespace cg
 {
     class ParseQuery;
     class ParseFile;
+    class ParseUser;
 
     class CGPARSE_API ParseObject : public QObject
     {
@@ -37,9 +38,9 @@ namespace cg
         Q_PROPERTY(QDateTime updatedAt READ updatedAt)
 
     public:
-        static const QString ObjectIdName;
-        static const QString CreatedAtName;
-        static const QString UpdatedAtName;
+        static const QString ObjectIdKey;
+        static const QString CreatedAtKey;
+        static const QString UpdatedAtKey;
 
     public:
         Q_INVOKABLE ParseObject(const QString &className);
@@ -54,27 +55,31 @@ namespace cg
 
         bool hasSameId(ParseObject *pObject) const;
         bool isDirty() const;
-        bool isDirty(const QString &valueName) const;
+        bool isDirty(const QString &key) const;
         void setDirty(bool dirty);
 
-        QVariant value(const QString &name) const;
-        void setValue(const QString &name, const QVariant &variant);
+        QVariant value(const QString &key) const;
+        void setValue(const QString &key, const QVariant &variant);
+        void remove(const QString &key);
 
         template <class T>
-        T object(const QString &name) const
+        T object(const QString &key) const
         {
-            return qobject_cast<T>(objectValue(name));
+            return qobject_cast<T>(objectValue(key));
         }
-        void setObject(const QString &name, ParseObject *pObject);
+        void setObject(const QString &key, ParseObject *pObject);
 
-        ParseFile* file(const QString &name) const;
-        void setFile(const QString &name, ParseFile *pFile);
+        ParseFile* file(const QString &key) const;
+        void setFile(const QString &key, ParseFile *pFile);
 
-        bool hasValue(const QString &valueName) const;
-        QStringList valueNames(bool onlyUserValues = true) const;
+        ParseUser* user(const QString &key) const;
+        void setUser(const QString &key, ParseUser *pFile);
+
+        bool contains(const QString &key) const;
+        QStringList keys(bool onlyUserValues = true) const;
         QVariantMap valueMap(bool onlyUserValues = true) const;
         void setValues(const QVariantMap &valueMap);
-        static bool isUserValue(const QString &name);
+        static bool isUserValue(const QString &key);
 
     public slots:
         void save();
@@ -88,7 +93,7 @@ namespace cg
         void valueChanged(const QString &valueName);
 
     private:
-        ParseObject *objectValue(const QString &name) const;
+        ParseObject *objectValue(const QString &key) const;
 
     private:
         QString _className;

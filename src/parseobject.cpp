@@ -16,13 +16,14 @@
 #include "parseobject.h"
 #include "parseclient.h"
 #include "parsefile.h"
+#include "parseuser.h"
 
-#include <QMetaProperty>
+#include <QJsonObject>
 
 namespace cg {
-    const QString ParseObject::ObjectIdName = QStringLiteral("objectId");
-    const QString ParseObject::CreatedAtName = QStringLiteral("createdAt");
-    const QString ParseObject::UpdatedAtName = QStringLiteral("updatedAt");
+    const QString ParseObject::ObjectIdKey = QStringLiteral("objectId");
+    const QString ParseObject::CreatedAtKey = QStringLiteral("createdAt");
+    const QString ParseObject::UpdatedAtKey = QStringLiteral("updatedAt");
 
     ParseObject::ParseObject(const QString &className)
         : QObject(ParseClient::instance()),
@@ -43,20 +44,20 @@ namespace cg {
 
     bool ParseObject::isDirty() const
     {
-        for (auto & name : valueNames())
+        for (auto & key : keys())
         {
-            if (isDirty(name))
+            if (isDirty(key))
                 return true;
         }
 
         return false;
     }
 
-    bool ParseObject::isDirty(const QString &name) const
+    bool ParseObject::isDirty(const QString &key) const
     {
-        if (_cachedValueMap.contains(name))
+        if (_cachedValueMap.contains(key))
         {
-            if (value(name) == _cachedValueMap.value(name))
+            if (value(key) == _cachedValueMap.value(key))
                 return false;
         }
 
@@ -69,14 +70,14 @@ namespace cg {
 
         if (!dirty)
         {
-            for (auto & name : valueNames())
-                _cachedValueMap.insert(name, value(name));
+            for (auto & key : keys())
+                _cachedValueMap.insert(key, value(key));
         }
     }
 
     bool ParseObject::hasSameId(ParseObject *pObject) const
     {
-        return pObject && pObject->value(ObjectIdName) == value(ObjectIdName);
+        return pObject && pObject->value(ObjectIdKey) == value(ObjectIdKey);
     }
 
     QString ParseObject::className() const
@@ -86,87 +87,104 @@ namespace cg {
 
     QString ParseObject::objectId() const
     {
-        return value(ObjectIdName).toString();
+        return value(ObjectIdKey).toString();
     }
 
     QDateTime ParseObject::createdAt() const
     {
-        return value(CreatedAtName).toDateTime();
+        return value(CreatedAtKey).toDateTime();
     }
 
     QDateTime ParseObject::updatedAt() const
     {
-        return value(UpdatedAtName).toDateTime();
+        return value(UpdatedAtKey).toDateTime();
     }
 
-    QVariant ParseObject::value(const QString &name) const
+    QVariant ParseObject::value(const QString &key) const
     {
-        return _valueMap.value(name);
+        return _valueMap.value(key);
     }
 
-    void ParseObject::setValue(const QString &name, const QVariant &variant)
+    void ParseObject::setValue(const QString &key, const QVariant &variant)
     {
-        _valueMap.insert(name, variant);
-        emit valueChanged(name);
+        _valueMap.insert(key, variant);
+        emit valueChanged(key);
     }
 
-    ParseObject * ParseObject::objectValue(const QString &name) const
+    void ParseObject::remove(const QString & key)
     {
-        return qvariant_cast<ParseObject*>(value(name));
+        QJsonObject jsonObject;
+        jsonObject.insert("__op", "Delete");
+        setValue(key, jsonObject);
     }
 
-    void ParseObject::setObject(const QString &name, ParseObject *pObject)
+    ParseObject * ParseObject::objectValue(const QString &key) const
     {
-        setValue(name, QVariant::fromValue<ParseObject*>(pObject));
+        return qvariant_cast<ParseObject*>(value(key));
     }
 
-    ParseFile* ParseObject::file(const QString &name) const
+    void ParseObject::setObject(const QString &key, ParseObject *pObject)
     {
-        return qvariant_cast<ParseFile*>(value(name));
+        setValue(key, QVariant::fromValue<ParseObject*>(pObject));
     }
 
-    void ParseObject::setFile(const QString &name, ParseFile *pFile)
+    ParseFile* ParseObject::file(const QString &key) const
     {
-        setValue(name, QVariant::fromValue<ParseFile*>(pFile));
+        return qvariant_cast<ParseFile*>(value(key));
     }
 
-    bool ParseObject::hasValue(const QString &name) const
+    void ParseObject::setFile(const QString &key, ParseFile *pFile)
     {
-        QStringList names = valueNames();
-        return names.contains(name);
+        setValue(key, QVariant::fromValue<ParseFile*>(pFile));
     }
 
-    QStringList ParseObject::valueNames(bool onlyUserValues) const
+    ParseUser * ParseObject::user(const QString & key) const
     {
-        QStringList names;
-        for (auto & name : _valueMap.keys())
+        return qvariant_cast<ParseUser*>(value(key));
+    }
+
+    void ParseObject::setUser(const QString & key, ParseUser * pUser)
+    {
+        setValue(key, QVariant::fromValue<ParseUser*>(pUser));
+    }
+
+    bool ParseObject::contains(const QString &key) const
+    {
+        QStringList list = keys();
+        return list.contains(key);
+    }
+
+    QStringList ParseObject::keys(bool onlyUserValues) const
+    {
+        QStringList list;
+        for (auto & key : _valueMap.keys())
         {
-            if (!(isUserValue(name) && onlyUserValues))
-                names.append(name);
+            if (isUserValue(key) || !onlyUserValues)
+                list.append(key);
         }
 
-        return _valueMap.keys();
+        return list;
     }
 
-    bool ParseObject::isUserValue(const QString &name)
+    bool ParseObject::isUserValue(const QString &key)
     {
-        return name != ObjectIdName && name !=CreatedAtName && name != UpdatedAtName;
+        return key != ObjectIdKey && key !=CreatedAtKey && key != UpdatedAtKey;
     }
 
     QVariantMap ParseObject::valueMap(bool onlyUserValues) const
     {
         QVariantMap map;
-        QStringList names = valueNames(onlyUserValues);
-        for (auto & name : names)
-            map.insert(name, value(name));
+        QStringList list = keys(onlyUserValues);
+        for (auto & key : list)
+            map.insert(key, value(key));
 
         return map;
     }
 
     void ParseObject::setValues(const QVariantMap &valueMap)
     {
-        for (auto & name : valueMap.keys())
-            setValue(name, valueMap.value(name));
+        for (auto & key : valueMap.keys())
+            setValue(key, valueMap.value(key));
     }
 
     void ParseObject::save()

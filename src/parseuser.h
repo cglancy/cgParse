@@ -32,12 +32,6 @@ namespace cg
         Q_PROPERTY(QString sessionToken READ sessionToken)
 
     public:
-        static const QString UsernameName;
-        static const QString PasswordName;
-        static const QString EmailName;
-        static const QString SessionTokenName;
-
-    public:
         ParseUser();
         ~ParseUser();
 

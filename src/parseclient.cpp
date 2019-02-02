@@ -947,7 +947,7 @@ namespace cg {
                     if (value.isObject())
                     {
                         QVariantMap map = value.toObject().toVariantMap();
-                        QString objectId = map.value(ParseObject::ObjectIdName).toString();
+                        QString objectId = map.value(ParseObject::ObjectIdKey).toString();
                         if (!objectId.isEmpty())
                         {
                             ParseObject *pObject = new ParseObject(pQuery->className());
@@ -1017,7 +1017,7 @@ namespace cg {
                     if (value.isObject())
                     {
                         QVariantMap map = value.toObject().toVariantMap();
-                        QString objectId = map.value(ParseObject::ObjectIdName).toString();
+                        QString objectId = map.value(ParseObject::ObjectIdKey).toString();
                         if (!objectId.isEmpty())
                         {
                             ParseObject *pObject = new ParseObject(pQuery->className());
@@ -1223,10 +1223,10 @@ namespace cg {
             if (typeStr == "Pointer")
             {
                 QString className = object.value("className").toString();
-                QString objectId = object.value(ParseObject::ObjectIdName).toString();
+                QString objectId = object.value(ParseObject::ObjectIdKey).toString();
 
                 ParseObject *pObject = new ParseObject(className);
-                pObject->setValue(ParseObject::ObjectIdName, objectId);
+                pObject->setValue(ParseObject::ObjectIdKey, objectId);
                 variant = QVariant::fromValue<ParseObject*>(pObject);
             }
             else if (typeStr == "File")
@@ -1274,7 +1274,7 @@ namespace cg {
                 QJsonObject jsonObject;
                 jsonObject.insert("__type", "Pointer");
                 jsonObject.insert("className", pObject->className());
-                jsonObject.insert(ParseObject::ObjectIdName, pObject->objectId());
+                jsonObject.insert(ParseObject::ObjectIdKey, pObject->objectId());
                 jsonValue = jsonObject;
             }
         }
@@ -1311,7 +1311,7 @@ namespace cg {
         if (!pObject)
             return jsonObject;
 
-        QStringList names = pObject->valueNames();
+        QStringList names = pObject->keys();
         for (auto & name : names)
         {
             if (ParseObject::isUserValue(name))

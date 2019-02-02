@@ -18,11 +18,6 @@
 
 namespace cg
 {
-    const QString ParseUser::UsernameName = QStringLiteral("username");
-    const QString ParseUser::PasswordName = QStringLiteral("password");
-    const QString ParseUser::EmailName = QStringLiteral("email");
-    const QString ParseUser::SessionTokenName = QStringLiteral("sessionToken");
-
     ParseUser::ParseUser()
         : ParseObject("_User")
     {
@@ -46,37 +41,37 @@ namespace cg
 
     QString ParseUser::username() const
     {
-        return value(UsernameName).toString();
+        return value("username").toString();
     }
 
     void ParseUser::setUsername(const QString &username)
     {
-        setValue(UsernameName, username);
+        setValue("username", username);
     }
 
     QString ParseUser::password() const
     {
-        return value(PasswordName).toString();
+        return value("password").toString();
     }
 
     void ParseUser::setPassword(const QString &password)
     {
-        setValue(PasswordName, password);
+        setValue("password", password);
     }
 
     QString ParseUser::email() const
     {
-        return value(EmailName).toString();
+        return value("email").toString();
     }
 
     void ParseUser::setEmail(const QString &email)
     {
-        setValue(EmailName, email);
+        setValue("email", email);
     }
 
     QString ParseUser::sessionToken() const
     {
-        return value(SessionTokenName).toString();
+        return value("sessionToken").toString();
     }
 
     void ParseUser::signUp()
