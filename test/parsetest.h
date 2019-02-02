@@ -32,6 +32,7 @@ class TestCharacter : public cg::ParseObject
     Q_PROPERTY(cg::ParseFile* picture READ picture WRITE setPicture)
 
 public:
+    Q_INVOKABLE TestCharacter();
     TestCharacter(const QString &name);
 
     QString name() const { return value("name").toString(); }
@@ -51,6 +52,7 @@ class TestQuote : public cg::ParseObject
     Q_PROPERTY(QString quote READ quote WRITE setQuote)
     Q_PROPERTY(TestCharacter* character READ character WRITE setCharacter)
 public:
+    Q_INVOKABLE TestQuote();
     TestQuote(TestCharacter *character, int rank, const QString &quote);
 
     int rank() const { return value("rank").toInt(); }
@@ -84,6 +86,9 @@ private slots:
     void testGetQuery();
     void testFindAllQuery();
     void testCountQuery();
+    void testOrderQuery();
+    void testComparisonQuery();
+    void testFullTextQuery();
 
 private:
     TestCharacter *leia, *han, *obiwan, *yoda, *luke, *palpatine, *anakin, *vader, *quigon, *nute, 

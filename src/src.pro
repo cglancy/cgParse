@@ -11,6 +11,7 @@ SOURCES += parseclient.cpp \
 	parseobject.cpp \
 	parsequery.cpp \
 	parseuser.cpp \
+	parseutil.cpp
 
 HEADERS += cgparse.h \
 	parseclient.h \
@@ -18,7 +19,8 @@ HEADERS += cgparse.h \
 	parsefile.h \
     parseobject.h \
 	parsequery.h \
-	parseuser.h
+	parseuser.h \
+	parseutil.h
 
 DEFINES += CGPARSE_EXPORTS
 

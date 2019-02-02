@@ -22,6 +22,7 @@
 #include <QObject>
 #include <QList>
 #include <QUrlQuery>
+#include <QJsonObject>
 
 namespace cg
 {
@@ -31,25 +32,59 @@ namespace cg
     {
         Q_OBJECT
     public:
-        ParseQuery(const QString &className);
         ~ParseQuery();
 
         template <class T>
         static ParseQuery * createQuery()
         {
-            return new ParseQuery(T::staticMetaObject->className());
+            return new ParseQuery(&T::staticMetaObject);
         }
 
-        QString className() const { return _className; }
-        ParseQuery * orderByAscending(const QByteArray &propertyName);
-        ParseQuery * orderByDescending(const QByteArray &propertyName);
+        const QMetaObject* queryMetaObject() const;
+        QString className() const;
+
+        ParseQuery * orderByAscending(const QString &key);
+        ParseQuery * orderByDescending(const QString &key);
         ParseQuery * setLimit(int limit);
         ParseQuery * setSkip(int skip);
+        ParseQuery * selectKeys(const QStringList &keys);
 
-        ParseQuery * whereEqualTo(const QByteArray &propertyName, const QVariant &value);
-        ParseQuery * whereFullText(const QByteArray &propertyName, const QString &text);
+        ParseQuery * whereEqualTo(const QString &key, const QVariant &value);
+        ParseQuery * whereNotEqualTo(const QString &key, const QVariant &value);
+        ParseQuery * whereGreaterThan(const QString &key, const QVariant &value);
+        ParseQuery * whereGreaterThanOrEqualTo(const QString &key, const QVariant &value);
+        ParseQuery * whereLessThan(const QString &key, const QVariant &value);
+        ParseQuery * whereLessThanOrEqualTo(const QString &key, const QVariant &value);
+        ParseQuery * whereExists(const QString &key);
+        ParseQuery * whereDoesNotExists(const QString &key);
+
+        ParseQuery * whereFullText(const QString &key, const QString &text);
+
+        void clear(const QString &key);
 
         QUrlQuery urlQuery() const;
+
+        void clearResults();
+        ParseObject * firstObject() const;
+        const QList<ParseObject*> & resultObjects() const { return _objects; }
+
+        template <class T>
+        T first() const
+        {
+            T object = nullptr;
+            if (!_objects.isEmpty())
+                object = qobject_cast<T>(_objects.first());
+            return object;
+        }
+
+        template <class T>
+        QList<T> results() const
+        {
+            QList<T> objects;
+            for (auto & pObject : _objects)
+                objects.append(qobject_cast<T>(pObject));
+            return objects;
+        }
 
     public slots:
         void get(const QString &objectId);
@@ -62,10 +97,17 @@ namespace cg
         void countFinished(int count, int errorCode);
 
     private:
-        friend class ParseClientPrivate;
+        friend ParseClientPrivate;
+        ParseQuery(const QMetaObject *pMetaObject);
+        void setResults(const QList<ParseObject*> &results);
+        void addConstraint(const QString &key, const QString &constraintKey, const QVariant &value);
 
     private:
-        QString _className;
+        const QMetaObject *_pMetaObject;
+        QList<ParseObject*> _objects;
+        QJsonObject _whereObject;
+        int _limit, _skip;
+        QStringList _keysList, _orderList;
     };
 }
 

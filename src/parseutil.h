@@ -13,53 +13,23 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEUSER_H
-#define CGPARSE_PARSEUSER_H
+#ifndef CGPARSE_PARSEUTIL_H
+#define CGPARSE_PARSEUTIL_H
 #pragma once
 
-#include "cgparse.h"
-#include "parseobject.h"
+#include <QVariant>
+#include <QJsonValue>
 
 namespace cg
 {
-    class CGPARSE_API ParseUser : public ParseObject
+    class ParseObject;
+
+    class ParseUtil
     {
-        Q_OBJECT
-        Q_DISABLE_COPY(ParseUser)
-        Q_PROPERTY(QString username READ username WRITE setUsername)
-        Q_PROPERTY(QString password READ password WRITE setPassword)
-        Q_PROPERTY(QString email READ email WRITE setEmail)
-        Q_PROPERTY(QString sessionToken READ sessionToken)
-
     public:
-        Q_INVOKABLE ParseUser();
-        ~ParseUser();
-
-        ParseUser * clone() const override;
-
-        bool isAuthenticated() const;
-
-        QString username() const;
-        void setUsername(const QString &username);
-
-        QString password() const;
-        void setPassword(const QString &password);
-
-        QString email() const;
-        void setEmail(const QString &email);
-
-        QString sessionToken() const;
-
-    public slots:
-        void signUp();
-        void deleteUser();
-
-    signals:
-        void signUpFinished(int errorCode);
-        void deleteUserFinished(int errorCode);
+        static QVariant toVariant(const QJsonValue &jsonValue, ParseObject *pParent);
+        static QJsonValue toJsonValue(const QVariant &variant);
     };
-
-    Q_DECLARE_METATYPE(ParseUser*);
 }
 
-#endif // CGPARSE_PARSEUSER_H
+#endif // CGPARSE_PARSEUTIL_H

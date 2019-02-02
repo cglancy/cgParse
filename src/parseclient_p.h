@@ -47,12 +47,11 @@ namespace cg
         QNetworkRequest buildRequest(const QString &apiRoute, const QString &contentType = QString(), const QUrlQuery &query = QUrlQuery()) const;
         void setObjectValues(ParseObject *pObject, const QJsonObject &jsonObject);
         QJsonObject toJsonObject(ParseObject *pObject, bool onlyDirtyValues = false);
-        QVariant toVariant(const QJsonValue &jsonValue, ParseObject *pParent);
-        QJsonValue toJsonValue(const QVariant &variant);
         void setCurrentUser(ParseUser *pUser);
         static bool isError(int status);
         static int statusCode(QNetworkReply *pReply);
         static int errorCode(QNetworkReply *pReply);
+        ParseObject * constructObject(const QMetaObject *pMetaObject);
 
         static ParseClient *instance;
         static const QString JsonContentType;

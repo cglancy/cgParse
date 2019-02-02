@@ -30,37 +30,25 @@
 #include <QScopedPointer>
 #include <QFileInfo>
 #include <QSequentialIterable>
+#include <QScopedPointer>
 
 using namespace cg;
 
 QTEST_MAIN(ParseTest)
 
-void ParseTest::initTestCase()
+//
+// TestCharacter
+//
+
+TestCharacter::TestCharacter()
+    : cg::ParseObject("TestCharacter")
 {
-    ParseClient::instance()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
-
-    // set name & version for user-agent
-    QCoreApplication::setApplicationName("ParseTest");
-    QCoreApplication::setApplicationVersion("0.1");
-
-    QString appDirPath = QCoreApplication::applicationDirPath();
-    _testImagesDir.setPath(appDirPath + "/../../../../test/images");
-
-    createTestObjects();
 }
 
 TestCharacter::TestCharacter(const QString &name)
     : cg::ParseObject("TestCharacter")
 {
     setValue("name", name);
-}
-
-TestQuote::TestQuote(TestCharacter *character, int rank, const QString &quote)
-    : cg::ParseObject("TestQuote")
-{
-    setObject("character", character);
-    setValue("rank", rank);
-    setValue("quote", quote);
 }
 
 TestCharacter * ParseTest::createCharacter(const QString &name, const QString &imageFile)
@@ -86,11 +74,46 @@ TestCharacter * ParseTest::createCharacter(const QString &name, const QString &i
     return character;
 }
 
+//
+// TestQuote
+//
+
+TestQuote::TestQuote()
+    : cg::ParseObject("TestQuote")
+{
+}
+
+TestQuote::TestQuote(TestCharacter *character, int rank, const QString &quote)
+    : cg::ParseObject("TestQuote")
+{
+    setObject("character", character);
+    setValue("rank", rank);
+    setValue("quote", quote);
+}
+
 TestQuote * ParseTest::createQuote(TestCharacter *character, int rank, const QString &quote)
 {
     TestQuote * quoteObject = new TestQuote(character, rank, quote);
     _quotes.append(quoteObject);
     return quoteObject;
+}
+
+//
+// ParseTest
+//
+
+void ParseTest::initTestCase()
+{
+    ParseClient::instance()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
+
+    // set name & version for user-agent
+    QCoreApplication::setApplicationName("ParseTest");
+    QCoreApplication::setApplicationVersion("0.1");
+
+    QString appDirPath = QCoreApplication::applicationDirPath();
+    _testImagesDir.setPath(appDirPath + "/../../../../test/images");
+
+    createTestObjects();
 }
 
 void ParseTest::createTestObjects()
@@ -159,6 +182,11 @@ void ParseTest::createTestObjects()
     QVERIFY(createSpy.wait(10000));
 }
 
+void ParseTest::cleanupTestCase()
+{
+    deleteTestObjects();
+}
+
 void ParseTest::deleteTestObjects()
 {
     for (auto *pFile : _files)
@@ -182,11 +210,6 @@ void ParseTest::deleteTestObjects()
     for (auto & pCharacter : _characters)
         delete pCharacter;
     _characters.clear();
-}
-
-void ParseTest::cleanupTestCase()
-{
-    deleteTestObjects();
 }
 
 void ParseTest::testObject()
@@ -289,17 +312,15 @@ void ParseTest::testUserSignUp()
 
 void ParseTest::testGetQuery()
 {
-    ParseObject *gameScore = new ParseObject("TestGameScore");
-    gameScore->setValue("score", 1337);
-    gameScore->setValue("playerName", "Sean Plott");
-    gameScore->save();
-    QSignalSpy saveSpy(gameScore, &ParseObject::saveFinished);
+    QScopedPointer<TestQuote> pQuote(new TestQuote(luke, 1, "I have a very bad feeling about this."));
+    pQuote->save();
+    QSignalSpy saveSpy(pQuote.data(), &ParseObject::saveFinished);
     QVERIFY(saveSpy.wait(10000));
-    QString id = gameScore->objectId();
+    QString id = pQuote->objectId();
 
-    ParseQuery *pQuery = new ParseQuery("TestGameScore");
+    QScopedPointer<ParseQuery> pQuery(ParseQuery::createQuery<TestQuote>());
     pQuery->get(id);
-    QSignalSpy getSpy(pQuery, &ParseQuery::getFinished);
+    QSignalSpy getSpy(pQuery.data(), &ParseQuery::getFinished);
     QVERIFY(getSpy.wait(10000));
 
     QList<QVariant> arguments = getSpy.takeFirst();
@@ -307,11 +328,9 @@ void ParseTest::testGetQuery()
     QVERIFY(gotObject != nullptr);
     QVERIFY(gotObject->objectId() == id);
 
-    gameScore->deleteObject();
-    QSignalSpy deleteSpy(gameScore, &ParseObject::deleteFinished);
+    pQuote->deleteObject();
+    QSignalSpy deleteSpy(pQuote.data(), &ParseObject::deleteFinished);
     QVERIFY(deleteSpy.wait(10000));
-
-    delete gameScore;
 }
 
 int ParseTest::getListCount(QSignalSpy &spy, int argIndex)
@@ -331,7 +350,7 @@ int ParseTest::getListCount(QSignalSpy &spy, int argIndex)
 
 void ParseTest::testFindAllQuery()
 {
-    ParseQuery *pQuery = new ParseQuery("TestCharacter");
+    ParseQuery *pQuery = ParseQuery::createQuery<TestCharacter>();
     pQuery->find();
     QSignalSpy findSpy(pQuery, &ParseQuery::findFinished);
     QVERIFY(findSpy.wait(10000));
@@ -343,7 +362,7 @@ void ParseTest::testFindAllQuery()
 
 void ParseTest::testCountQuery()
 {
-    ParseQuery *pQuery = new ParseQuery("TestQuote");
+    ParseQuery *pQuery = ParseQuery::createQuery<TestQuote>();
     pQuery->count();
     QSignalSpy countSpy(pQuery, &ParseQuery::countFinished);
     QVERIFY(countSpy.wait(10000));
@@ -352,4 +371,61 @@ void ParseTest::testCountQuery()
     QCOMPARE(arguments.at(0).toInt(), 32);
 
     delete pQuery;
+}
+
+void ParseTest::testOrderQuery()
+{
+    QScopedPointer<ParseQuery> pAscendingQuery(ParseQuery::createQuery<TestQuote>());
+    pAscendingQuery->orderByAscending("rank");
+    pAscendingQuery->find();
+    QSignalSpy ascendingSpy(pAscendingQuery.data(), &ParseQuery::findFinished);
+    QVERIFY(ascendingSpy.wait(10000));
+
+    QList<TestQuote*> quotes = pAscendingQuery->results<TestQuote*>();
+    int prevRank = 0;
+    for (auto & pQuote : quotes)
+    {
+        QVERIFY(pQuote->rank() > prevRank);
+        prevRank = pQuote->rank();
+    }
+
+    QScopedPointer<ParseQuery> pDescendingQuery(ParseQuery::createQuery<TestQuote>());
+    pDescendingQuery->orderByDescending("rank");
+    pDescendingQuery->find();
+    QSignalSpy descendingSpy(pDescendingQuery.data(), &ParseQuery::findFinished);
+    QVERIFY(descendingSpy.wait(10000));
+
+    prevRank++;
+    quotes = pDescendingQuery->results<TestQuote*>();
+    for (auto & pQuote : quotes)
+    {
+        QVERIFY(pQuote->rank() < prevRank);
+        prevRank = pQuote->rank();
+    }
+}
+
+void ParseTest::testComparisonQuery()
+{
+    {
+        QScopedPointer<ParseQuery> pEqualToQuery(ParseQuery::createQuery<TestCharacter>());
+        pEqualToQuery->whereEqualTo("name", "Yoda");
+        pEqualToQuery->find();
+        QSignalSpy spy(pEqualToQuery.data(), &ParseQuery::findFinished);
+        QVERIFY(spy.wait(10000));
+
+        TestCharacter *pFoundCharacter = pEqualToQuery->first<TestCharacter*>();
+        QVERIFY(yoda->hasSameId(pFoundCharacter));
+    }
+}
+
+void ParseTest::testFullTextQuery()
+{
+    QScopedPointer<ParseQuery> pFullTextQuery(ParseQuery::createQuery<TestQuote>());
+    pFullTextQuery->whereFullText("quote", "force");
+    pFullTextQuery->find();
+    QSignalSpy fullTextSpy(pFullTextQuery.data(), &ParseQuery::findFinished);
+    QVERIFY(fullTextSpy.wait(10000));
+
+    QList<TestQuote*> quotes = pFullTextQuery->results<TestQuote*>();
+    QCOMPARE(quotes.size(), 4);
 }

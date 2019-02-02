@@ -19,6 +19,7 @@
 #include "parseuser.h"
 #include "parsequery.h"
 #include "parsefile.h"
+#include "parseutil.h"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -352,7 +353,7 @@ namespace cg {
         QJsonObject jsonObject;
         jsonObject.insert("email", email);
         QJsonDocument doc(jsonObject);
-        content = doc.toJson();
+        content = doc.toJson(QJsonDocument::Compact);
 
         QNetworkRequest request = d->buildRequest("/parse/requestPasswordReset", ParseClientPrivate::JsonContentType);
         QNetworkReply *pReply = d->nam->post(request, content);
@@ -392,7 +393,7 @@ namespace cg {
         QVariantMap map = pUser->valueMap(true);
         QJsonObject object = QJsonObject::fromVariantMap(map);
         QJsonDocument doc(object);
-        QByteArray content = doc.toJson();
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
 
         QNetworkRequest request = d->buildRequest("/parse/users", ParseClientPrivate::JsonContentType);
         request.setRawHeader("X-Parse-Revocable-Session", "1");
@@ -496,7 +497,7 @@ namespace cg {
 
         QJsonObject object = d->toJsonObject(pObject);
         QJsonDocument doc(object);
-        QByteArray content = doc.toJson();
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
 
         QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className(), ParseClientPrivate::JsonContentType);
         QNetworkReply *pReply = d->nam->post(request, content);
@@ -598,7 +599,7 @@ namespace cg {
 
         QJsonObject object = d->toJsonObject(pObject, true);
         QJsonDocument doc(object);
-        QByteArray content = doc.toJson();
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
 
         QNetworkRequest request = d->buildRequest("/parse/classes/" + pObject->className() + "/" + pObject->objectId(), 
             ParseClientPrivate::JsonContentType);
@@ -707,7 +708,7 @@ namespace cg {
         QJsonObject contentObject;
         contentObject.insert("requests", requestsArray);
         QJsonDocument doc(contentObject);
-        QByteArray content = doc.toJson();
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
 
         QNetworkRequest request = d->buildRequest("/parse/batch", ParseClientPrivate::JsonContentType);
         QNetworkReply *pReply = d->nam->post(request, content);
@@ -783,7 +784,7 @@ namespace cg {
         QJsonObject contentObject;
         contentObject.insert("requests", requestsArray);
         QJsonDocument doc(contentObject);
-        QByteArray content = doc.toJson();
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
 
         QNetworkRequest request = d->buildRequest("/parse/batch", ParseClientPrivate::JsonContentType);
         QNetworkReply *pReply = d->nam->post(request, content);
@@ -852,7 +853,7 @@ namespace cg {
         QJsonObject contentObject;
         contentObject.insert("requests", requestsArray);
         QJsonDocument doc(contentObject);
-        QByteArray content = doc.toJson();
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
 
         QNetworkRequest request = d->buildRequest("/parse/batch", ParseClientPrivate::JsonContentType);
         QNetworkReply *pReply = d->nam->post(request, content);
@@ -907,11 +908,10 @@ namespace cg {
         }
 
         QString queryStr = QString("where={\"objectId\":\"%1\"}").arg(objectId);
-
         QUrlQuery urlQuery;
         urlQuery.setQuery(queryStr);
 
-        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className());
+        QNetworkRequest request = d->buildRequest("/parse/classes/" + pQuery->className(), QString(), urlQuery);
         QNetworkReply *pReply = d->nam->get(request);
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::getObjectFinished);
         d->replyQueryMap.insert(pReply, pQuery);
@@ -988,6 +988,21 @@ namespace cg {
         d->replyQueryMap.insert(pReply, pQuery);
     }
 
+    ParseObject * ParseClientPrivate::constructObject(const QMetaObject *pMetaObject)
+    {
+        if (!pMetaObject)
+            return nullptr;
+
+        QObject *pObject = nullptr;
+
+        if (pMetaObject->className() == "ParseObject")
+            pObject = pMetaObject->newInstance(pMetaObject->className());
+        else
+            pObject = pMetaObject->newInstance();
+
+        return qobject_cast<ParseObject*>(pObject);
+    }
+
     void ParseClientPrivate::findObjectsFinished()
     {
         Q_Q(ParseClient);
@@ -1020,13 +1035,18 @@ namespace cg {
                         QString objectId = map.value(ParseObject::ObjectIdKey).toString();
                         if (!objectId.isEmpty())
                         {
-                            ParseObject *pObject = new ParseObject(pQuery->className());
-                            pObject->setValues(map);
-                            pObject->setDirty(false);
-                            objects.append(pObject);
+                            ParseObject *pObject = constructObject(pQuery->queryMetaObject());
+                            if (pObject)
+                            {
+                                pObject->setValues(map);
+                                pObject->setDirty(false);
+                                objects.append(pObject);
+                            }
                         }
                     }
                 }
+
+                pQuery->setResults(objects);
             }
         }
         
@@ -1211,46 +1231,6 @@ namespace cg {
         pReply->deleteLater();
     }
 
-    QVariant ParseClientPrivate::toVariant(const QJsonValue &jsonValue, ParseObject *pParent)
-    {
-        Q_UNUSED(pParent);
-        QVariant variant;
-
-        if (jsonValue.isObject())
-        {
-            QJsonObject object = jsonValue.toObject();
-            QString typeStr = object.value("__type").toString();
-            if (typeStr == "Pointer")
-            {
-                QString className = object.value("className").toString();
-                QString objectId = object.value(ParseObject::ObjectIdKey).toString();
-
-                ParseObject *pObject = new ParseObject(className);
-                pObject->setValue(ParseObject::ObjectIdKey, objectId);
-                variant = QVariant::fromValue<ParseObject*>(pObject);
-            }
-            else if (typeStr == "File")
-            {
-                ParseFile *pFile = new ParseFile(pParent);
-                pFile->setName(object.value("name").toString());
-                pFile->setUrl(object.value("url").toString());
-                variant = QVariant::fromValue<ParseFile*>(pFile);
-            }
-            else if (typeStr == "Date")
-            {
-                QString isoStr = object.value("iso").toString();
-                QDateTime dateTime = QDateTime::fromString(isoStr, Qt::ISODateWithMs);
-                variant = dateTime;
-            }
-        }
-        else
-        {
-            variant = jsonValue.toVariant();
-        }
-
-        return variant;
-    }
-
     void ParseClientPrivate::setObjectValues(ParseObject *pObject, const QJsonObject &jsonObject)
     {
         if (!pObject)
@@ -1258,51 +1238,8 @@ namespace cg {
 
         for (auto & key : jsonObject.keys())
         {
-            pObject->setValue(key, toVariant(jsonObject.value(key), pObject));
+            pObject->setValue(key, ParseUtil::toVariant(jsonObject.value(key), pObject));
         }
-    }
-
-    QJsonValue ParseClientPrivate::toJsonValue(const QVariant &variant)
-    {
-        QJsonValue jsonValue;
-
-        if (variant.canConvert<ParseObject*>())
-        {
-            ParseObject *pObject = qvariant_cast<ParseObject*>(variant);
-            if (pObject)
-            {
-                QJsonObject jsonObject;
-                jsonObject.insert("__type", "Pointer");
-                jsonObject.insert("className", pObject->className());
-                jsonObject.insert(ParseObject::ObjectIdKey, pObject->objectId());
-                jsonValue = jsonObject;
-            }
-        }
-        else if (variant.canConvert<ParseFile*>())
-        {
-            ParseFile *pFile = qvariant_cast<ParseFile*>(variant);
-            if (pFile)
-            {
-                QJsonObject jsonObject;
-                jsonObject.insert("__type", "File");
-                jsonObject.insert("name", pFile->name());
-                jsonObject.insert("url", pFile->url());
-                jsonValue = jsonObject;
-            }
-        }
-        else if (variant.type() == QVariant::DateTime)
-        {
-            QJsonObject jsonObject;
-            jsonObject.insert("__type", "Date");
-            jsonObject.insert("iso", variant.toDateTime().toString(Qt::ISODateWithMs));
-            jsonValue = jsonObject;
-        }
-        else
-        {
-            jsonValue = QJsonValue::fromVariant(variant);
-        }
-            
-        return jsonValue;
     }
 
     QJsonObject ParseClientPrivate::toJsonObject(ParseObject *pObject, bool onlyDirtyProperties)
@@ -1317,9 +1254,9 @@ namespace cg {
             if (ParseObject::isUserValue(name))
             {
                 if (onlyDirtyProperties && pObject->isDirty(name))
-                    jsonObject.insert(name, toJsonValue(pObject->value(name)));
+                    jsonObject.insert(name, ParseUtil::toJsonValue(pObject->value(name)));
                 else if (!onlyDirtyProperties)
-                    jsonObject.insert(name, toJsonValue(pObject->value(name)));
+                    jsonObject.insert(name, ParseUtil::toJsonValue(pObject->value(name)));
             }
         }
 
