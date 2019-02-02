@@ -30,7 +30,6 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QCoreApplication>
-#include <QMetaProperty>
 #include <QDebug>
 
 namespace cg {
@@ -240,11 +239,7 @@ namespace cg {
                 map = obj.toVariantMap();
 
                 pUser = new ParseUser();
-                pUser->setProperty(ParseObject::ObjectIdPropertyName, map.value(ParseObject::ObjectIdPropertyName));
-                pUser->setProperty(ParseObject::CreatedAtPropertyName, map.value(ParseObject::CreatedAtPropertyName).toDateTime());
-                pUser->setProperty(ParseObject::UpdatedAtPropertyName, map.value(ParseObject::UpdatedAtPropertyName).toDateTime());
-                pUser->setProperty("username", map.value("username"));
-                pUser->setProperty("sessionToken", map.value("sessionToken"));
+                pUser->setValues(map);
                 pUser->setDirty(false);
 
                 setCurrentUser(pUser);
@@ -332,7 +327,7 @@ namespace cg {
             if (doc.isObject())
             {
                 pUser = new ParseUser();
-                setObjectProperties(pUser, doc.object());
+                setObjectValues(pUser, doc.object());
                 pUser->setDirty(false);
 
                 setCurrentUser(pUser);
@@ -394,11 +389,7 @@ namespace cg {
             return;
         }
 
-        QVariantMap map;
-        QList<QByteArray> names = pUser->propertyNames();
-        for (auto & name : names)
-            map.insert(name, pUser->property(name));
-
+        QVariantMap map = pUser->valueMap(true);
         QJsonObject object = QJsonObject::fromVariantMap(map);
         QJsonDocument doc(object);
         QByteArray content = doc.toJson();
@@ -433,7 +424,7 @@ namespace cg {
                 if (status == 201) // Created
                 {
                     QJsonObject obj = doc.object();
-                    setObjectProperties(pUser, obj);
+                    setObjectValues(pUser, obj);
                     pUser->setDirty(false);
 
                     setCurrentUser(pUser);
@@ -477,7 +468,14 @@ namespace cg {
         int status = statusCode(pReply);
 
         if (isError(status))
+        {
             status = errorCode(pReply);
+        }
+        else
+        {
+            if (pUser == currentUser)
+                setCurrentUser(nullptr);
+        }
 
         if (pUser)
             emit pUser->deleteUserFinished(status);
@@ -527,7 +525,7 @@ namespace cg {
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
-                setObjectProperties(pObject, obj);
+                setObjectValues(pObject, obj);
                 pObject->setDirty(false);
             }
         }
@@ -576,7 +574,7 @@ namespace cg {
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
-                setObjectProperties(pObject, obj);
+                setObjectValues(pObject, obj);
                 pObject->setDirty(false);
             }
         }
@@ -630,7 +628,7 @@ namespace cg {
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
-                setObjectProperties(pObject, obj);
+                setObjectValues(pObject, obj);
                 pObject->setDirty(false);
             }
         }
@@ -746,7 +744,7 @@ namespace cg {
                     {
                         QJsonObject successObject = arrayObject.value("success").toObject();
                         ParseObject *pObject = objects.at(i);
-                        setObjectProperties(pObject, successObject);
+                        setObjectValues(pObject, successObject);
                         pObject->setDirty(false);
                     }
                 }
@@ -949,14 +947,11 @@ namespace cg {
                     if (value.isObject())
                     {
                         QVariantMap map = value.toObject().toVariantMap();
-                        QString objectId = map.value(ParseObject::ObjectIdPropertyName).toString();
+                        QString objectId = map.value(ParseObject::ObjectIdName).toString();
                         if (!objectId.isEmpty())
                         {
                             ParseObject *pObject = new ParseObject(pQuery->className());
-                            for (auto &key : map.keys())
-                            {
-                                pObject->setProperty(key.toUtf8(), map.value(key));
-                            }
+                            pObject->setValues(map);
                             pObject->setDirty(false);
                             objects.append(pObject);
                         }
@@ -1022,14 +1017,11 @@ namespace cg {
                     if (value.isObject())
                     {
                         QVariantMap map = value.toObject().toVariantMap();
-                        QString objectId = map.value(ParseObject::ObjectIdPropertyName).toString();
+                        QString objectId = map.value(ParseObject::ObjectIdName).toString();
                         if (!objectId.isEmpty())
                         {
                             ParseObject *pObject = new ParseObject(pQuery->className());
-                            for (auto &key : map.keys())
-                            {
-                                pObject->setProperty(key.toUtf8(), map.value(key));
-                            }
+                            pObject->setValues(map);
                             pObject->setDirty(false);
                             objects.append(pObject);
                         }
@@ -1132,8 +1124,8 @@ namespace cg {
             if (doc.isObject() && status == 201)  // 201 = Created
             {
                 QJsonObject obj = doc.object();
-                pFile->setProperty("url", obj.value("url").toString());
-                pFile->setProperty("name", obj.value("name").toString());
+                pFile->setUrl(obj.value("url").toString());
+                pFile->setName(obj.value("name").toString());
             }
         }
 
@@ -1194,8 +1186,9 @@ namespace cg {
             return;
         }
 
-        QNetworkRequest request = d->buildRequest("/parse/sessions/" + sessionToken);
-        QNetworkReply *pReply = d->nam->deleteResource(request);
+        QNetworkRequest request = d->buildRequest("/parse/logout");
+        request.setRawHeader("X-Parse-Session-Token", sessionToken.toUtf8());
+        QNetworkReply *pReply = d->nam->post(request, QByteArray());
         connect(pReply, &QNetworkReply::finished, d, &ParseClientPrivate::deleteSessionFinished);
         d->replyStringMap.insert(pReply, sessionToken);
     }
@@ -1230,17 +1223,17 @@ namespace cg {
             if (typeStr == "Pointer")
             {
                 QString className = object.value("className").toString();
-                QString objectId = object.value(ParseObject::ObjectIdPropertyName).toString();
+                QString objectId = object.value(ParseObject::ObjectIdName).toString();
 
                 ParseObject *pObject = new ParseObject(className);
-                pObject->setProperty(ParseObject::ObjectIdPropertyName, objectId);
+                pObject->setValue(ParseObject::ObjectIdName, objectId);
                 variant = QVariant::fromValue<ParseObject*>(pObject);
             }
             else if (typeStr == "File")
             {
                 ParseFile *pFile = new ParseFile(pParent);
-                pFile->setProperty("name", object.value("name").toString());
-                pFile->setProperty("url", object.value("url").toString());
+                pFile->setName(object.value("name").toString());
+                pFile->setUrl(object.value("url").toString());
                 variant = QVariant::fromValue<ParseFile*>(pFile);
             }
             else if (typeStr == "Date")
@@ -1258,25 +1251,14 @@ namespace cg {
         return variant;
     }
 
-    void ParseClientPrivate::setObjectProperties(ParseObject *pObject, const QJsonObject &jsonObject)
+    void ParseClientPrivate::setObjectValues(ParseObject *pObject, const QJsonObject &jsonObject)
     {
         if (!pObject)
             return;
 
-        QList<QByteArray> dynamicNames = pObject->dynamicPropertyNames();
-        for (auto &name : dynamicNames)
+        for (auto & key : jsonObject.keys())
         {
-            if (jsonObject.contains(name))
-                pObject->setProperty(name, toVariant(jsonObject.value(name), pObject));
-        }
-
-        int count = pObject->metaObject()->propertyCount();
-        for (int i = 0; i < count; i++)
-        {
-            QMetaProperty property = pObject->metaObject()->property(i);
-            QByteArray name = property.name();
-            if (jsonObject.contains(name))
-                pObject->setProperty(name, toVariant(jsonObject.value(name), pObject));
+            pObject->setValue(key, toVariant(jsonObject.value(key), pObject));
         }
     }
 
@@ -1292,7 +1274,7 @@ namespace cg {
                 QJsonObject jsonObject;
                 jsonObject.insert("__type", "Pointer");
                 jsonObject.insert("className", pObject->className());
-                jsonObject.insert(ParseObject::ObjectIdPropertyName, pObject->objectId());
+                jsonObject.insert(ParseObject::ObjectIdName, pObject->objectId());
                 jsonValue = jsonObject;
             }
         }
@@ -1329,37 +1311,18 @@ namespace cg {
         if (!pObject)
             return jsonObject;
 
-        QList<QByteArray> dynamicNames = pObject->dynamicPropertyNames();
-        for (auto &name : dynamicNames)
+        QStringList names = pObject->valueNames();
+        for (auto & name : names)
         {
-            if (onlyDirtyProperties && pObject->isDirty(name))
-                jsonObject.insert(name, toJsonValue(pObject->property(name)));
-            else if (!onlyDirtyProperties)
-                jsonObject.insert(name, toJsonValue(pObject->property(name)));
-        }
-
-        int count = pObject->metaObject()->propertyCount();
-        for (int i = 0; i < count; i++)
-        {
-            QMetaProperty property = pObject->metaObject()->property(i);
-            QByteArray name = property.name();
-            if (isWritableProperty(name))
+            if (ParseObject::isUserValue(name))
             {
                 if (onlyDirtyProperties && pObject->isDirty(name))
-                    jsonObject.insert(name, toJsonValue(pObject->property(name)));
+                    jsonObject.insert(name, toJsonValue(pObject->value(name)));
                 else if (!onlyDirtyProperties)
-                    jsonObject.insert(name, toJsonValue(pObject->property(name)));
+                    jsonObject.insert(name, toJsonValue(pObject->value(name)));
             }
         }
 
         return jsonObject;
-    }
-
-    bool ParseClientPrivate::isWritableProperty(const QByteArray &name)
-    {
-        return (name != "objectName" &&
-            name != ParseObject::ObjectIdPropertyName &&
-            name != ParseObject::CreatedAtPropertyName &&
-            name != ParseObject::UpdatedAtPropertyName);
     }
 }

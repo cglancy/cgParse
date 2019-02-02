@@ -15,13 +15,14 @@
 */
 #include "parseobject.h"
 #include "parseclient.h"
+#include "parsefile.h"
 
 #include <QMetaProperty>
 
 namespace cg {
-    const QByteArray ParseObject::ObjectIdPropertyName = "objectId";
-    const QByteArray ParseObject::CreatedAtPropertyName = "createdAt";
-    const QByteArray ParseObject::UpdatedAtPropertyName = "updatedAt";
+    const QString ParseObject::ObjectIdName = QStringLiteral("objectId");
+    const QString ParseObject::CreatedAtName = QStringLiteral("createdAt");
+    const QString ParseObject::UpdatedAtName = QStringLiteral("updatedAt");
 
     ParseObject::ParseObject(const QString &className)
         : QObject(ParseClient::instance()),
@@ -36,18 +37,13 @@ namespace cg {
     ParseObject * ParseObject::clone() const
     {
         ParseObject *pClone = new ParseObject(_className);
-        pClone->setProperties(propertyMap(true));
+        pClone->setValues(valueMap(false));
         return pClone;
-    }
-
-    bool ParseObject::isNew() const
-    {
-        return _createdAt.isNull();
     }
 
     bool ParseObject::isDirty() const
     {
-        for (auto & name : propertyNames())
+        for (auto & name : valueNames())
         {
             if (isDirty(name))
                 return true;
@@ -56,11 +52,11 @@ namespace cg {
         return false;
     }
 
-    bool ParseObject::isDirty(const QByteArray &propertyName) const
+    bool ParseObject::isDirty(const QString &name) const
     {
-        if (_fetchedMap.contains(propertyName))
+        if (_cachedValueMap.contains(name))
         {
-            if (property(propertyName) == _fetchedMap.value(propertyName))
+            if (value(name) == _cachedValueMap.value(name))
                 return false;
         }
 
@@ -69,18 +65,18 @@ namespace cg {
     
     void ParseObject::setDirty(bool dirty)
     {
-        _fetchedMap.clear();
+        _cachedValueMap.clear();
 
         if (!dirty)
         {
-            for (auto & name : propertyNames())
-                _fetchedMap.insert(name, property(name));
+            for (auto & name : valueNames())
+                _cachedValueMap.insert(name, value(name));
         }
     }
 
     bool ParseObject::hasSameId(ParseObject *pObject) const
     {
-        return pObject && pObject->_objectId == _objectId;
+        return pObject && pObject->value(ObjectIdName) == value(ObjectIdName);
     }
 
     QString ParseObject::className() const
@@ -90,94 +86,92 @@ namespace cg {
 
     QString ParseObject::objectId() const
     {
-        return _objectId;
-    }
-
-    void ParseObject::setObjectId(const QString & objectId)
-    {
-        _objectId = objectId;
-        emit propertyChanged(ObjectIdPropertyName);
+        return value(ObjectIdName).toString();
     }
 
     QDateTime ParseObject::createdAt() const
     {
-        return _createdAt;
-    }
-
-    void ParseObject::setCreatedAt(const QDateTime & createdAt)
-    {
-        _createdAt = createdAt;
-        emit propertyChanged(CreatedAtPropertyName);
+        return value(CreatedAtName).toDateTime();
     }
 
     QDateTime ParseObject::updatedAt() const
     {
-        return _updatedAt;
+        return value(UpdatedAtName).toDateTime();
     }
 
-    void ParseObject::setUpdatedAt(const QDateTime & updatedAt)
+    QVariant ParseObject::value(const QString &name) const
     {
-        _updatedAt = updatedAt;
-        emit propertyChanged(UpdatedAtPropertyName);
+        return _valueMap.value(name);
     }
 
-    bool ParseObject::hasProperty(const QByteArray &propertyName) const
+    void ParseObject::setValue(const QString &name, const QVariant &variant)
     {
-        QList<QByteArray> names = propertyNames();
-        return names.contains(propertyName);
+        _valueMap.insert(name, variant);
+        emit valueChanged(name);
     }
 
-    QList<QByteArray> ParseObject::propertyNames(bool includeSystemProperties) const
+    ParseObject * ParseObject::objectValue(const QString &name) const
     {
-        QList<QByteArray> names = dynamicPropertyNames();
+        return qvariant_cast<ParseObject*>(value(name));
+    }
 
-        int count = metaObject()->propertyCount();
-        for (int i = 0; i < count; i++)
+    void ParseObject::setObject(const QString &name, ParseObject *pObject)
+    {
+        setValue(name, QVariant::fromValue<ParseObject*>(pObject));
+    }
+
+    ParseFile* ParseObject::file(const QString &name) const
+    {
+        return qvariant_cast<ParseFile*>(value(name));
+    }
+
+    void ParseObject::setFile(const QString &name, ParseFile *pFile)
+    {
+        setValue(name, QVariant::fromValue<ParseFile*>(pFile));
+    }
+
+    bool ParseObject::hasValue(const QString &name) const
+    {
+        QStringList names = valueNames();
+        return names.contains(name);
+    }
+
+    QStringList ParseObject::valueNames(bool onlyUserValues) const
+    {
+        QStringList names;
+        for (auto & name : _valueMap.keys())
         {
-            QMetaProperty property = metaObject()->property(i);
-            QByteArray name = property.name();
-            if (includeProperty(name, includeSystemProperties))
-            {
+            if (!(isUserValue(name) && onlyUserValues))
                 names.append(name);
-            }
         }
 
-        return names;
+        return _valueMap.keys();
     }
 
-    bool ParseObject::includeProperty(const QByteArray &name, bool includeSystemProperties)
+    bool ParseObject::isUserValue(const QString &name)
     {
-        bool include = true;
-
-        if (!includeSystemProperties &&
-           (name == ObjectIdPropertyName ||
-            name == CreatedAtPropertyName ||
-            name == UpdatedAtPropertyName ||
-            name == "objectName"))
-            include = false;
-
-        return include;
+        return name != ObjectIdName && name !=CreatedAtName && name != UpdatedAtName;
     }
 
-    QVariantMap ParseObject::propertyMap(bool includeSystemProperties) const
+    QVariantMap ParseObject::valueMap(bool onlyUserValues) const
     {
         QVariantMap map;
-        QList<QByteArray> names = propertyNames(includeSystemProperties);
+        QStringList names = valueNames(onlyUserValues);
         for (auto & name : names)
-            map.insert(name, property(name));
+            map.insert(name, value(name));
 
         return map;
     }
 
-    void ParseObject::setProperties(const QVariantMap &propertyMap)
+    void ParseObject::setValues(const QVariantMap &valueMap)
     {
-        for (auto & name : propertyMap.keys())
-            setProperty(name.toUtf8(), propertyMap.value(name));
+        for (auto & name : valueMap.keys())
+            setValue(name, valueMap.value(name));
     }
 
     void ParseObject::save()
     {
-        if (_createdAt.isNull())
+        if (createdAt().isNull())
             ParseClient::instance()->createObject(this);
         else
             ParseClient::instance()->updateObject(this);

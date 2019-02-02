@@ -50,10 +50,17 @@ void ParseTest::initTestCase()
 }
 
 TestCharacter::TestCharacter(const QString &name)
-    : cg::ParseObject("TestCharacter"),
-    _name(name),
-    _picture(nullptr)
+    : cg::ParseObject("TestCharacter")
 {
+    setValue("name", name);
+}
+
+TestQuote::TestQuote(TestCharacter *character, int rank, const QString &quote)
+    : cg::ParseObject("TestQuote")
+{
+    setObject("character", character);
+    setValue("rank", rank);
+    setValue("quote", quote);
 }
 
 TestCharacter * ParseTest::createCharacter(const QString &name, const QString &imageFile)
@@ -185,31 +192,29 @@ void ParseTest::cleanupTestCase()
 void ParseTest::testObject()
 {
     ParseObject *gameScore = new ParseObject("TestGameScore");
-    gameScore->setProperty("score", 1337);
-    gameScore->setProperty("playerName", "Sean Plott");
+    gameScore->setValue("score", 1337);
+    gameScore->setValue("playerName", "Sean Plott");
 
     QVERIFY(gameScore->objectId().isEmpty());
-    QCOMPARE(gameScore->isNew(), true);
     QCOMPARE(gameScore->isDirty(), true);
-    QCOMPARE(gameScore->property("score").toInt(), 1337);
+    QCOMPARE(gameScore->value("score").toInt(), 1337);
 
     gameScore->save();
     QSignalSpy saveSpy(gameScore, &ParseObject::saveFinished);
     QVERIFY(saveSpy.wait(10000));
 
     QVERIFY(!gameScore->objectId().isEmpty());
-    QCOMPARE(gameScore->isNew(), false);
     QCOMPARE(gameScore->isDirty(), false);
     QString objectId = gameScore->objectId();
 
-    gameScore->setProperty("score", 1338);
+    gameScore->setValue("score", 1338);
     QCOMPARE(gameScore->isDirty(), true);
     QCOMPARE(gameScore->isDirty("score"), true);
 
     gameScore->save();
     QVERIFY(saveSpy.wait(10000));
 
-    QCOMPARE(gameScore->property("score").toInt(), 1338);
+    QCOMPARE(gameScore->value("score").toInt(), 1338);
 
     gameScore->deleteObject();
     QSignalSpy deleteSpy(gameScore, &ParseObject::deleteFinished);
@@ -269,19 +274,24 @@ void ParseTest::testUserSignUp()
     QVERIFY(signUpSpy.wait(10000));
 
     QVERIFY(!testUser->sessionToken().isEmpty());
+    QString sessionToken = testUser->sessionToken();
 
     testUser->deleteUser();
     QSignalSpy deleteSpy(testUser, &ParseUser::deleteUserFinished);
     QVERIFY(deleteSpy.wait(10000));
 
     delete testUser;
+
+    ParseClient::instance()->deleteSession(sessionToken);
+    QSignalSpy sessionSpy(ParseClient::instance(), &ParseClient::deleteSessionFinished);
+    QVERIFY(sessionSpy.wait(10000));
 }
 
 void ParseTest::testGetQuery()
 {
     ParseObject *gameScore = new ParseObject("TestGameScore");
-    gameScore->setProperty("score", 1337);
-    gameScore->setProperty("playerName", "Sean Plott");
+    gameScore->setValue("score", 1337);
+    gameScore->setValue("playerName", "Sean Plott");
     gameScore->save();
     QSignalSpy saveSpy(gameScore, &ParseObject::saveFinished);
     QVERIFY(saveSpy.wait(10000));

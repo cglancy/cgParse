@@ -29,7 +29,13 @@ namespace cg
         Q_PROPERTY(QString username READ username WRITE setUsername)
         Q_PROPERTY(QString password READ password WRITE setPassword)
         Q_PROPERTY(QString email READ email WRITE setEmail)
-        Q_PROPERTY(QString sessionToken READ sessionToken WRITE setSessionToken)
+        Q_PROPERTY(QString sessionToken READ sessionToken)
+
+    public:
+        static const QString UsernameName;
+        static const QString PasswordName;
+        static const QString EmailName;
+        static const QString SessionTokenName;
 
     public:
         ParseUser();
@@ -57,12 +63,6 @@ namespace cg
     signals:
         void signUpFinished(int errorCode);
         void deleteUserFinished(int errorCode);
-
-    private:
-        void setSessionToken(const QString &sessionToken);
-
-    private:
-        QString _username, _password, _email, _sessionToken;
     };
 
     Q_DECLARE_METATYPE(ParseUser*);

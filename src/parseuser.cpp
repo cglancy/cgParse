@@ -18,6 +18,11 @@
 
 namespace cg
 {
+    const QString ParseUser::UsernameName = QStringLiteral("username");
+    const QString ParseUser::PasswordName = QStringLiteral("password");
+    const QString ParseUser::EmailName = QStringLiteral("email");
+    const QString ParseUser::SessionTokenName = QStringLiteral("sessionToken");
+
     ParseUser::ParseUser()
         : ParseObject("_User")
     {
@@ -30,57 +35,48 @@ namespace cg
     ParseUser * ParseUser::clone() const
     {
         ParseUser *pUser = new ParseUser();
-        pUser->setProperties(propertyMap(true));
+        pUser->setValues(valueMap(false));
         return pUser;
     }
 
     bool ParseUser::isAuthenticated() const
     {
-        return !_sessionToken.isEmpty();
+        return !sessionToken().isEmpty();
     }
 
     QString ParseUser::username() const
     {
-        return _username;
+        return value(UsernameName).toString();
     }
 
     void ParseUser::setUsername(const QString &username)
     {
-        _username = username;
-        emit propertyChanged("username");
+        setValue(UsernameName, username);
     }
 
     QString ParseUser::password() const
     {
-        return _username;
+        return value(PasswordName).toString();
     }
 
     void ParseUser::setPassword(const QString &password)
     {
-        _password = password;
-        emit propertyChanged("password");
+        setValue(PasswordName, password);
     }
 
     QString ParseUser::email() const
     {
-        return _email;
+        return value(EmailName).toString();
     }
 
     void ParseUser::setEmail(const QString &email)
     {
-        _email = email;
-        emit propertyChanged("email");
+        setValue(EmailName, email);
     }
 
     QString ParseUser::sessionToken() const
     {
-        return _sessionToken;
-    }
-
-    void ParseUser::setSessionToken(const QString &sessionToken)
-    {
-        _sessionToken = sessionToken;
-        emit propertyChanged("sessionToken");
+        return value(SessionTokenName).toString();
     }
 
     void ParseUser::signUp()

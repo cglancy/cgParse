@@ -34,15 +34,12 @@ class TestCharacter : public cg::ParseObject
 public:
     TestCharacter(const QString &name);
 
-    QString name() const { return _name; }
-    cg::ParseFile * picture() const { return _picture; }
-    void setPicture(cg::ParseFile* pFile) { _picture = pFile; }
+    QString name() const { return value("name").toString(); }
+    cg::ParseFile * picture() { return file("picture"); }
+    void setPicture(cg::ParseFile* pFile) { setFile("picture", pFile); }
 
 private:
-    void setName(const QString &name) { _name = name; }
-
-    QString _name;
-    cg::ParseFile *_picture;
+    void setName(const QString &name) { setValue("name", name); }
 };
 
 Q_DECLARE_METATYPE(TestCharacter*);
@@ -54,26 +51,16 @@ class TestQuote : public cg::ParseObject
     Q_PROPERTY(QString quote READ quote WRITE setQuote)
     Q_PROPERTY(TestCharacter* character READ character WRITE setCharacter)
 public:
-    TestQuote(TestCharacter *character, int rank, const QString &quote)
-        : cg::ParseObject("TestQuote"),
-        _character(character),
-        _rank(rank),
-        _quote(quote)
-    {}
+    TestQuote(TestCharacter *character, int rank, const QString &quote);
 
-    int rank() const { return _rank; }
-    QString quote() const { return _quote; }
-    TestCharacter* character() const { return _character; }
+    int rank() const { return value("rank").toInt(); }
+    QString quote() const { return value("quote").toString(); }
+    TestCharacter* character() const { return object<TestCharacter*>("character"); }
 
 private:
-    void setRank(int rank) { _rank = rank; }
-    void setQuote(const QString &quote) { _quote = quote; }
-    void setCharacter(TestCharacter *pCharacter) { _character = pCharacter; }
-
-private:
-    int _rank;
-    QString _quote;
-    TestCharacter *_character;
+    void setRank(int rank) { setValue("rank", rank); }
+    void setQuote(const QString &quote) { setValue("quote", quote); }
+    void setCharacter(TestCharacter *pCharacter) { setObject("character", pCharacter); }
 };
 
 class ParseTest : public QObject

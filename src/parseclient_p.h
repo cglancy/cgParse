@@ -45,11 +45,10 @@ namespace cg
         ~ParseClientPrivate();
 
         QNetworkRequest buildRequest(const QString &apiRoute, const QString &contentType = QString(), const QUrlQuery &query = QUrlQuery()) const;
-        void setObjectProperties(ParseObject *pObject, const QJsonObject &jsonObject);
-        QJsonObject toJsonObject(ParseObject *pObject, bool onlyDirtyProperties = false);
+        void setObjectValues(ParseObject *pObject, const QJsonObject &jsonObject);
+        QJsonObject toJsonObject(ParseObject *pObject, bool onlyDirtyValues = false);
         QVariant toVariant(const QJsonValue &jsonValue, ParseObject *pParent);
         QJsonValue toJsonValue(const QVariant &variant);
-        static bool isWritableProperty(const QByteArray &name);
         void setCurrentUser(ParseUser *pUser);
         static bool isError(int status);
         static int statusCode(QNetworkReply *pReply);

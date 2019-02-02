@@ -22,25 +22,24 @@
 #include <QString>
 #include <QDateTime>
 #include <QVariant>
-#include <QByteArray>
-#include <QMap>
 
 namespace cg
 {
     class ParseQuery;
+    class ParseFile;
 
     class CGPARSE_API ParseObject : public QObject
     {
         Q_OBJECT
         Q_DISABLE_COPY(ParseObject)
-        Q_PROPERTY(QString objectId READ objectId WRITE setObjectId)
-        Q_PROPERTY(QDateTime createdAt READ createdAt WRITE setCreatedAt)
-        Q_PROPERTY(QDateTime updatedAt READ updatedAt WRITE setUpdatedAt)
+        Q_PROPERTY(QString objectId READ objectId)
+        Q_PROPERTY(QDateTime createdAt READ createdAt)
+        Q_PROPERTY(QDateTime updatedAt READ updatedAt)
 
     public:
-        static const QByteArray ObjectIdPropertyName;
-        static const QByteArray CreatedAtPropertyName;
-        static const QByteArray UpdatedAtPropertyName;
+        static const QString ObjectIdName;
+        static const QString CreatedAtName;
+        static const QString UpdatedAtName;
 
     public:
         Q_INVOKABLE ParseObject(const QString &className);
@@ -53,16 +52,29 @@ namespace cg
         QDateTime createdAt() const;
         QDateTime updatedAt() const;
 
-        bool isNew() const;
-        bool isDirty() const;
-        bool isDirty(const QByteArray &propertyName) const;
-        void setDirty(bool dirty);
         bool hasSameId(ParseObject *pObject) const;
+        bool isDirty() const;
+        bool isDirty(const QString &valueName) const;
+        void setDirty(bool dirty);
 
-        bool hasProperty(const QByteArray &propertyName) const;
-        QList<QByteArray> propertyNames(bool includeSystemProperites = false) const;
-        QVariantMap propertyMap(bool includeSystemProperites = false) const;
-        void setProperties(const QVariantMap &propertyMap);
+        QVariant value(const QString &name) const;
+        void setValue(const QString &name, const QVariant &variant);
+
+        template <class T>
+        T object(const QString &name) const
+        {
+            return qobject_cast<T>(objectValue(name));
+        }
+        void setObject(const QString &name, ParseObject *pObject);
+
+        ParseFile* file(const QString &name) const;
+        void setFile(const QString &name, ParseFile *pFile);
+
+        bool hasValue(const QString &valueName) const;
+        QStringList valueNames(bool onlyUserValues = true) const;
+        QVariantMap valueMap(bool onlyUserValues = true) const;
+        void setValues(const QVariantMap &valueMap);
+        static bool isUserValue(const QString &name);
 
     public slots:
         void save();
@@ -73,18 +85,14 @@ namespace cg
         void saveFinished(int errorCode);
         void fetchFinished(int errorCode);
         void deleteFinished(int errorCode);
-        void propertyChanged(const QByteArray &propertyName);
+        void valueChanged(const QString &valueName);
 
     private:
-        void setObjectId(const QString &objectId);
-        void setCreatedAt(const QDateTime &createdAt);
-        void setUpdatedAt(const QDateTime &updatedAt);
-        static bool includeProperty(const QByteArray &name, bool includeSystemProperties);
+        ParseObject *objectValue(const QString &name) const;
 
     private:
-        QString _className, _objectId;
-        QDateTime _createdAt, _updatedAt;
-        QMap<QByteArray, QVariant> _fetchedMap;
+        QString _className;
+        QVariantMap _valueMap, _cachedValueMap;
     };
 
     Q_DECLARE_METATYPE(ParseObject*);
