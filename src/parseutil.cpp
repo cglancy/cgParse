@@ -34,8 +34,9 @@ namespace cg
                 QString className = object.value("className").toString();
                 QString objectId = object.value(ParseObject::ObjectIdKey).toString();
 
-                ParseObject *pObject = new ParseObject(className);
-                pObject->setValue(ParseObject::ObjectIdKey, objectId);
+                ParseObject *pObject = ParseObject::createWithoutData(className, objectId);
+                if (pObject && pParent)
+                    pObject->setParent(pParent);
                 variant = QVariant::fromValue<ParseObject*>(pObject);
             }
             else if (typeStr == "File")
@@ -58,6 +59,19 @@ namespace cg
         }
 
         return variant;
+    }
+
+    QVariantMap ParseUtil::toVariantMap(const QJsonObject &jsonObject, ParseObject *pParent)
+    {
+        QVariantMap map;
+
+        for (auto & key : jsonObject.keys())
+        {
+            QVariant variant = toVariant(jsonObject.value(key), pParent);
+            map.insert(key, variant);
+        }
+
+        return map;
     }
 
     QJsonValue ParseUtil::toJsonValue(const QVariant &variant)

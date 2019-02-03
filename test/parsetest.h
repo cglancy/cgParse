@@ -57,13 +57,15 @@ public:
 
     int rank() const { return value("rank").toInt(); }
     QString quote() const { return value("quote").toString(); }
-    TestCharacter* character() const { return object<TestCharacter*>("character"); }
+    TestCharacter* character() const { return object<TestCharacter>("character"); }
 
 private:
     void setRank(int rank) { setValue("rank", rank); }
     void setQuote(const QString &quote) { setValue("quote", quote); }
     void setCharacter(TestCharacter *pCharacter) { setObject("character", pCharacter); }
 };
+
+Q_DECLARE_METATYPE(TestQuote*);
 
 class ParseTest : public QObject
 {

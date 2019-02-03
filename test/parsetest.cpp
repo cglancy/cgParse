@@ -104,11 +104,14 @@ TestQuote * ParseTest::createQuote(TestCharacter *character, int rank, const QSt
 
 void ParseTest::initTestCase()
 {
-    ParseClient::instance()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
+    qRegisterMetaType<TestCharacter*>();
+    qRegisterMetaType<TestQuote*>();
 
     // set name & version for user-agent
     QCoreApplication::setApplicationName("ParseTest");
     QCoreApplication::setApplicationVersion("0.1");
+
+    ParseClient::instance()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
 
     QString appDirPath = QCoreApplication::applicationDirPath();
     _testImagesDir.setPath(appDirPath + "/../../../../test/images");
@@ -381,7 +384,9 @@ void ParseTest::testOrderQuery()
     QSignalSpy ascendingSpy(pAscendingQuery.data(), &ParseQuery::findFinished);
     QVERIFY(ascendingSpy.wait(10000));
 
-    QList<TestQuote*> quotes = pAscendingQuery->results<TestQuote*>();
+    QList<TestQuote*> quotes = pAscendingQuery->results<TestQuote>();
+    QCOMPARE(quotes.size(), 32);
+
     int prevRank = 0;
     for (auto & pQuote : quotes)
     {
@@ -396,7 +401,9 @@ void ParseTest::testOrderQuery()
     QVERIFY(descendingSpy.wait(10000));
 
     prevRank++;
-    quotes = pDescendingQuery->results<TestQuote*>();
+    quotes = pDescendingQuery->results<TestQuote>();
+    QCOMPARE(quotes.size(), 32);
+
     for (auto & pQuote : quotes)
     {
         QVERIFY(pQuote->rank() < prevRank);
@@ -413,7 +420,7 @@ void ParseTest::testComparisonQuery()
         QSignalSpy spy(pEqualToQuery.data(), &ParseQuery::findFinished);
         QVERIFY(spy.wait(10000));
 
-        TestCharacter *pFoundCharacter = pEqualToQuery->first<TestCharacter*>();
+        TestCharacter *pFoundCharacter = pEqualToQuery->first<TestCharacter>();
         QVERIFY(yoda->hasSameId(pFoundCharacter));
     }
 }
@@ -426,6 +433,20 @@ void ParseTest::testFullTextQuery()
     QSignalSpy fullTextSpy(pFullTextQuery.data(), &ParseQuery::findFinished);
     QVERIFY(fullTextSpy.wait(10000));
 
-    QList<TestQuote*> quotes = pFullTextQuery->results<TestQuote*>();
+    QList<TestQuote*> quotes = pFullTextQuery->results<TestQuote>();
     QCOMPARE(quotes.size(), 4);
+
+    QStringList objectIds;
+    objectIds << obiwan->objectId();
+    objectIds << yoda->objectId();
+    objectIds << palpatine->objectId();
+    objectIds << chirrut->objectId();
+
+    for (auto & pQuote : quotes)
+    {
+        TestCharacter *pCharacter = pQuote->character();
+        QVERIFY(pCharacter);
+        if (pCharacter)
+            QVERIFY(objectIds.contains(pCharacter->objectId()));
+    }
 }

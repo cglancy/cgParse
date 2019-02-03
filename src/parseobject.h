@@ -46,6 +46,20 @@ namespace cg
         Q_INVOKABLE ParseObject(const QString &className);
         virtual ~ParseObject();
 
+        static ParseObject * create(const QString &className);
+        static ParseObject * createWithoutData(const QString &className, const QString &objectId);
+
+        template <class T>
+        static T* create()
+        {
+            return qobject_cast<T*>(create(&T::staticMetaObject));
+        }
+        template <class T>
+        static T* createWithoutData(const QString &objectId)
+        {
+            return qobject_cast<T*>(createWithoutData(&T::staticMetaObject, objectId));
+        }
+
         virtual ParseObject * clone() const;
 
         QString className() const;
@@ -63,9 +77,9 @@ namespace cg
         void remove(const QString &key);
 
         template <class T>
-        T object(const QString &key) const
+        T* object(const QString &key) const
         {
-            return qobject_cast<T>(objectValue(key));
+            return qobject_cast<T*>(objectValue(key));
         }
         void setObject(const QString &key, ParseObject *pObject);
 
@@ -94,6 +108,8 @@ namespace cg
 
     private:
         ParseObject *objectValue(const QString &key) const;
+        static ParseObject * create(const QMetaObject *pMetaObject);
+        static ParseObject * createWithoutData(const QMetaObject *pMetaObject, const QString &objectId);
 
     private:
         QString _className;

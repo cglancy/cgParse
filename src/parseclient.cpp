@@ -46,7 +46,7 @@ namespace cg {
             .arg(QCoreApplication::applicationVersion()).toUtf8();
         nam = new QNetworkAccessManager(this);
 
-        // register so these types can be used in signals/slots
+        // register so these types can be used in signals/slots and created
         qRegisterMetaType<ParseObject*>();
         qRegisterMetaType<ParseUser*>();
         qRegisterMetaType<ParseFile*>();
@@ -237,9 +237,9 @@ namespace cg {
             {
                 QVariantMap map;
                 QJsonObject obj = doc.object();
-                map = obj.toVariantMap();
 
                 pUser = new ParseUser();
+                map = ParseUtil::toVariantMap(obj, pUser);
                 pUser->setValues(map);
                 pUser->setDirty(false);
 
@@ -946,14 +946,18 @@ namespace cg {
                 {
                     if (value.isObject())
                     {
-                        QVariantMap map = value.toObject().toVariantMap();
-                        QString objectId = map.value(ParseObject::ObjectIdKey).toString();
+                        QJsonObject jsonObject = value.toObject();
+                        QString objectId = jsonObject.value(ParseObject::ObjectIdKey).toString();
                         if (!objectId.isEmpty())
                         {
-                            ParseObject *pObject = new ParseObject(pQuery->className());
-                            pObject->setValues(map);
-                            pObject->setDirty(false);
-                            objects.append(pObject);
+                            ParseObject *pObject = constructQueryResultObject(pQuery);
+                            if (pObject)
+                            {
+                                QVariantMap map = ParseUtil::toVariantMap(jsonObject, pObject);
+                                pObject->setValues(map);
+                                pObject->setDirty(false);
+                                objects.append(pObject);
+                            }
                         }
                     }
                 }
@@ -988,17 +992,30 @@ namespace cg {
         d->replyQueryMap.insert(pReply, pQuery);
     }
 
-    ParseObject * ParseClientPrivate::constructObject(const QMetaObject *pMetaObject)
+    ParseObject * ParseClientPrivate::constructQueryResultObject(ParseQuery *pQuery)
     {
-        if (!pMetaObject)
+        if (!pQuery)
             return nullptr;
 
         QObject *pObject = nullptr;
 
-        if (pMetaObject->className() == "ParseObject")
+        const QMetaObject *pMetaObject = pQuery->queryMetaObject();
+        QString className = pMetaObject->className();
+
+        if (className == "ParseObject")
             pObject = pMetaObject->newInstance(pMetaObject->className());
         else
             pObject = pMetaObject->newInstance();
+
+        if (pObject)
+        {
+            pObject->setParent(pQuery);
+        }
+        else
+        {
+            qCritical() << "Error: Unable to construct an instance of " << className;
+            qCritical() << "Subclasses of ParseObject must have a Q_INVOKABLE constructor without arguments.";
+        }
 
         return qobject_cast<ParseObject*>(pObject);
     }
@@ -1031,13 +1048,14 @@ namespace cg {
                 {
                     if (value.isObject())
                     {
-                        QVariantMap map = value.toObject().toVariantMap();
-                        QString objectId = map.value(ParseObject::ObjectIdKey).toString();
+                        QJsonObject jsonObject = value.toObject();
+                        QString objectId = jsonObject.value(ParseObject::ObjectIdKey).toString();
                         if (!objectId.isEmpty())
                         {
-                            ParseObject *pObject = constructObject(pQuery->queryMetaObject());
+                            ParseObject *pObject = constructQueryResultObject(pQuery);
                             if (pObject)
                             {
+                                QVariantMap map = ParseUtil::toVariantMap(jsonObject, pObject);
                                 pObject->setValues(map);
                                 pObject->setDirty(false);
                                 objects.append(pObject);

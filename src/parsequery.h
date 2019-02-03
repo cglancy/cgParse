@@ -69,20 +69,20 @@ namespace cg
         const QList<ParseObject*> & resultObjects() const { return _objects; }
 
         template <class T>
-        T first() const
+        T* first() const
         {
-            T object = nullptr;
+            T* object = nullptr;
             if (!_objects.isEmpty())
-                object = qobject_cast<T>(_objects.first());
+                object = qobject_cast<T*>(_objects.first());
             return object;
         }
 
         template <class T>
-        QList<T> results() const
+        QList<T*> results() const
         {
-            QList<T> objects;
+            QList<T*> objects;
             for (auto & pObject : _objects)
-                objects.append(qobject_cast<T>(pObject));
+                objects.append(qobject_cast<T*>(pObject));
             return objects;
         }
 

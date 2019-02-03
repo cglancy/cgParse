@@ -17,6 +17,7 @@
 #include "parseclient.h"
 #include "parsefile.h"
 #include "parseuser.h"
+#include "parseutil.h"
 
 #include <QJsonObject>
 
@@ -33,6 +34,51 @@ namespace cg {
 
     ParseObject::~ParseObject()
     {
+    }
+
+    ParseObject * ParseObject::create(const QString &className)
+    {
+        ParseObject *pObject = nullptr;
+        QByteArray classStar = className.toUtf8() + "*";
+
+        int baseType = QMetaType::type("ParseObject*");
+        int type = QMetaType::type(classStar);
+
+        if (type != 0 && type != baseType)
+        {
+            const QMetaObject *pMetaObject = QMetaType::metaObjectForType(type);
+            if (pMetaObject)
+                pObject = qobject_cast<ParseObject*>(pMetaObject->newInstance());
+        }
+        else
+        {
+            pObject = new ParseObject(className);
+        }
+
+        return pObject;
+    }
+
+    ParseObject * ParseObject::createWithoutData(const QString &className, const QString &objectId)
+    {
+        ParseObject *pObject = create(className);
+        if (pObject)
+            pObject->setValue(ObjectIdKey, objectId);
+        return pObject;
+    }
+
+    ParseObject * ParseObject::create(const QMetaObject *pMetaObject)
+    {
+        if (!pMetaObject)
+            return nullptr;
+        return qobject_cast<ParseObject*>(pMetaObject->newInstance());
+    }
+    
+    ParseObject * ParseObject::createWithoutData(const QMetaObject *pMetaObject, const QString &objectId)
+    {
+        ParseObject *pObject = create(pMetaObject);
+        if (pObject)
+            pObject->setValue(ObjectIdKey, objectId);
+        return pObject;
     }
 
     ParseObject * ParseObject::clone() const

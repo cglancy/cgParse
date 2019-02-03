@@ -51,7 +51,7 @@ namespace cg
         static bool isError(int status);
         static int statusCode(QNetworkReply *pReply);
         static int errorCode(QNetworkReply *pReply);
-        ParseObject * constructObject(const QMetaObject *pMetaObject);
+        ParseObject * constructQueryResultObject(ParseQuery *pQuery);
 
         static ParseClient *instance;
         static const QString JsonContentType;

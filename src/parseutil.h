@@ -28,6 +28,7 @@ namespace cg
     {
     public:
         static QVariant toVariant(const QJsonValue &jsonValue, ParseObject *pParent);
+        static QVariantMap toVariantMap(const QJsonObject &jsonObject, ParseObject *pParent);
         static QJsonValue toJsonValue(const QVariant &variant);
     };
 }
