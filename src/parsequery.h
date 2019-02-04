@@ -45,6 +45,8 @@ namespace cg
 
         ParseQuery * orderByAscending(const QString &key);
         ParseQuery * orderByDescending(const QString &key);
+        ParseQuery * addAscendingOrder(const QString &key);
+        ParseQuery * addDescendingOrder(const QString &key);
         ParseQuery * setLimit(int limit);
         ParseQuery * setSkip(int skip);
         ParseQuery * selectKeys(const QStringList &keys);
@@ -106,7 +108,7 @@ namespace cg
         const QMetaObject *_pMetaObject;
         QList<ParseObject*> _objects;
         QJsonObject _whereObject;
-        int _limit, _skip;
+        int _limit, _skip, _count;
         QStringList _keysList, _orderList;
     };
 }

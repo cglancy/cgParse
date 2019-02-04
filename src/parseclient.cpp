@@ -1113,8 +1113,7 @@ namespace cg {
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
-                QJsonArray resultsArray = obj.value("results").toArray();
-                count = resultsArray.size();
+                count = obj.value("count").toInt();
             }
         }
 

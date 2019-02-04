@@ -26,8 +26,9 @@ namespace cg
     ParseQuery::ParseQuery(const QMetaObject *pMetaObject)
         : QObject(ParseClient::instance()),
         _pMetaObject(pMetaObject),
-        _limit(0),
-        _skip(0)
+        _limit(-1),
+        _skip(0),
+        _count(0)
     {
     }
 
@@ -66,13 +67,13 @@ namespace cg
 
     void ParseQuery::find()
     {
-        QStringList parameters;
         ParseClient::instance()->findObjects(this);
     }
 
     void ParseQuery::count()
     {
-        QStringList parameters;
+        _count = 1;
+        _limit = 0;
         ParseClient::instance()->countObjects(this);
     }
 
@@ -91,7 +92,12 @@ namespace cg
             urlQuery.addQueryItem("order", _orderList.join(','));
         }
 
-        if (_limit > 0)
+        if (_count > 0)
+        {
+            urlQuery.addQueryItem("count", QString::number(_count));
+        }
+
+        if (_limit >= 0)
         {
             urlQuery.addQueryItem("limit", QString::number(_limit));
         }
@@ -119,11 +125,25 @@ namespace cg
 
     ParseQuery * ParseQuery::orderByAscending(const QString &key)
     {
+        _orderList.clear();
         _orderList.append(key);
         return this;
     }
 
     ParseQuery * ParseQuery::orderByDescending(const QString &key)
+    {
+        _orderList.clear();
+        _orderList.append("-" + key);
+        return this;
+    }
+
+    ParseQuery * ParseQuery::addAscendingOrder(const QString &key)
+    {
+        _orderList.append(key);
+        return this;
+    }
+
+    ParseQuery * ParseQuery::addDescendingOrder(const QString &key)
     {
         _orderList.append("-" + key);
         return this;
