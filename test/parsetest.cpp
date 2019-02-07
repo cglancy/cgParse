@@ -58,12 +58,20 @@ TestCharacter * ParseTest::createCharacter(const QString &name, const QString &i
     if (!imageFile.isEmpty())
     {
         QString imagePath = _testImagesDir.absolutePath() + "/" + imageFile;
-        pFile = new ParseFile(imagePath);
-        _files.append(pFile);
+        QFileInfo fi(imagePath);
+        if (fi.exists())
+        {
+            pFile = new ParseFile(imagePath);
+            _files.append(pFile);
 
-        pFile->save();
-        QSignalSpy saveSpy(pFile, &ParseFile::saveFinished);
-        saveSpy.wait(100000);
+            pFile->save();
+            QSignalSpy saveSpy(pFile, &ParseFile::saveFinished);
+            saveSpy.wait(100000);
+        }
+        else
+        {
+            qDebug() << "Warning: Test image is missing: " << imageFile;
+        }
     }
 
     TestCharacter * character = new TestCharacter(name);

@@ -67,7 +67,8 @@ namespace cg {
 
         if (pUser)
         {
-            currentUser = pUser->clone();
+            currentUser = ParseUser::createWithoutData<ParseUser>(pUser->objectId());
+            currentUser->setValues(pUser->valueMap());
         }
     }
 

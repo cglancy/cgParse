@@ -60,8 +60,6 @@ namespace cg
             return qobject_cast<T*>(createWithoutData(&T::staticMetaObject, objectId));
         }
 
-        virtual ParseObject * clone() const;
-
         QString className() const;
         QString objectId() const;
         QDateTime createdAt() const;

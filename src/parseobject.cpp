@@ -81,13 +81,6 @@ namespace cg {
         return pObject;
     }
 
-    ParseObject * ParseObject::clone() const
-    {
-        ParseObject *pClone = new ParseObject(_className);
-        pClone->setValues(valueMap(false));
-        return pClone;
-    }
-
     bool ParseObject::isDirty() const
     {
         for (auto & key : keys())

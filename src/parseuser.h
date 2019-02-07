@@ -35,8 +35,6 @@ namespace cg
         Q_INVOKABLE ParseUser();
         ~ParseUser();
 
-        ParseUser * clone() const override;
-
         bool isAuthenticated() const;
 
         QString username() const;

@@ -27,13 +27,6 @@ namespace cg
     {
     }
 
-    ParseUser * ParseUser::clone() const
-    {
-        ParseUser *pUser = new ParseUser();
-        pUser->setValues(valueMap(false));
-        return pUser;
-    }
-
     bool ParseUser::isAuthenticated() const
     {
         return !sessionToken().isEmpty();
