@@ -96,7 +96,6 @@ private:
     TestCharacter *leia, *han, *obiwan, *yoda, *luke, *palpatine, *anakin, *vader, *quigon, *nute, 
         *shmi, *jamillia, *jango, *dooku, *padme, *rey, *c3po, *chirrut, *cassian, *k2so;
     QList<cg::ParseObject*> _characters, _quotes;
-    QList<cg::ParseFile*> _files;
     QDir _testImagesDir;
 };
 

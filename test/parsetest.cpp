@@ -62,8 +62,6 @@ TestCharacter * ParseTest::createCharacter(const QString &name, const QString &i
         if (fi.exists())
         {
             pFile = new ParseFile(imagePath);
-            _files.append(pFile);
-
             pFile->save();
             QSignalSpy saveSpy(pFile, &ParseFile::saveFinished);
             saveSpy.wait(100000);
@@ -124,6 +122,7 @@ void ParseTest::initTestCase()
     QString appDirPath = QCoreApplication::applicationDirPath();
     _testImagesDir.setPath(appDirPath + "/../../../../test/images");
 
+    deleteTestObjects();
     createTestObjects();
 }
 
@@ -200,27 +199,43 @@ void ParseTest::cleanupTestCase()
 
 void ParseTest::deleteTestObjects()
 {
-    for (auto *pFile : _files)
+    ParseQuery *pQuoteQuery = ParseQuery::createQuery<TestQuote>();
+    pQuoteQuery->find();
+    QSignalSpy findQuotesSpy(pQuoteQuery, &ParseQuery::findFinished);
+    QVERIFY(findQuotesSpy.wait(10000));
+
+    QList<ParseObject*> quotes = pQuoteQuery->resultObjects();
+    if (quotes.size() > 0)
     {
-        cg::ParseClient::instance()->deleteFile(pFile->url(), PARSE_MASTER_KEY);
-        QSignalSpy fileSpy(cg::ParseClient::instance(), &ParseClient::deleteFileFinished);
-        QVERIFY(fileSpy.wait(10000));
+        ParseClient::instance()->deleteAll(quotes);
+        QSignalSpy deleteAllSpy(ParseClient::instance(), &ParseClient::deleteAllFinished);
+        QVERIFY(deleteAllSpy.wait(10000));
     }
-    _files.clear();
 
-    cg::ParseClient::instance()->deleteAll(_quotes);
-    QSignalSpy deleteSpy(cg::ParseClient::instance(), &ParseClient::deleteAllFinished);
-    QVERIFY(deleteSpy.wait(10000));
-    for (auto & pQuote : _quotes)
-        delete pQuote;
-    _quotes.clear();
+    ParseQuery *pCharacterQuery = ParseQuery::createQuery<TestCharacter>();
+    pCharacterQuery->find();
+    QSignalSpy findCharactersSpy(pCharacterQuery, &ParseQuery::findFinished);
+    QVERIFY(findCharactersSpy.wait(10000));
 
-    cg::ParseClient::instance()->deleteAll(_characters);
-    QVERIFY(deleteSpy.wait(10000));
+    QList<TestCharacter*> characters = pCharacterQuery->results<TestCharacter>();
+    for (auto & pCharacter : characters)
+    {
+        ParseFile *pImageFile = pCharacter->picture();
+        if (pImageFile)
+        {
+            ParseClient::instance()->deleteFile(pImageFile->url(), PARSE_MASTER_KEY);
+            QSignalSpy deleteFileSpy(ParseClient::instance(), &ParseClient::deleteFileFinished);
+            QVERIFY(deleteFileSpy.wait(10000));
+        }
+    }
 
-    for (auto & pCharacter : _characters)
-        delete pCharacter;
-    _characters.clear();
+    QList<ParseObject*> characterObjects = pCharacterQuery->resultObjects();
+    if (characterObjects.size() > 0)
+    {
+        ParseClient::instance()->deleteAll(characterObjects);
+        QSignalSpy deleteAllSpy(ParseClient::instance(), &ParseClient::deleteAllFinished);
+        QVERIFY(deleteAllSpy.wait(10000));
+    }
 }
 
 void ParseTest::testObject()
