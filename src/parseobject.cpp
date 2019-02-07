@@ -146,7 +146,36 @@ namespace cg {
 
     void ParseObject::setValue(const QString &key, const QVariant &variant)
     {
-        _valueMap.insert(key, variant);
+        // take ownership of any objects or files stored in the _valueMap
+        if (variant.canConvert<ParseObject*>())
+        {
+            ParseObject *pObject = qvariant_cast<ParseObject*>(variant);
+            if (pObject)
+            {
+                ParseObject *pNewObject = ParseObject::create(pObject->className());
+                pNewObject->setParent(this);
+                pNewObject->setValues(pObject->valueMap(false));
+                QVariant value = QVariant::fromValue<ParseObject*>(pNewObject);
+                _valueMap.insert(key, value);
+            }
+        }
+        else if (variant.canConvert<ParseFile*>())
+        {
+            ParseFile *pFile = qvariant_cast<ParseFile*>(variant);
+            if (pFile)
+            {
+                ParseFile *pNewFile = new ParseFile(this);
+                pNewFile->setName(pFile->name());
+                pNewFile->setUrl(pFile->url());
+                QVariant value = QVariant::fromValue<ParseFile*>(pNewFile);
+                _valueMap.insert(key, value);
+            }
+        }
+        else
+        {
+            _valueMap.insert(key, variant);
+        }
+
         emit valueChanged(key);
     }
 
