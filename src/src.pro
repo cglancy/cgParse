@@ -10,6 +10,7 @@ SOURCES += parseclient.cpp \
 	parsefile.cpp \
 	parseobject.cpp \
 	parsequery.cpp \
+	parserelation.cpp \
 	parseuser.cpp \
 	parseutil.cpp
 
@@ -19,6 +20,7 @@ HEADERS += cgparse.h \
 	parsefile.h \
     parseobject.h \
 	parsequery.h \
+	parserelation.h \
 	parseuser.h \
 	parseutil.h
 

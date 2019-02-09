@@ -25,6 +25,29 @@
 
 class QSignalSpy;
 
+//
+// TestMovie
+//
+class TestMovie : public cg::ParseObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString title READ title WRITE setTitle)
+
+public:
+    Q_INVOKABLE TestMovie();
+    TestMovie(const QString &title);
+
+    QString title() const { return value("title").toString(); }
+
+private:
+    void setTitle(const QString &title) { setValue("title", title); }
+};
+
+Q_DECLARE_METATYPE(TestMovie*);
+
+//
+// TestCharacter
+//
 class TestCharacter : public cg::ParseObject
 {
     Q_OBJECT
@@ -45,35 +68,45 @@ private:
 
 Q_DECLARE_METATYPE(TestCharacter*);
 
+//
+// TestQuote
+//
 class TestQuote : public cg::ParseObject
 {
     Q_OBJECT
     Q_PROPERTY(int rank READ rank WRITE setRank)
     Q_PROPERTY(QString quote READ quote WRITE setQuote)
+    Q_PROPERTY(TestMovie* movie READ movie WRITE setMovie)
     Q_PROPERTY(TestCharacter* character READ character WRITE setCharacter)
 public:
     Q_INVOKABLE TestQuote();
-    TestQuote(TestCharacter *character, int rank, const QString &quote);
+    TestQuote(TestMovie *movie, TestCharacter *character, int rank, const QString &quote);
 
     int rank() const { return value("rank").toInt(); }
     QString quote() const { return value("quote").toString(); }
+    TestMovie* movie() const { return object<TestMovie>("movie"); }
     TestCharacter* character() const { return object<TestCharacter>("character"); }
 
 private:
     void setRank(int rank) { setValue("rank", rank); }
     void setQuote(const QString &quote) { setValue("quote", quote); }
+    void setMovie(TestMovie *pMovie) { setObject("movie", pMovie); }
     void setCharacter(TestCharacter *pCharacter) { setObject("character", pCharacter); }
 };
 
 Q_DECLARE_METATYPE(TestQuote*);
 
+//
+// ParseTest
+//
 class ParseTest : public QObject
 {
     Q_OBJECT
 
     void createTestObjects();
+    TestMovie * createMovie(const QString &title);
     TestCharacter * createCharacter(const QString &name, const QString &imageFile = QString());
-    TestQuote * createQuote(TestCharacter *character, int rank, const QString &quote);
+    TestQuote * createQuote(TestMovie *movie, TestCharacter *character, int rank, const QString &quote);
     void deleteTestObjects();
     static int getListCount(QSignalSpy &spy, int argIndex);
 
@@ -84,6 +117,7 @@ private slots:
     void testObject();
     void testObjectRevert();
     void testObjectArray();
+    void testObjectRelation();
     void testUserSignUp();
     void testUserLogin();
     void testResetPassword();
@@ -95,9 +129,10 @@ private slots:
     void testFullTextQuery();
 
 private:
+    TestMovie *episode1, *episode2, *episode3, *episode4, *episode5, *episode6, *episode7, *episode8, *rogue1;
     TestCharacter *leia, *han, *obiwan, *yoda, *luke, *palpatine, *anakin, *vader, *quigon, *nute, 
         *shmi, *jamillia, *jango, *dooku, *padme, *rey, *c3po, *chirrut, *cassian, *k2so;
-    QList<cg::ParseObject*> _characters, _quotes;
+    QList<cg::ParseObject*> _movies, _characters, _quotes;
     QDir _testImagesDir;
 };
 

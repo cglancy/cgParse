@@ -19,6 +19,7 @@
 #include "parseuser.h"
 #include "parsequery.h"
 #include "parsefile.h"
+#include "parserelation.h"
 
 // used to define your own PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY
 #include "parsesecret.h"
@@ -40,6 +41,28 @@ QTEST_MAIN(ParseTest)
 // TestCharacter
 //
 
+TestMovie::TestMovie()
+    : cg::ParseObject("TestMovie")
+{
+}
+
+TestMovie::TestMovie(const QString &title)
+    : cg::ParseObject("TestMovie")
+{
+    setTitle(title);
+}
+
+TestMovie * ParseTest::createMovie(const QString &title)
+{
+    TestMovie * movieObject = new TestMovie(title);
+    _movies.append(movieObject);
+    return movieObject;
+}
+
+//
+// TestCharacter
+//
+
 TestCharacter::TestCharacter()
     : cg::ParseObject("TestCharacter")
 {
@@ -48,7 +71,7 @@ TestCharacter::TestCharacter()
 TestCharacter::TestCharacter(const QString &name)
     : cg::ParseObject("TestCharacter")
 {
-    setValue("name", name);
+    setName(name);
 }
 
 TestCharacter * ParseTest::createCharacter(const QString &name, const QString &imageFile)
@@ -89,17 +112,18 @@ TestQuote::TestQuote()
 {
 }
 
-TestQuote::TestQuote(TestCharacter *character, int rank, const QString &quote)
+TestQuote::TestQuote(TestMovie *movie, TestCharacter *character, int rank, const QString &quote)
     : cg::ParseObject("TestQuote")
 {
-    setObject("character", character);
-    setValue("rank", rank);
-    setValue("quote", quote);
+    setMovie(movie);
+    setCharacter(character);
+    setRank(rank);
+    setQuote(quote);
 }
 
-TestQuote * ParseTest::createQuote(TestCharacter *character, int rank, const QString &quote)
+TestQuote * ParseTest::createQuote(TestMovie *movie, TestCharacter *character, int rank, const QString &quote)
 {
-    TestQuote * quoteObject = new TestQuote(character, rank, quote);
+    TestQuote * quoteObject = new TestQuote(movie, character, rank, quote);
     _quotes.append(quoteObject);
     return quoteObject;
 }
@@ -110,6 +134,7 @@ TestQuote * ParseTest::createQuote(TestCharacter *character, int rank, const QSt
 
 void ParseTest::initTestCase()
 {
+    qRegisterMetaType<TestMovie*>();
     qRegisterMetaType<TestCharacter*>();
     qRegisterMetaType<TestQuote*>();
 
@@ -128,7 +153,21 @@ void ParseTest::initTestCase()
 
 void ParseTest::createTestObjects()
 {
-    luke = createCharacter("Luke Skywalker", "luke.png");        
+    episode1 = createMovie("Star Wars: Episode I The Phantom Menace");
+    episode2 = createMovie("Star Wars: Episode II Attack of the Clones");
+    episode3 = createMovie("Star Wars: Episode III Revenge of the Sith");
+    episode4 = createMovie("Star Wars: Episode IV A New Hope");
+    episode5 = createMovie("Star Wars: Episode V The Empire Strikes Back");
+    episode6 = createMovie("Star Wars: Episode VI Return of the Jedi");
+    episode7 = createMovie("Star Wars: Episode VII The Force Awakens");
+    episode8 = createMovie("Star Wars: Episode VIII The Last Jedi");
+    rogue1 = createMovie("Rogue One: A Star Wars Story");
+
+    cg::ParseClient::instance()->createAll(_movies);
+    QSignalSpy createSpy(cg::ParseClient::instance(), &ParseClient::createAllFinished);
+    QVERIFY(createSpy.wait(10000));
+
+    luke = createCharacter("Luke Skywalker", "luke.png");
     leia = createCharacter("Leia Organa", "leia.jpg");            
     anakin = createCharacter("Anakin Skywalker");
     vader = createCharacter("Darth Vader");
@@ -150,43 +189,42 @@ void ParseTest::createTestObjects()
     k2so = createCharacter("K-2SO"); 
 
     cg::ParseClient::instance()->createAll(_characters);
-    QSignalSpy createSpy(cg::ParseClient::instance(), &ParseClient::createAllFinished);
     QVERIFY(createSpy.wait(10000));
 
     int rank = 1;
     QList<ParseObject*> quotes;
-    createQuote(leia, rank++, "Help me, Obi-Wan Kenobi. You're my only hope.");
-    createQuote(vader, rank++, "I find your lack of faith disturbing.");
-    createQuote(han, rank++, "It's the ship that made the Kessel run in less than twelve parsecs.");
-    createQuote(obiwan, rank++, "The Force will be with you. Always.");
-    createQuote(leia, rank++, "Why, you stuck-up, half-witted, scruffy-looking nerf herder!");
-    createQuote(han, rank++, "Never tell me the odds!");
-    createQuote(yoda, rank++, "Do. Or do not. There is no try.");
-    createQuote(vader, rank++, "No. I am your father.");
-    createQuote(yoda, rank++, "The Force runs strong in your family.");
-    createQuote(luke, rank++, "I am a Jedi, like my father before me.");
-    createQuote(palpatine, rank++, "Now, young Skywalker, you will die.");
-    createQuote(anakin, rank++, "Just for once, let me look on you with my own eyes.");
-    createQuote(quigon, rank++, "There's always a bigger fish.");
-    createQuote(nute, rank++, "In time, the suffering of your people will persuade you to see our point of view.");
-    createQuote(shmi, rank++, "You can't stop the change, any more than you can stop the suns from setting.");
-    createQuote(yoda, rank++, "Fear is the path to the dark side. Fear leads to anger; anger leads to hate; hate leads to suffering.");
-    createQuote(obiwan, rank++, "Well, if droids could think, there'd be none of us here, would there?");
-    createQuote(jamillia, rank++, "We must keep our faith in the Republic. The day we stop believing democracy can work is the day we lose it.");
-    createQuote(jango, rank++, "I'm just a simple man trying to make my way in the universe.");
-    createQuote(dooku, rank++, "What if I told you that the Republic was now under the control of a Dark Lord of the Sith?");
-    createQuote(palpatine, rank++, "The dark side of the Force is a pathway to many abilities some consider to be unnatural.");
-    createQuote(palpatine, rank++, "Power! Unlimited power!");
-    createQuote(padme, rank++, "So this is how liberty dies. With thunderous applause.");
-    createQuote(obiwan, rank++, "You were my brother, Anakin. I loved you.");
-    createQuote(rey, rank++, "The garbage'll do!");
-    createQuote(han, rank++, "Chewie, we're home.");
-    createQuote(leia, rank++, "You know, no matter how much we fought, I've always hated watching you leave.");
-    createQuote(c3po, rank++, "Oh, my dear friend. How I've missed you.");
-    createQuote(chirrut, rank++, "I'm one with the Force. The Force is with me.");
-    createQuote(cassian, rank++, "Every time I walked away from something I wanted to forget, I told myself it was for a cause that I believed in. A cause that was worth it. Without that, we're lost.");
-    createQuote(k2so, rank++, "Jyn, I'll be there for you. Cassian said I had to.");
-    createQuote(leia, rank++, "Hope.");
+    createQuote(episode4, leia, rank++, "Help me, Obi-Wan Kenobi. You're my only hope.");
+    createQuote(episode4, vader, rank++, "I find your lack of faith disturbing.");
+    createQuote(episode4, han, rank++, "It's the ship that made the Kessel run in less than twelve parsecs.");
+    createQuote(episode4, obiwan, rank++, "The Force will be with you. Always.");
+    createQuote(episode4, leia, rank++, "Why, you stuck-up, half-witted, scruffy-looking nerf herder!");
+    createQuote(episode4, han, rank++, "Never tell me the odds!");
+    createQuote(episode5, yoda, rank++, "Do. Or do not. There is no try.");
+    createQuote(episode5, vader, rank++, "No. I am your father.");
+    createQuote(episode6, yoda, rank++, "The Force runs strong in your family.");
+    createQuote(episode6, luke, rank++, "I am a Jedi, like my father before me.");
+    createQuote(episode6, palpatine, rank++, "Now, young Skywalker, you will die.");
+    createQuote(episode6, anakin, rank++, "Just for once, let me look on you with my own eyes.");
+    createQuote(episode1, quigon, rank++, "There's always a bigger fish.");
+    createQuote(episode1, nute, rank++, "In time, the suffering of your people will persuade you to see our point of view.");
+    createQuote(episode1, shmi, rank++, "You can't stop the change, any more than you can stop the suns from setting.");
+    createQuote(episode1, yoda, rank++, "Fear is the path to the dark side. Fear leads to anger; anger leads to hate; hate leads to suffering.");
+    createQuote(episode1, obiwan, rank++, "Well, if droids could think, there'd be none of us here, would there?");
+    createQuote(episode1, jamillia, rank++, "We must keep our faith in the Republic. The day we stop believing democracy can work is the day we lose it.");
+    createQuote(episode2, jango, rank++, "I'm just a simple man trying to make my way in the universe.");
+    createQuote(episode2, dooku, rank++, "What if I told you that the Republic was now under the control of a Dark Lord of the Sith?");
+    createQuote(episode3, palpatine, rank++, "The dark side of the Force is a pathway to many abilities some consider to be unnatural.");
+    createQuote(episode3, palpatine, rank++, "Power! Unlimited power!");
+    createQuote(episode3, padme, rank++, "So this is how liberty dies. With thunderous applause.");
+    createQuote(episode3, obiwan, rank++, "You were my brother, Anakin. I loved you.");
+    createQuote(episode7, rey, rank++, "The garbage'll do!");
+    createQuote(episode8, han, rank++, "Chewie, we're home.");
+    createQuote(episode8, leia, rank++, "You know, no matter how much we fought, I've always hated watching you leave.");
+    createQuote(episode8, c3po, rank++, "Oh, my dear friend. How I've missed you.");
+    createQuote(rogue1, chirrut, rank++, "I'm one with the Force. The Force is with me.");
+    createQuote(rogue1, cassian, rank++, "Every time I walked away from something I wanted to forget, I told myself it was for a cause that I believed in. A cause that was worth it. Without that, we're lost.");
+    createQuote(rogue1, k2so, rank++, "Jyn, I'll be there for you. Cassian said I had to.");
+    createQuote(rogue1, leia, rank++, "Hope.");
 
     cg::ParseClient::instance()->createAll(_quotes);
     QVERIFY(createSpy.wait(10000));
@@ -233,6 +271,19 @@ void ParseTest::deleteTestObjects()
     if (characterObjects.size() > 0)
     {
         ParseClient::instance()->deleteAll(characterObjects);
+        QSignalSpy deleteAllSpy(ParseClient::instance(), &ParseClient::deleteAllFinished);
+        QVERIFY(deleteAllSpy.wait(10000));
+    }
+
+    ParseQuery *pMovieQuery = ParseQuery::createQuery<TestMovie>();
+    pMovieQuery->find();
+    QSignalSpy findMoviesSpy(pMovieQuery, &ParseQuery::findFinished);
+    QVERIFY(findMoviesSpy.wait(10000));
+
+    QList<ParseObject*> movies = pMovieQuery->resultObjects();
+    if (movies.size() > 0)
+    {
+        ParseClient::instance()->deleteAll(movies);
         QSignalSpy deleteAllSpy(ParseClient::instance(), &ParseClient::deleteAllFinished);
         QVERIFY(deleteAllSpy.wait(10000));
     }
@@ -312,6 +363,35 @@ void ParseTest::testObjectArray()
     QVERIFY(scores.contains(1));
     QVERIFY(scores.contains(1330));
     QVERIFY(scores.contains(124));
+
+    gameScore->deleteObject();
+    QSignalSpy deleteSpy(gameScore, &ParseObject::deleteFinished);
+    QVERIFY(deleteSpy.wait(10000));
+
+    delete gameScore;
+}
+
+void ParseTest::testObjectRelation()
+{
+    ParseRelation *charactersInEpisode4 = episode4->relation<TestCharacter>("characters");
+    charactersInEpisode4->add(vader);
+    charactersInEpisode4->add(c3po);
+    charactersInEpisode4->add(leia);
+    charactersInEpisode4->add(luke);
+    charactersInEpisode4->add(obiwan);
+    charactersInEpisode4->add(han);
+
+    episode4->save();
+    QSignalSpy saveSpy(episode4, &ParseObject::saveFinished);
+    QVERIFY(saveSpy.wait(10000));
+
+    ParseQuery *charactersQuery = charactersInEpisode4->query();
+    charactersQuery->find();
+    QSignalSpy findSpy(charactersQuery, &ParseQuery::findFinished);
+    QVERIFY(findSpy.wait(10000));
+
+    QList<ParseObject*> characters = charactersQuery->resultObjects();
+    QCOMPARE(characters.size(), 6);
 }
 
 void ParseTest::testUserLogin()
@@ -380,7 +460,7 @@ void ParseTest::testUserSignUp()
 
 void ParseTest::testGetQuery()
 {
-    QScopedPointer<TestQuote> pQuote(new TestQuote(luke, 1, "I have a very bad feeling about this."));
+    QScopedPointer<TestQuote> pQuote(new TestQuote(episode1, luke, 1, "I have a very bad feeling about this."));
     pQuote->save();
     QSignalSpy saveSpy(pQuote.data(), &ParseObject::saveFinished);
     QVERIFY(saveSpy.wait(10000));

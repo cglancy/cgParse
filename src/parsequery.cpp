@@ -32,6 +32,26 @@ namespace cg
     {
     }
 
+    ParseQuery::ParseQuery(const QMetaObject *pMetaObject, const QString &relationClassName, const QString &relationObjectId, 
+        const QString &relationKey, QObject *pParent)
+        : QObject(pParent),
+        _pMetaObject(pMetaObject),
+        _limit(-1),
+        _skip(0),
+        _count(0)
+    {
+        QJsonObject pointerObject;
+        pointerObject.insert("__type", "Pointer");
+        pointerObject.insert("className", relationClassName);
+        pointerObject.insert(ParseObject::ObjectIdKey, relationObjectId);
+
+        QJsonObject relatedToObject;
+        relatedToObject.insert("object", pointerObject);
+        relatedToObject.insert("key", relationKey);
+
+        _whereObject.insert("$relatedTo", relatedToObject);
+    }
+
     ParseQuery::~ParseQuery()
     {
         clearResults();

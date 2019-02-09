@@ -17,6 +17,7 @@
 #include "parseclient.h"
 #include "parsefile.h"
 #include "parseuser.h"
+#include "parserelation.h"
 #include "parseutil.h"
 
 #include <QJsonObject>
@@ -284,6 +285,23 @@ namespace cg {
     void ParseObject::setUser(const QString & key, ParseUser * pUser)
     {
         setValue(key, QVariant::fromValue<ParseUser*>(pUser));
+    }
+
+    ParseRelation *ParseObject::relation(const QMetaObject *pMetaObject, const QString &key)
+    {
+        ParseRelation *pRelation = nullptr;
+
+        if (_valueMap.contains(key) && _valueMap.value(key).canConvert<ParseRelation*>())
+        {
+            return qvariant_cast<ParseRelation*>(value(key));
+        }
+        else
+        {
+            pRelation = new ParseRelation(pMetaObject, className(), objectId(), key, this);
+            setValue(key, QVariant::fromValue<ParseRelation*>(pRelation));
+        }
+
+        return pRelation;
     }
 
     bool ParseObject::contains(const QString &key) const

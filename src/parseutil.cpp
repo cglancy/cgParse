@@ -16,8 +16,10 @@
 #include "parseutil.h"
 #include "parseobject.h"
 #include "parsefile.h"
+#include "parserelation.h"
 
 #include <QJsonObject>
+#include <QJsonArray>
 
 namespace cg
 {
@@ -30,6 +32,16 @@ namespace cg
             QJsonObject object = jsonValue.toObject();
             QString typeStr = object.value("__type").toString();
             if (typeStr == "Pointer")
+            {
+                QString className = object.value("className").toString();
+                QString objectId = object.value(ParseObject::ObjectIdKey).toString();
+
+                ParseObject *pObject = ParseObject::createWithoutData(className, objectId);
+                if (pObject && pParent)
+                    pObject->setParent(pParent);
+                variant = QVariant::fromValue<ParseObject*>(pObject);
+            }
+            else if (typeStr == "Object")
             {
                 QString className = object.value("className").toString();
                 QString objectId = object.value(ParseObject::ObjectIdKey).toString();
@@ -88,6 +100,48 @@ namespace cg
                 jsonObject.insert("className", pObject->className());
                 jsonObject.insert(ParseObject::ObjectIdKey, pObject->objectId());
                 jsonValue = jsonObject;
+            }
+        }
+        else if (variant.canConvert<ParseRelation*>())
+        {
+            ParseRelation *pRelation = qvariant_cast<ParseRelation*>(variant);
+            if (pRelation)
+            {
+                QJsonArray objectsArray;
+                const QList<ParseObject*> & addList = pRelation->addList();
+                const QList<ParseObject*> & removeList = pRelation->removeList();
+                if (addList.size() > 0)
+                {
+                    for (auto & pObject : addList)
+                    {
+                        QJsonObject object;
+                        object.insert("__type", "Pointer");
+                        object.insert("className", pObject->className());
+                        object.insert(ParseObject::ObjectIdKey, pObject->objectId());
+                        objectsArray.append(object);
+                    }
+
+                    QJsonObject opObject;
+                    opObject.insert("__op", "AddRelation");
+                    opObject.insert("objects", objectsArray);
+                    jsonValue = opObject;
+                }
+                else if (removeList.size() > 0)
+                {
+                    for (auto & pObject : addList)
+                    {
+                        QJsonObject object;
+                        object.insert("__type", "Pointer");
+                        object.insert("className", pObject->className());
+                        object.insert(ParseObject::ObjectIdKey, pObject->objectId());
+                        objectsArray.append(object);
+                    }
+
+                    QJsonObject opObject;
+                    opObject.insert("__op", "RemoveRelation");
+                    opObject.insert("objects", objectsArray);
+                    jsonValue = opObject;
+                }
             }
         }
         else if (variant.canConvert<ParseFile*>())

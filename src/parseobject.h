@@ -28,6 +28,7 @@ namespace cg
     class ParseQuery;
     class ParseFile;
     class ParseUser;
+    class ParseRelation;
 
     class CGPARSE_API ParseObject : public QObject
     {
@@ -94,6 +95,12 @@ namespace cg
         ParseUser* user(const QString &key) const;
         void setUser(const QString &key, ParseUser *pFile);
 
+        template <class T>
+        ParseRelation * relation(const QString &key)
+        {
+            return relation(&T::staticMetaObject, key);
+        }
+
         bool contains(const QString &key) const;
         QStringList keys(bool onlyUserValues = true) const;
         QVariantMap valueMap(bool onlyUserValues = true) const;
@@ -116,6 +123,7 @@ namespace cg
         ParseObject *objectValue(const QString &key) const;
         static ParseObject * create(const QMetaObject *pMetaObject);
         static ParseObject * createWithoutData(const QMetaObject *pMetaObject, const QString &objectId);
+        ParseRelation *relation(const QMetaObject *pMetaObject, const QString &key);
 
     private:
         QString _className;

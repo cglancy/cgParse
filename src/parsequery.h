@@ -32,6 +32,8 @@ namespace cg
     {
         Q_OBJECT
     public:
+        ParseQuery(const QMetaObject *pMetaObject, const QString &relationClassName, 
+            const QString &relationObjectId, const QString &relationKey, QObject *pParent);
         ~ParseQuery();
 
         template <class T>
