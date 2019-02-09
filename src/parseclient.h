@@ -18,16 +18,13 @@
 #pragma once
 
 #include "cgparse.h"
+#include "parsetypes.h"
 #include <QObject>
 #include <QByteArray>
 
 namespace cg
 {
     class ParseClientPrivate;
-    class ParseObject;
-    class ParseUser;
-    class ParseQuery;
-    class ParseFile;
 
     class CGPARSE_API ParseClient : public QObject
     {
@@ -64,11 +61,11 @@ namespace cg
         void updateAll(const QList<ParseObject*> &objects);
         void deleteAll(const QList<ParseObject*> &objects);
 
-        void getObject(ParseQuery *pQuery, const QString &objectId);
-        void findObjects(ParseQuery *pQuery);
-        void countObjects(ParseQuery *pQuery);
+        //void getObject(ParseQuery *pQuery, const QString &objectId);
+        //void findObjects(ParseQuery *pQuery);
+        //void countObjects(ParseQuery *pQuery);
 
-        void saveFile(ParseFile *pFile);
+        ParseReply* saveFile(ParseFile *pFile);
         void deleteFile(const QString &url, const QString &masterKey);
 
     signals:
@@ -89,9 +86,9 @@ namespace cg
         void updateAllFinished(int errorCode);
         void deleteAllFinished(int errorCode);
 
-        void getObjectFinished(ParseQuery *pQuery, ParseObject *pObject, int errorCode);
-        void findObjectsFinished(ParseQuery *pQuery, const QList<ParseObject*> &objects, int errorCode);
-        void countObjectsFinished(ParseQuery *pQuery, int count, int errorCode);
+        //void getObjectFinished(ParseQuery *pQuery, ParseObject *pObject, int errorCode);
+        //void findObjectsFinished(ParseQuery *pQuery, const QList<ParseObject*> &objects, int errorCode);
+        //void countObjectsFinished(ParseQuery *pQuery, int count, int errorCode);
 
         void saveFileFinished(ParseFile *pFile, int errorCode);
         void deleteFileFinished(const QString &url, int errorCode);

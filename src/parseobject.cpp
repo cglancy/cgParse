@@ -28,9 +28,13 @@ namespace cg {
     const QString ParseObject::CreatedAtKey = QStringLiteral("createdAt");
     const QString ParseObject::UpdatedAtKey = QStringLiteral("updatedAt");
 
+    ParseObject::ParseObject()
+        : _className("ParseObject")
+    {
+    }
+
     ParseObject::ParseObject(const QString &className)
-        : QObject(ParseClient::instance()),
-        _className(className)
+        : _className(className)
     {
     }
 
@@ -38,46 +42,14 @@ namespace cg {
     {
     }
 
-    ParseObject * ParseObject::create(const QString &className)
+    ParseObjectPtr ParseObject::create(const QString &className)
     {
-        ParseObject *pObject = nullptr;
-        QByteArray classStar = className.toUtf8() + "*";
-
-        int baseType = QMetaType::type("ParseObject*");
-        int type = QMetaType::type(classStar);
-
-        if (type != 0 && type != baseType)
-        {
-            const QMetaObject *pMetaObject = QMetaType::metaObjectForType(type);
-            if (pMetaObject)
-                pObject = qobject_cast<ParseObject*>(pMetaObject->newInstance());
-        }
-        else
-        {
-            pObject = new ParseObject(className);
-        }
-
-        return pObject;
+        ParseObjectPtr pObject = QSharedPointer<ParseObject>::create(className);
     }
 
-    ParseObject * ParseObject::createWithoutData(const QString &className, const QString &objectId)
+    ParseObjectPtr ParseObject::createWithoutData(const QString &className, const QString &objectId)
     {
-        ParseObject *pObject = create(className);
-        if (pObject)
-            pObject->setValue(ObjectIdKey, objectId);
-        return pObject;
-    }
-
-    ParseObject * ParseObject::create(const QMetaObject *pMetaObject)
-    {
-        if (!pMetaObject)
-            return nullptr;
-        return qobject_cast<ParseObject*>(pMetaObject->newInstance());
-    }
-    
-    ParseObject * ParseObject::createWithoutData(const QMetaObject *pMetaObject, const QString &objectId)
-    {
-        ParseObject *pObject = create(pMetaObject);
+        ParseObjectPtr pObject = create(className);
         if (pObject)
             pObject->setValue(ObjectIdKey, objectId);
         return pObject;
@@ -129,7 +101,7 @@ namespace cg {
         _savedValueMap = _valueMap;
     }
 
-    bool ParseObject::hasSameId(ParseObject *pObject) const
+    bool ParseObject::hasSameId(ParseObjectPtr pObject) const
     {
         return pObject && pObject->value(ObjectIdKey) == value(ObjectIdKey);
     }
@@ -161,37 +133,7 @@ namespace cg {
 
     void ParseObject::setValue(const QString &key, const QVariant &variant)
     {
-        // take ownership of any objects or files stored in the _valueMap
-        if (variant.canConvert<ParseObject*>())
-        {
-            ParseObject *pObject = qvariant_cast<ParseObject*>(variant);
-            if (pObject)
-            {
-                ParseObject *pNewObject = ParseObject::create(pObject->className());
-                pNewObject->setParent(this);
-                pNewObject->setValues(pObject->valueMap(false));
-                QVariant value = QVariant::fromValue<ParseObject*>(pNewObject);
-                _valueMap.insert(key, value);
-            }
-        }
-        else if (variant.canConvert<ParseFile*>())
-        {
-            ParseFile *pFile = qvariant_cast<ParseFile*>(variant);
-            if (pFile)
-            {
-                ParseFile *pNewFile = new ParseFile(this);
-                pNewFile->setName(pFile->name());
-                pNewFile->setUrl(pFile->url());
-                QVariant value = QVariant::fromValue<ParseFile*>(pNewFile);
-                _valueMap.insert(key, value);
-            }
-        }
-        else
-        {
-            _valueMap.insert(key, variant);
-        }
-
-        emit valueChanged(key);
+        _valueMap.insert(key, variant);
     }
 
     void ParseObject::remove(const QString & key)
@@ -257,14 +199,14 @@ namespace cg {
         setValue(key, jsonObject);
     }
 
-    ParseObject * ParseObject::objectValue(const QString &key) const
+    ParseObjectPtr ParseObject::objectValue(const QString &key) const
     {
-        return qvariant_cast<ParseObject*>(value(key));
+        return value(key).value<ParseObjectPtr>();
     }
 
-    void ParseObject::setObject(const QString &key, ParseObject *pObject)
+    void ParseObject::setObject(const QString &key, ParseObjectPtr pObject)
     {
-        setValue(key, QVariant::fromValue<ParseObject*>(pObject));
+        setValue(key, QVariant::fromValue(pObject));
     }
 
     ParseFile* ParseObject::file(const QString &key) const
@@ -287,18 +229,18 @@ namespace cg {
         setValue(key, QVariant::fromValue<ParseUser*>(pUser));
     }
 
-    ParseRelation *ParseObject::relation(const QMetaObject *pMetaObject, const QString &key)
+    ParseRelationPtr ParseObject::relation(const QString &key)
     {
-        ParseRelation *pRelation = nullptr;
+        ParseRelationPtr pRelation;
 
-        if (_valueMap.contains(key) && _valueMap.value(key).canConvert<ParseRelation*>())
+        if (_valueMap.contains(key) && _valueMap.value(key).canConvert<ParseRelationPtr>())
         {
-            return qvariant_cast<ParseRelation*>(value(key));
+            return value(key).value<ParseRelationPtr>();
         }
         else
         {
-            pRelation = new ParseRelation(pMetaObject, className(), objectId(), key, this);
-            setValue(key, QVariant::fromValue<ParseRelation*>(pRelation));
+            pRelation = QSharedPointer<ParseRelation>::create(className(), objectId(), key, this);
+            setValue(key, QVariant::fromValue<ParseRelationPtr>(pRelation));
         }
 
         return pRelation;

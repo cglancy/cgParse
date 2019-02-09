@@ -6,13 +6,6 @@ CONFIG += dll
 TEMPLATE = lib
 VERSION	= 0.1.1
 
-SOURCES += parseclient.cpp \
-	parsefile.cpp \
-	parseobject.cpp \
-	parsequery.cpp \
-	parserelation.cpp \
-	parseuser.cpp \
-	parseutil.cpp
 
 HEADERS += cgparse.h \
 	parseclient.h \
@@ -21,8 +14,21 @@ HEADERS += cgparse.h \
     parseobject.h \
 	parsequery.h \
 	parserelation.h \
+	parsereply.h \
+	parserequest.h \
 	parseuser.h \
 	parseutil.h
+	
+SOURCES += parseclient.cpp \
+	parsefile.cpp \
+	parseobject.cpp \
+	parsequery.cpp \
+	parserelation.cpp \
+	parsereply.cpp \
+	parserequest.cpp \
+	parseuser.cpp \
+	parseutil.cpp
+
 
 DEFINES += CGPARSE_EXPORTS
 

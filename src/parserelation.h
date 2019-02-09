@@ -18,37 +18,34 @@
 #pragma once
 
 #include "cgparse.h"
-#include <QObject>
+#include "parsequery.h"
 
 namespace cg
 {
-    class ParseObject;
-    class ParseQuery;
-
-    class CGPARSE_API ParseRelation : public QObject
+    template <class T>
+    class CGPARSE_API ParseRelation
     {
-        Q_OBJECT
-        Q_DISABLE_COPY(ParseRelation)
-
     public:
-        ParseRelation(const QMetaObject *pMetaObject, const QString &className, const QString &objectId, 
-            const QString &key, QObject *pParent = nullptr);
-        ~ParseRelation();
+        ParseRelation(const QString &objectClassName, const QString &objectId, const QString &objectKey)
+            : _objectClassName(objectClassName), _objectId(objectId), _objectKey(objectKey)
+        {
+        }
 
-        ParseQuery * query();
-        void add(ParseObject *pObject);
-        void remove(ParseObject *pObject);
+        QSharedPointer<ParseQuery<T>> query()
+        {
+            return QSharedPointer<ParseQuery<T>>::create(_objectClassName, _objectId, _objectKey);
+        }
 
-        const QList<ParseObject*> & addList() const { return _addList; } 
-        const QList<ParseObject*> & removeList() const { return _removeList; }
+        void add(QSharedPointer<T> pObject) { _addList.append(pObject); }
+        void remove(QSharedPointer<T> pObject) { _removeList.append(pObject); }
+
+        const QList<QSharedPointer<T>> & addList() const { return _addList; } 
+        const QList<QSharedPointer<T>> & removeList() const { return _removeList; }
 
     private:
-        const QMetaObject *_pMetaObject;
-        QString _className, _objectId, _key;
-        QList<ParseObject*> _addList, _removeList;
+        QString _objectClassName, _objectId, _objectKey;
+        QList<QSharedPointer<T>> _addList, _removeList;
     };
-
-    Q_DECLARE_METATYPE(ParseRelation*);
 }
 
 #endif // CGPARSE_PARSERELATION_H

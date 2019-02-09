@@ -18,47 +18,41 @@
 #pragma once
 
 #include "cgparse.h"
-#include <QObject>
+#include "parsetypes.h"
+#include "parserelation.h"
+#include "parsequery.h"
 #include <QString>
 #include <QDateTime>
 #include <QVariant>
 
 namespace cg
 {
-    class ParseQuery;
-    class ParseFile;
-    class ParseUser;
-    class ParseRelation;
-
-    class CGPARSE_API ParseObject : public QObject
+    class CGPARSE_API ParseObject
     {
-        Q_OBJECT
-        Q_DISABLE_COPY(ParseObject)
-        Q_PROPERTY(QString objectId READ objectId)
-        Q_PROPERTY(QDateTime createdAt READ createdAt)
-        Q_PROPERTY(QDateTime updatedAt READ updatedAt)
-
     public:
         static const QString ObjectIdKey;
         static const QString CreatedAtKey;
         static const QString UpdatedAtKey;
 
     public:
-        Q_INVOKABLE ParseObject(const QString &className);
+        ParseObject();
+        ParseObject(const QString &className);
         virtual ~ParseObject();
 
-        static ParseObject * create(const QString &className);
-        static ParseObject * createWithoutData(const QString &className, const QString &objectId);
+        static ParseObject* create(const QString &className);
+        static ParseObject* createWithoutData(const QString &className, const QString &objectId);
 
         template <class T>
         static T* create()
         {
-            return qobject_cast<T*>(create(&T::staticMetaObject));
+            return new T;
         }
         template <class T>
         static T* createWithoutData(const QString &objectId)
         {
-            return qobject_cast<T*>(createWithoutData(&T::staticMetaObject, objectId));
+            T* pObject = new T;
+            pObject->setValue(ParseObject::ObjectIdKey, objectId);
+            return pObject;
         }
 
         QString className() const;
@@ -66,7 +60,7 @@ namespace cg
         QDateTime createdAt() const;
         QDateTime updatedAt() const;
 
-        bool hasSameId(ParseObject *pObject) const;
+        bool hasSameId(ParseObject* pObject) const;
         bool isDirty() const;
         bool isDirty(const QString &key) const;
         void revert();
@@ -85,9 +79,9 @@ namespace cg
         template <class T>
         T* object(const QString &key) const
         {
-            return qobject_cast<T*>(objectValue(key));
+            return dynamic_cast(objectValue(key));
         }
-        void setObject(const QString &key, ParseObject *pObject);
+        void setObject(const QString &key, ParseObject* pObject);
 
         ParseFile* file(const QString &key) const;
         void setFile(const QString &key, ParseFile *pFile);
@@ -95,10 +89,16 @@ namespace cg
         ParseUser* user(const QString &key) const;
         void setUser(const QString &key, ParseUser *pFile);
 
+        //template <class T>
+        //ParseRelation<T>* relation(const QString &key)
+        //{
+        //    return new ParseRelation<T>(className(), objectId(), key);
+        //}
+
         template <class T>
-        ParseRelation * relation(const QString &key)
+        ParseRelation<T>* relation(const QString &key)
         {
-            return relation(&T::staticMetaObject, key);
+
         }
 
         bool contains(const QString &key) const;
@@ -108,24 +108,15 @@ namespace cg
         void clearDirtyState();
         static bool isUserValue(const QString &key);
 
-    public slots:
         void save();
         void fetch();
         void deleteObject();
 
-    signals:
-        void saveFinished(int errorCode);
-        void fetchFinished(int errorCode);
-        void deleteFinished(int errorCode);
-        void valueChanged(const QString &valueName);
+    private:
+        ParseObject* objectValue(const QString &key) const;
 
     private:
-        ParseObject *objectValue(const QString &key) const;
-        static ParseObject * create(const QMetaObject *pMetaObject);
-        static ParseObject * createWithoutData(const QMetaObject *pMetaObject, const QString &objectId);
-        ParseRelation *relation(const QMetaObject *pMetaObject, const QString &key);
-
-    private:
+        ParseObject *_pParent;
         QString _className;
         QVariantMap _valueMap, _savedValueMap;
     };

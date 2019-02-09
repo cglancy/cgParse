@@ -19,30 +19,35 @@
 
 #include "cgparse.h"
 #include "parseclient.h"
-#include <QObject>
+#include <QSharedPointer>
 #include <QList>
 #include <QUrlQuery>
 #include <QJsonObject>
+#include <typeinfo>
 
 namespace cg
 {
-    class ParseObject;
-
-    class CGPARSE_API ParseQuery : public QObject
+    template <class T>
+    class CGPARSE_API ParseQuery
     {
-        Q_OBJECT
     public:
-        ParseQuery(const QMetaObject *pMetaObject, const QString &relationClassName, 
-            const QString &relationObjectId, const QString &relationKey, QObject *pParent);
-        ~ParseQuery();
-
-        template <class T>
-        static ParseQuery * createQuery()
+        ParseQuery()
         {
-            return new ParseQuery(&T::staticMetaObject);
+            _className = typeid(T).name();
         }
 
-        const QMetaObject* queryMetaObject() const;
+        ParseQuery(const QString &relationClassName, const QString &relationObjectId,
+            const QString &relationKey)
+        {
+            _className = typeid(T).name();
+        }
+
+        template <class T>
+        static QSharedPointer<ParseQuery<T>> createQuery()
+        {
+            return QSharedPointer<ParseQuery<T>>::create();
+        }
+
         QString className() const;
 
         ParseQuery * orderByAscending(const QString &key);
@@ -69,46 +74,18 @@ namespace cg
         QUrlQuery urlQuery() const;
 
         void clearResults();
-        ParseObject * firstObject() const;
-        const QList<ParseObject*> & resultObjects() const { return _objects; }
-
-        template <class T>
-        T* first() const
-        {
-            T* object = nullptr;
-            if (!_objects.isEmpty())
-                object = qobject_cast<T*>(_objects.first());
-            return object;
-        }
-
-        template <class T>
-        QList<T*> results() const
-        {
-            QList<T*> objects;
-            for (auto & pObject : _objects)
-                objects.append(qobject_cast<T*>(pObject));
-            return objects;
-        }
-
-    public slots:
-        void get(const QString &objectId);
-        void find();
-        void count();
-
-    signals:
-        void getFinished(ParseObject *pObject, int errorCode);
-        void findFinished(const QList<ParseObject*> &objects, int errorCode);
-        void countFinished(int count, int errorCode);
+        QSharedPointer<T> firstObject() const;
+        const QList<QSharedPointer<T>> & results() const { return _results; }
 
     private:
         friend ParseClientPrivate;
-        ParseQuery(const QMetaObject *pMetaObject);
-        void setResults(const QList<ParseObject*> &results);
+
+        void setResults(const QList<QSharedPointer<T>> &results) { _results = results; }
         void addConstraint(const QString &key, const QString &constraintKey, const QVariant &value);
 
     private:
-        const QMetaObject *_pMetaObject;
-        QList<ParseObject*> _objects;
+        const QString _className;
+        QList<QSharedPointer<T>> _results;
         QJsonObject _whereObject;
         int _limit, _skip, _count;
         QStringList _keysList, _orderList;

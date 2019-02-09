@@ -24,13 +24,6 @@ namespace cg
 {
     class CGPARSE_API ParseUser : public ParseObject
     {
-        Q_OBJECT
-        Q_DISABLE_COPY(ParseUser)
-        Q_PROPERTY(QString username READ username WRITE setUsername)
-        Q_PROPERTY(QString password READ password WRITE setPassword)
-        Q_PROPERTY(QString email READ email WRITE setEmail)
-        Q_PROPERTY(QString sessionToken READ sessionToken)
-
     public:
         Q_INVOKABLE ParseUser();
         ~ParseUser();
@@ -56,8 +49,6 @@ namespace cg
         void signUpFinished(int errorCode);
         void deleteUserFinished(int errorCode);
     };
-
-    Q_DECLARE_METATYPE(ParseUser*);
 }
 
 #endif // CGPARSE_PARSEUSER_H

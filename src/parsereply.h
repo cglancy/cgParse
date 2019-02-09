@@ -13,51 +13,46 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEFILE_H
-#define CGPARSE_PARSEFILE_H
+#ifndef CGPARSE_PARSEREPLY_H
+#define CGPARSE_PARSEREPLY_H
 #pragma once
 
-#include "cgparse.h"
-#include <QString>
+#include <QObject>
 #include <QByteArray>
-#include <QMetaType>
 
-class QFile;
+class QNetworkReply;
 
 namespace cg
 {
-    class ParseObject;
-    class ParseReply;
+	class ParseReply : public QObject
+	{
+		Q_OBJECT
+	public:
+		ParseReply(QNetworkReply *pReply);
+		virtual ~ParseReply();
 
-    class CGPARSE_API ParseFile
-    {
-    public:
-        ParseFile(ParseObject *pParent = nullptr);
-        ParseFile(const QString &localPath);
-        ParseFile(const QString &name, const QByteArray &data, const QString &contentType);
-        ~ParseFile();
+        QByteArray data() const { return _data; }
+        int statusCode() const { return _statusCode; }
+        int errorCode() const { return _errorCode; }
+        QString errorMessage() const { return _errorMessage; }
 
-        bool isDirty() const;
+    signals:
+        void finished();
 
-        QString name() const;
-        void setName(const QString &name);
-
-        QString url() const;
-        void setUrl(const QString &url);
-
-        QString contentType() const;
-        void setContentType(const QString &contentType);
-
-        QByteArray data() const;
-
-        ParseReply * save();
+    private slots:
+        void requestFinished();
 
     private:
-        QString _name, _url, _contentType;
-        QByteArray _data;
-    };
+        static int statusCode(QNetworkReply *pReply);
+        static int errorCode(QNetworkReply *pReply);
+        static bool isError(int statusCode);
 
-    Q_DECLARE_METATYPE(ParseFile*);
+    private:
+        QNetworkReply *_pReply;
+        QByteArray _data;
+        int _errorCode, _statusCode;
+        QString _errorMessage;
+    };
 }
 
-#endif // CGPARSE_PARSEFILE_H
+#endif // CGPARSE_PARSEREPLY_H

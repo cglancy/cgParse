@@ -21,14 +21,13 @@
 
 namespace cg
 {
-    ParseFile::ParseFile(QObject *pParent)
-        : QObject(pParent ? pParent : ParseClient::instance())
+    ParseFile::ParseFile(ParseObject *pParent)
     {
+        pParent;
     }
 
     ParseFile::ParseFile(const QString &path)
-        : QObject(ParseClient::instance()),
-        _contentType("unknown/unknown")
+        : _contentType("unknown/unknown")
     {
         QFileInfo fi(path);
         _name = fi.fileName();
@@ -47,8 +46,7 @@ namespace cg
     }
 
     ParseFile::ParseFile(const QString &name, const QByteArray &data, const QString &contentType)
-        : QObject(ParseClient::instance()),
-        _name(name),
+        : _name(name),
         _data(data),
         _contentType(contentType)
     {
@@ -98,8 +96,8 @@ namespace cg
         return _data;
     }
 
-    void ParseFile::save()
+    ParseReply* ParseFile::save()
     {
-        ParseClient::instance()->saveFile(this);
+        return ParseClient::instance()->saveFile(this);
     }
 }

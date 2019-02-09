@@ -20,6 +20,7 @@
 #include "parsequery.h"
 #include "parsefile.h"
 #include "parseutil.h"
+#include "parserequest.h"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -1125,7 +1126,7 @@ namespace cg {
         pReply->deleteLater();
     }
 
-    void ParseClient::saveFile(ParseFile * pFile)
+    ParseReply* ParseClient::saveFile(ParseFile * pFile)
     {
         Q_D(ParseClient);
 
@@ -1134,6 +1135,9 @@ namespace cg {
             emit saveFileFinished(pFile, -1);
             return;
         }
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/files/" + pFile->name(), pFile->contentType(), pFile->data());
+        QNetworkReply *pReply = d->nam->post(request.networkRequest(), request.data());
 
         QNetworkRequest request = d->buildRequest("/parse/files/" + pFile->name(), pFile->contentType());
         QNetworkReply *pReply = d->nam->post(request, pFile->data());
