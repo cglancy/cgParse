@@ -82,6 +82,8 @@ private slots:
     void cleanupTestCase();
 
     void testObject();
+    void testObjectRevert();
+    void testObjectArray();
     void testUserSignUp();
     void testUserLogin();
     void testResetPassword();

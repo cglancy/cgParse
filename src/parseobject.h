@@ -68,11 +68,18 @@ namespace cg
         bool hasSameId(ParseObject *pObject) const;
         bool isDirty() const;
         bool isDirty(const QString &key) const;
-        void setDirty(bool dirty);
+        void revert();
+        void revert(const QString &key);
 
         QVariant value(const QString &key) const;
-        void setValue(const QString &key, const QVariant &variant);
+        void setValue(const QString &key, const QVariant &value);
         void remove(const QString &key);
+
+        void add(const QString &key, const QVariant &value);
+        void addUnique(const QString &key, const QVariant &value);
+        void addAll(const QString &key, const QVariantList &valueList);
+        void addAllUnique(const QString &key, const QVariantList &valueList);
+        void removeAll(const QString &key, const QVariantList &valueList);
 
         template <class T>
         T* object(const QString &key) const
@@ -91,6 +98,7 @@ namespace cg
         QStringList keys(bool onlyUserValues = true) const;
         QVariantMap valueMap(bool onlyUserValues = true) const;
         void setValues(const QVariantMap &valueMap);
+        void clearDirtyState();
         static bool isUserValue(const QString &key);
 
     public slots:
@@ -111,7 +119,7 @@ namespace cg
 
     private:
         QString _className;
-        QVariantMap _valueMap, _cachedValueMap;
+        QVariantMap _valueMap, _savedValueMap;
     };
 
     Q_DECLARE_METATYPE(ParseObject*);

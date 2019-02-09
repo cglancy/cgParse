@@ -20,6 +20,7 @@
 #include "parseutil.h"
 
 #include <QJsonObject>
+#include <QJsonArray>
 
 namespace cg {
     const QString ParseObject::ObjectIdKey = QStringLiteral("objectId");
@@ -94,24 +95,37 @@ namespace cg {
 
     bool ParseObject::isDirty(const QString &key) const
     {
-        if (_cachedValueMap.contains(key))
+        bool dirty = true;
+
+        bool inValueMap = _valueMap.contains(key);
+        bool inSavedMap = _savedValueMap.contains(key);
+
+        if (inValueMap && inSavedMap)
         {
-            if (value(key) == _cachedValueMap.value(key))
-                return false;
+            if (value(key) == _savedValueMap.value(key))
+                dirty = false;
+        }
+        else if (!inValueMap && !inSavedMap)
+        {
+            dirty = false;
         }
 
-        return true;
+        return dirty;
     }
-    
-    void ParseObject::setDirty(bool dirty)
-    {
-        _cachedValueMap.clear();
 
-        if (!dirty)
-        {
-            for (auto & key : keys())
-                _cachedValueMap.insert(key, value(key));
-        }
+    void ParseObject::revert()
+    {
+        _valueMap = _savedValueMap;
+    }
+
+    void ParseObject::revert(const QString &key)
+    {
+        _valueMap.insert(key, _savedValueMap.value(key));
+    }
+
+    void ParseObject::clearDirtyState()
+    {
+        _savedValueMap = _valueMap;
     }
 
     bool ParseObject::hasSameId(ParseObject *pObject) const
@@ -183,6 +197,62 @@ namespace cg {
     {
         QJsonObject jsonObject;
         jsonObject.insert("__op", "Delete");
+        setValue(key, jsonObject);
+    }
+
+    void ParseObject::add(const QString & key, const QVariant & value)
+    {
+        QJsonArray objectsArray;
+        objectsArray.append(ParseUtil::toJsonValue(value));
+        QJsonObject jsonObject;
+        jsonObject.insert("__op", "Add");
+        jsonObject.insert("objects", objectsArray);
+        setValue(key, jsonObject);
+    }
+
+    void ParseObject::addUnique(const QString & key, const QVariant & value)
+    {
+        QJsonArray objectsArray;
+        objectsArray.append(ParseUtil::toJsonValue(value));
+        QJsonObject jsonObject;
+        jsonObject.insert("__op", "AddUnique");
+        jsonObject.insert("objects", objectsArray);
+        setValue(key, jsonObject);
+    }
+
+    void ParseObject::addAll(const QString & key, const QVariantList & valueList)
+    {
+        QJsonArray objectsArray;
+        for (auto & value : valueList)
+            objectsArray.append(ParseUtil::toJsonValue(value));
+
+        QJsonObject jsonObject;
+        jsonObject.insert("__op", "Add");
+        jsonObject.insert("objects", objectsArray);
+        setValue(key, jsonObject);
+    }
+
+    void ParseObject::addAllUnique(const QString & key, const QVariantList & valueList)
+    {
+        QJsonArray objectsArray;
+        for (auto & value : valueList)
+            objectsArray.append(ParseUtil::toJsonValue(value));
+
+        QJsonObject jsonObject;
+        jsonObject.insert("__op", "AddUnique");
+        jsonObject.insert("objects", objectsArray);
+        setValue(key, jsonObject);
+    }
+
+    void ParseObject::removeAll(const QString & key, const QVariantList & valueList)
+    {
+        QJsonArray objectsArray;
+        for (auto & value : valueList)
+            objectsArray.append(ParseUtil::toJsonValue(value));
+
+        QJsonObject jsonObject;
+        jsonObject.insert("__op", "Remove");
+        jsonObject.insert("objects", objectsArray);
         setValue(key, jsonObject);
     }
 

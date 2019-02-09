@@ -272,6 +272,48 @@ void ParseTest::testObject()
     delete gameScore;
 }
 
+void ParseTest::testObjectRevert()
+{
+    ParseObject *gameScore = new ParseObject("TestGameScore");
+    gameScore->setValue("score", 1337);
+    gameScore->setValue("playerName", "Sean Plott");
+
+    QVERIFY(gameScore->isDirty("score"));
+    QVERIFY(gameScore->isDirty("playerName"));
+    QVERIFY(gameScore->isDirty());
+    gameScore->revert();
+    QVERIFY(!gameScore->isDirty("score"));
+    QVERIFY(!gameScore->isDirty("playerName"));
+    QVERIFY(!gameScore->isDirty());
+}
+
+void ParseTest::testObjectArray()
+{
+    ParseObject *gameScore = new ParseObject("TestGameScore");
+    gameScore->setValue("score", 1337);
+    gameScore->setValue("playerName", "Sean Plott");
+
+    QVariantList previousScores;
+    previousScores << 124;
+    previousScores << 1330;
+    previousScores << 1;
+    gameScore->addAll("previousScores", previousScores);
+
+    gameScore->save();
+    QSignalSpy saveSpy(gameScore, &ParseObject::saveFinished);
+    QVERIFY(saveSpy.wait(10000));
+
+    gameScore->fetch();
+    QSignalSpy fetchSpy(gameScore, &ParseObject::fetchFinished);
+    QVERIFY(fetchSpy.wait(10000));
+
+    QVariantList scores = gameScore->value("previousScores").toList();
+    QCOMPARE(scores.size(), 3);
+    QVERIFY(scores.contains(1));
+    QVERIFY(scores.contains(1330));
+    QVERIFY(scores.contains(124));
+}
+
 void ParseTest::testUserLogin()
 {
     ParseClient *client = ParseClient::instance();

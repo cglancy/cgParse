@@ -242,7 +242,7 @@ namespace cg {
                 pUser = new ParseUser();
                 map = ParseUtil::toVariantMap(obj, pUser);
                 pUser->setValues(map);
-                pUser->setDirty(false);
+                pUser->clearDirtyState();
 
                 setCurrentUser(pUser);
             }
@@ -330,7 +330,7 @@ namespace cg {
             {
                 pUser = new ParseUser();
                 setObjectValues(pUser, doc.object());
-                pUser->setDirty(false);
+                pUser->clearDirtyState();
 
                 setCurrentUser(pUser);
             }
@@ -427,7 +427,7 @@ namespace cg {
                 {
                     QJsonObject obj = doc.object();
                     setObjectValues(pUser, obj);
-                    pUser->setDirty(false);
+                    pUser->clearDirtyState();
 
                     setCurrentUser(pUser);
                 }
@@ -528,7 +528,7 @@ namespace cg {
             {
                 QJsonObject obj = doc.object();
                 setObjectValues(pObject, obj);
-                pObject->setDirty(false);
+                pObject->clearDirtyState();
             }
         }
 
@@ -577,7 +577,7 @@ namespace cg {
             {
                 QJsonObject obj = doc.object();
                 setObjectValues(pObject, obj);
-                pObject->setDirty(false);
+                pObject->clearDirtyState();
             }
         }
 
@@ -631,7 +631,7 @@ namespace cg {
             {
                 QJsonObject obj = doc.object();
                 setObjectValues(pObject, obj);
-                pObject->setDirty(false);
+                pObject->clearDirtyState();
             }
         }
 
@@ -747,7 +747,7 @@ namespace cg {
                         QJsonObject successObject = arrayObject.value("success").toObject();
                         ParseObject *pObject = objects.at(i);
                         setObjectValues(pObject, successObject);
-                        pObject->setDirty(false);
+                        pObject->clearDirtyState();
                     }
                 }
             }
@@ -956,7 +956,7 @@ namespace cg {
                             {
                                 QVariantMap map = ParseUtil::toVariantMap(jsonObject, pObject);
                                 pObject->setValues(map);
-                                pObject->setDirty(false);
+                                pObject->clearDirtyState();
                                 objects.append(pObject);
                             }
                         }
@@ -1058,7 +1058,7 @@ namespace cg {
                             {
                                 QVariantMap map = ParseUtil::toVariantMap(jsonObject, pObject);
                                 pObject->setValues(map);
-                                pObject->setDirty(false);
+                                pObject->clearDirtyState();
                                 objects.append(pObject);
                             }
                         }
