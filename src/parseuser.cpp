@@ -35,6 +35,11 @@ namespace cg
     {
     }
 
+    ParseUserPtr ParseUser::currentUser()
+    {
+        return _pCurrentUser;
+    }
+
     QFuture<ParseUserReply> ParseUser::login(const QString &username, const QString &password)
     {
         ParseRequestObject::instance()->login(username, password);
@@ -45,6 +50,12 @@ namespace cg
     {
         ParseRequestObject::instance()->logout(_pCurrentUser);
         return AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::logoutFinished).future();
+    }
+
+    QFuture<int> ParseUser::requestPasswordReset(const QString &email)
+    {
+        ParseRequestObject::instance()->requestPasswordReset(email);
+        return AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::requestPasswordResetFinished).future();
     }
 
     bool ParseUser::isAuthenticated() const
@@ -87,13 +98,15 @@ namespace cg
         return value("sessionToken").toString();
     }
 
-    void ParseUser::signUp()
+    QFuture<ParseUserReply> ParseUser::signUp()
     {
-        //ParseClient::instance()->signUpUser(this);
+        ParseRequestObject::instance()->signUpUser(sharedFromThis().staticCast<ParseUser>());
+        return AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::signUpUserFinished).future();
     }
 
-    void ParseUser::deleteUser()
+    QFuture<int> ParseUser::deleteUser()
     {
-        //ParseClient::instance()->deleteUser(this);
+        ParseRequestObject::instance()->deleteUser(sharedFromThis().staticCast<ParseUser>());
+        return AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::deleteUserFinished).future();
     }
 }

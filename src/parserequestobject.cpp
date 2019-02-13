@@ -128,8 +128,7 @@ namespace cg
         query.addQueryItem("password", password);
         request.setUrlQuery(query);
 
-        //QNetworkReply *pReply = sendRequest(request);
-        QNetworkReply *pReply = _pNam->get(request.networkRequest());
+        QNetworkReply *pReply = sendRequest(request);
         connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateLoginFinished);
     }
 
@@ -161,7 +160,7 @@ namespace cg
             }
         }
 
-        userReply.setErrorCode(status);
+        userReply.setStatusCode(status);
         emit loginFinished(userReply);
         pReply->deleteLater();
     }
@@ -170,7 +169,7 @@ namespace cg
     {
         ParseRequest request(ParseRequest::PostHttpMethod, "/parse/logout");
         request.setHeader("X-Parse-Session-Token", pUser->sessionToken().toUtf8());
-        QNetworkReply *pReply = _pNam->post(request.networkRequest(), QByteArray());
+        QNetworkReply *pReply = sendRequest(request);
         connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateLogoutFinished);
     }
 
@@ -194,4 +193,374 @@ namespace cg
         pReply->deleteLater();
     }
 
+    void ParseRequestObject::become(const QString &sessionToken)
+    {
+        if (sessionToken.isEmpty())
+        {
+            emit becomeFinished(ParseUserReply());
+            return;
+        }
+
+        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/users/me");
+        QNetworkReply *pReply = sendRequest(request);
+        connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateBecomeFinished);
+        //_replyStringMap.insert(pReply, sessionToken);
+    }
+
+    void ParseRequestObject::privateBecomeFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        ParseUserReply userReply;
+        int status = statusCode(pReply);
+        if (isError(status))
+        {
+            status = errorCode(pReply);
+        }
+        else
+        {
+            QByteArray data = pReply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            if (doc.isObject())
+            {
+                ParseUserPtr pUser = QSharedPointer<ParseUser>::create();
+                pUser->setValues(doc.object());
+                pUser->clearDirtyState();
+                userReply.setUser(pUser);
+
+                ParseUser::_pCurrentUser = pUser;
+            }
+        }
+
+        userReply.setStatusCode(status);
+        emit becomeFinished(userReply);
+        pReply->deleteLater();
+    }
+
+    void ParseRequestObject::requestPasswordReset(const QString &email)
+    {
+        if (email.isEmpty())
+        {
+            emit requestPasswordResetFinished(1);
+            return;
+        }
+
+        QByteArray content;
+        QJsonObject jsonObject;
+        jsonObject.insert("email", email);
+        QJsonDocument doc(jsonObject);
+        content = doc.toJson(QJsonDocument::Compact);
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/requestPasswordReset", content);
+        QNetworkReply *pReply = sendRequest(request);
+        connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateRequestPasswordResetFinished);
+        //d->replyStringMap.insert(pReply, email);
+    }
+
+    void ParseRequestObject::privateRequestPasswordResetFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = statusCode(pReply);
+        if (isError(status))
+            status = errorCode(pReply);
+
+        emit requestPasswordResetFinished(status);
+        pReply->deleteLater();
+    }
+
+    void ParseRequestObject::signUpUser(ParseUserPtr pUser)
+    {
+        if (!pUser)
+        {
+            emit signUpUserFinished(ParseUserReply());
+            return;
+        }
+
+        QJsonObject object = pUser->toJsonObject();
+        QJsonDocument doc(object);
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/users", content);
+        request.setHeader("X-Parse-Revocable-Session", "1");
+        QNetworkReply *pReply = sendRequest(request);
+        connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateSignUpUserFinished);
+        _replyUserMap.insert(pReply, pUser);
+    }
+
+    void ParseRequestObject::privateSignUpUserFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = statusCode(pReply);
+        ParseUserPtr pUser = _replyUserMap.take(pReply);
+
+        ParseUserReply userReply;
+        if (isError(status))
+        {
+            status = errorCode(pReply);
+        }
+        else if (pUser)
+        {
+            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            if (doc.isObject())
+            {
+                if (status == 201) // Created
+                {
+                    QJsonObject obj = doc.object();
+                    pUser->setValues(obj);
+                    pUser->clearDirtyState();
+
+                    userReply.setUser(pUser);
+                    ParseUser::_pCurrentUser = pUser;
+                }
+            }
+        }
+
+        userReply.setStatusCode(status);
+        emit signUpUserFinished(userReply);
+        pReply->deleteLater();
+    }
+
+    void ParseRequestObject::deleteSession(const QString &sessionToken)
+    {
+        if (sessionToken.isEmpty())
+        {
+            emit deleteSessionFinished(ParseError::UnknownError);
+            return;
+        }
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/logout");
+        request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
+        QNetworkReply *pReply = sendRequest(request);
+        connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateDeleteSessionFinished);
+        //d->replyStringMap.insert(pReply, sessionToken);
+    }
+
+    void ParseRequestObject::privateDeleteSessionFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = statusCode(pReply);
+
+        if (isError(status))
+            status = errorCode(pReply);
+
+        emit deleteSessionFinished(status);
+        pReply->deleteLater();
+    }
+
+    void ParseRequestObject::deleteUser(ParseUserPtr pUser)
+    {
+        if (!pUser || pUser->objectId().isEmpty() || pUser->sessionToken().isEmpty())
+        {
+            emit deleteUserFinished(ParseError::UnknownError);
+            return;
+        }
+
+        ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/users/" + pUser->objectId());
+        request.setHeader("X-Parse-Session-Token", pUser->sessionToken().toUtf8());
+
+        QNetworkReply *pReply = sendRequest(request);
+        connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateDeleteUserFinished);
+        _replyUserMap.insert(pReply, pUser);
+    }
+
+    void ParseRequestObject::privateDeleteUserFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        ParseUserPtr pUser = _replyUserMap.take(pReply);
+        int status = statusCode(pReply);
+
+        if (isError(status))
+        {
+            status = errorCode(pReply);
+        }
+        else if (pUser)
+        {
+            if (pUser == ParseUser::_pCurrentUser)
+                ParseUser::_pCurrentUser = nullptr;
+        }
+
+        emit deleteUserFinished(status);
+        pReply->deleteLater();
+    }
+
+    void ParseRequestObject::createObject(ParseObjectPtr pObject)
+    {
+        if (!pObject)
+        {
+            emit createObjectFinished(ParseError::UnknownError);
+            return;
+        }
+
+        QJsonObject object = pObject->toJsonObject();
+        QJsonDocument doc(object);
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/classes/" + pObject->className(), content);
+
+        QNetworkReply *pReply = sendRequest(request);
+        connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateCreateObjectFinished);
+        _replyObjectMap.insert(pReply, pObject);
+    }
+
+    void ParseRequestObject::privateCreateObjectFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        ParseObjectPtr pObject = _replyObjectMap.take(pReply);
+        int status = statusCode(pReply);
+
+        if (isError(status))
+        {
+            status = errorCode(pReply);
+        }
+        else if (pObject)
+        {
+            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            if (doc.isObject())
+            {
+                QJsonObject obj = doc.object();
+                pObject->setValues(obj);
+                pObject->clearDirtyState();
+            }
+        }
+
+        emit createObjectFinished(status);
+        pReply->deleteLater();
+    }
+
+    void ParseRequestObject::fetchObject(ParseObjectPtr pObject)
+    {
+        if (!pObject)
+        {
+            emit fetchObjectFinished(ParseError::UnknownError);
+            return;
+        }
+
+        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/classes/" + pObject->className() + "/" + pObject->objectId());
+        QNetworkReply *pReply = sendRequest(request);
+        connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateFetchObjectFinished);
+        _replyObjectMap.insert(pReply, pObject);
+    }
+
+    void ParseRequestObject::privateFetchObjectFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        ParseObjectPtr pObject = _replyObjectMap.take(pReply);
+        int status = statusCode(pReply);
+
+        if (isError(status))
+        {
+            status = errorCode(pReply);
+        }
+        else if (pObject)
+        {
+            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            if (doc.isObject())
+            {
+                QJsonObject obj = doc.object();
+                pObject->setValues(obj);
+                pObject->clearDirtyState();
+            }
+        }
+
+        emit fetchObjectFinished(status);
+        pReply->deleteLater();
+    }
+
+    void ParseRequestObject::updateObject(ParseObjectPtr pObject)
+    {
+        if (!pObject || pObject->objectId().isEmpty())
+        {
+            emit updateObjectFinished(ParseError::UnknownError);
+            return;
+        }
+
+        QJsonObject object = pObject->toJsonObject();
+        QJsonDocument doc(object);
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
+
+        ParseRequest request(ParseRequest::PutHttpMethod, "/parse/classes/" + pObject->className() + "/" + pObject->objectId(), content);
+        QNetworkReply *pReply = sendRequest(request);
+        connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateUpdateObjectFinished);
+        _replyObjectMap.insert(pReply, pObject);
+    }
+
+    void ParseRequestObject::privateUpdateObjectFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        ParseObjectPtr pObject = _replyObjectMap.take(pReply);
+        int status = statusCode(pReply);
+
+        if (isError(status))
+        {
+            status = errorCode(pReply);
+        }
+        else if (pObject)
+        {
+            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            if (doc.isObject())
+            {
+                QJsonObject obj = doc.object();
+                pObject->setValues(obj);
+                pObject->clearDirtyState();
+            }
+        }
+
+        emit updateObjectFinished(status);
+        pReply->deleteLater();
+    }
+
+    void ParseRequestObject::deleteObject(ParseObjectPtr pObject)
+    {
+        if (!pObject || pObject->objectId().isEmpty())
+        {
+            emit deleteObjectFinished(ParseError::UnknownError);
+            return;
+        }
+
+        ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/classes/" + pObject->className() + "/" + pObject->objectId());
+        QNetworkReply *pReply = sendRequest(request);
+        connect(pReply, &QNetworkReply::finished, this, &ParseRequestObject::privateDeleteObjectFinished);
+        _replyObjectMap.insert(pReply, pObject);
+    }
+
+    void ParseRequestObject::privateDeleteObjectFinished()
+    {
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        ParseObjectPtr pObject = _replyObjectMap.take(pReply);
+        int status = statusCode(pReply);
+
+        if (isError(status))
+        {
+            status = errorCode(pReply);
+        }
+
+        emit deleteObjectFinished(status);
+        pReply->deleteLater();
+    }
 }

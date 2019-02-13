@@ -30,11 +30,11 @@ namespace cg
         ParseReply(const ParseReply &reply);
         virtual ~ParseReply();
 
-        int errorCode() const { return _errorCode; }
-        void setErrorCode(int errorCode) { _errorCode = errorCode; }
+        int statusCode() const { return _statusCode; }
+        void setStatusCode(int statusCode) { _statusCode = statusCode; }
 
     private:
-        int _errorCode;
+        int _statusCode;
     };
 
     Q_DECLARE_METATYPE(ParseReply);

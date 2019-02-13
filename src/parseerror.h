@@ -19,7 +19,7 @@ namespace cg
 {
     enum ParseError
     {
-        NoError = 0,
-        SomeError = 1
+        UnknownError = -1,
+        NoError = 0
     };
 }

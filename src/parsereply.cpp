@@ -14,6 +14,7 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parsereply.h"
+#include "parseerror.h"
 
 namespace cg
 {
@@ -21,13 +22,13 @@ namespace cg
     // ParseReply
     //
     ParseReply::ParseReply()
-        : _errorCode(0)
+        : _statusCode(ParseError::UnknownError)
     {
     }
 
     ParseReply::ParseReply(const ParseReply &reply)
     {
-        _errorCode = reply._errorCode;
+        _statusCode = reply._statusCode;
     }
 
     ParseReply::~ParseReply()

@@ -23,6 +23,7 @@
 #include "parsereply.h"
 
 #include <QObject>
+#include <QMap>
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -38,14 +39,44 @@ namespace cg
     public slots:
         void login(const QString &username, const QString &password);
         void logout(ParseUserPtr pUser);
+        void become(const QString &sessionToken);
+        void requestPasswordReset(const QString &email);
+        void signUpUser(ParseUserPtr pUser);
+        void deleteSession(const QString &sessionToken);
+        void deleteUser(ParseUserPtr pUser);
+
+        void createObject(ParseObjectPtr pObject);
+        void fetchObject(ParseObjectPtr pObject);
+        void updateObject(ParseObjectPtr pObject);
+        void deleteObject(ParseObjectPtr pObject);
 
     private:
         void privateLoginFinished();
         void privateLogoutFinished();
+        void privateBecomeFinished();
+        void privateRequestPasswordResetFinished();
+        void privateSignUpUserFinished();
+        void privateDeleteSessionFinished();
+        void privateDeleteUserFinished();
+
+        void privateCreateObjectFinished();
+        void privateFetchObjectFinished();
+        void privateUpdateObjectFinished();
+        void privateDeleteObjectFinished();
 
     signals:
         void loginFinished(ParseUserReply userReply);
-        void logoutFinished(int error);
+        void logoutFinished(int status);
+        void becomeFinished(ParseUserReply userReply);
+        void requestPasswordResetFinished(int status);
+        void signUpUserFinished(ParseUserReply userReply);
+        void deleteSessionFinished(int status);
+        void deleteUserFinished(int status);
+
+        void createObjectFinished(int status);
+        void fetchObjectFinished(int status);
+        void updateObjectFinished(int status);
+        void deleteObjectFinished(int status);
 
     private:
         ParseRequestObject();
@@ -59,6 +90,8 @@ namespace cg
     private:
         static ParseRequestObject *_pInstance;
         QNetworkAccessManager *_pNam;
+        QMap<QNetworkReply*, ParseUserPtr> _replyUserMap;
+        QMap<QNetworkReply*, ParseObjectPtr> _replyObjectMap;
     };
 }
 

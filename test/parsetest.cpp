@@ -355,19 +355,6 @@ void ParseTest::testUserLogin()
     QVERIFY(signUpSpy.wait(10000));
 #endif
 
-#if 0
-    ParseRequestObject *pRequestObject = ParseRequestObject::instance();
-    pRequestObject->login("TestLogin", "Parse123");
-    QSignalSpy loginSpy(pRequestObject, &ParseRequestObject::loginFinished);
-    QVERIFY(loginSpy.wait(10000));
-
-    QVERIFY(ParseUser::currentUser() != nullptr);
-
-    pRequestObject->logout(ParseUser::currentUser());
-    QSignalSpy logoutSpy(pRequestObject, &ParseRequestObject::logoutFinished);
-    QVERIFY(logoutSpy.wait(10000));
-
-#else
     QFuture<ParseUserReply> loginFuture = ParseUser::login("TestLogin", "Parse123");
     await(loginFuture);
 
@@ -382,13 +369,40 @@ void ParseTest::testUserLogin()
 
     QVERIFY(logoutFuture.result() == 200);
     QVERIFY(nullptr == ParseUser::currentUser());
+}
+
+void ParseTest::testResetPassword()
+{
+#if 0
+    ParseClient::instance()->requestPasswordReset(PARSE_TEST_EMAIL);
 #endif
 }
 
-#if 0
+void ParseTest::testUserSignUp()
+{
+    ParseUserPtr testUser = QSharedPointer<ParseUser>::create();
+    testUser->setUsername("testUser1");
+    testUser->setPassword("pa55w0rd");
+    QVERIFY(testUser->sessionToken().isEmpty());
+    QVERIFY(testUser->isAuthenticated() == false);
+
+    QFuture<ParseUserReply> signUpFuture = testUser->signUp();
+    await(signUpFuture);
+
+    QVERIFY(!testUser->sessionToken().isEmpty());
+    QString sessionToken = testUser->sessionToken();
+
+    QFuture<int> deleteFuture = testUser->deleteUser();
+    await(deleteFuture);
+
+    ParseRequestObject::instance()->deleteSession(sessionToken);
+    QSignalSpy sessionSpy(ParseRequestObject::instance(), &ParseRequestObject::deleteSessionFinished);
+    QVERIFY(sessionSpy.wait(10000));
+}
+
 void ParseTest::testObject()
 {
-    ParseObject *gameScore = new ParseObject("TestGameScore");
+    ParseObjectPtr gameScore = ParseObject::create("TestGameScore");
     gameScore->setValue("score", 1337);
     gameScore->setValue("playerName", "Sean Plott");
 
@@ -396,9 +410,8 @@ void ParseTest::testObject()
     QCOMPARE(gameScore->isDirty(), true);
     QCOMPARE(gameScore->value("score").toInt(), 1337);
 
-    gameScore->save();
-    QSignalSpy saveSpy(gameScore, &ParseObject::saveFinished);
-    QVERIFY(saveSpy.wait(10000));
+    QFuture<int> save1Future = gameScore->save();
+    await(save1Future);
 
     QVERIFY(!gameScore->objectId().isEmpty());
     QCOMPARE(gameScore->isDirty(), false);
@@ -408,22 +421,19 @@ void ParseTest::testObject()
     QCOMPARE(gameScore->isDirty(), true);
     QCOMPARE(gameScore->isDirty("score"), true);
 
-    gameScore->save();
-    QVERIFY(saveSpy.wait(10000));
+    QFuture<int> save2Future = gameScore->save();
+    await(save2Future);
 
     QCOMPARE(gameScore->value("score").toInt(), 1338);
 
-    gameScore->deleteObject();
-    QSignalSpy deleteSpy(gameScore, &ParseObject::deleteFinished);
-    QVERIFY(deleteSpy.wait(10000));
-
-    delete gameScore;
+    QFuture<int> deleteFuture = gameScore->deleteObject();
+    await(deleteFuture);
 }
 
 
 void ParseTest::testObjectRevert()
 {
-    ParseObject *gameScore = new ParseObject("TestGameScore");
+    ParseObjectPtr gameScore = ParseObject::create("TestGameScore");
     gameScore->setValue("score", 1337);
     gameScore->setValue("playerName", "Sean Plott");
 
@@ -436,9 +446,10 @@ void ParseTest::testObjectRevert()
     QVERIFY(!gameScore->isDirty());
 }
 
+
 void ParseTest::testObjectArray()
 {
-    ParseObject *gameScore = new ParseObject("TestGameScore");
+    ParseObjectPtr gameScore = ParseObject::create("TestGameScore");
     gameScore->setValue("score", 1337);
     gameScore->setValue("playerName", "Sean Plott");
 
@@ -448,13 +459,11 @@ void ParseTest::testObjectArray()
     previousScores << 1;
     gameScore->addAll("previousScores", previousScores);
 
-    gameScore->save();
-    QSignalSpy saveSpy(gameScore, &ParseObject::saveFinished);
-    QVERIFY(saveSpy.wait(10000));
+    QFuture<int> save1Future = gameScore->save();
+    await(save1Future);
 
-    gameScore->fetch();
-    QSignalSpy fetchSpy(gameScore, &ParseObject::fetchFinished);
-    QVERIFY(fetchSpy.wait(10000));
+    QFuture<int> fetchFuture = gameScore->fetch();
+    await(fetchFuture);
 
     QVariantList scores = gameScore->value("previousScores").toList();
     QCOMPARE(scores.size(), 3);
@@ -462,13 +471,11 @@ void ParseTest::testObjectArray()
     QVERIFY(scores.contains(1330));
     QVERIFY(scores.contains(124));
 
-    gameScore->deleteObject();
-    QSignalSpy deleteSpy(gameScore, &ParseObject::deleteFinished);
-    QVERIFY(deleteSpy.wait(10000));
-
-    delete gameScore;
+    QFuture<int> deleteFuture = gameScore->deleteObject();
+    await(deleteFuture);
 }
 
+#if 0
 void ParseTest::testObjectRelation()
 {
     ParseRelation *charactersInEpisode4 = episode4->relation<TestCharacter>("characters");
@@ -522,38 +529,6 @@ void ParseTest::testUserLogin()
 
     currentUser = client->currentUser();
     QVERIFY(currentUser == nullptr);
-}
-
-void ParseTest::testResetPassword()
-{
-#if 0
-    ParseClient::instance()->requestPasswordReset(PARSE_TEST_EMAIL);
-#endif
-}
-
-void ParseTest::testUserSignUp()
-{
-    ParseUser *testUser = new ParseUser();
-    testUser->setUsername("testUser1");
-    testUser->setPassword("pa55w0rd");
-    QVERIFY(testUser->sessionToken().isEmpty());
-
-    testUser->signUp();
-    QSignalSpy signUpSpy(testUser, &ParseUser::signUpFinished);
-    QVERIFY(signUpSpy.wait(10000));
-
-    QVERIFY(!testUser->sessionToken().isEmpty());
-    QString sessionToken = testUser->sessionToken();
-
-    testUser->deleteUser();
-    QSignalSpy deleteSpy(testUser, &ParseUser::deleteUserFinished);
-    QVERIFY(deleteSpy.wait(10000));
-
-    delete testUser;
-
-    ParseClient::instance()->deleteSession(sessionToken);
-    QSignalSpy sessionSpy(ParseClient::instance(), &ParseClient::deleteSessionFinished);
-    QVERIFY(sessionSpy.wait(10000));
 }
 
 void ParseTest::testGetQuery()

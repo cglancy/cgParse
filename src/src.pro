@@ -10,6 +10,7 @@ VERSION	= 0.1.1
 HEADERS += cgparse.h \
 	asyncfuture.h \
 	parseclient.h \
+	parseerror.h \
 	parsefile.h \
     parseobject.h \
 	parseobjectpointer.h \

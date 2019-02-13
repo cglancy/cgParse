@@ -103,12 +103,14 @@ private slots:
 
     void testAsyncFuture();
     void testUserLogin();
-    //void testObject();
-    //void testObjectRevert();
-    //void testObjectArray();
+    void testUserSignUp();
+    void testResetPassword();
+
+    void testObject();
+    void testObjectRevert();
+    void testObjectArray();
     //void testObjectRelation();
-    //void testUserSignUp();
-    //void testResetPassword();
+
     //void testGetQuery();
     //void testFindAllQuery();
     //void testCountQuery();

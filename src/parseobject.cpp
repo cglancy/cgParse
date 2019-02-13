@@ -18,6 +18,8 @@
 #include "parsefile.h"
 #include "parseuser.h"
 #include "parserelation.h"
+#include "parserequestobject.h"
+#include <asyncfuture.h>
 
 #include <QJsonObject>
 #include <QJsonArray>
@@ -246,46 +248,68 @@ namespace cg {
         return key != ObjectIdKey && key !=CreatedAtKey && key != UpdatedAtKey;
     }
 
-    QVariantMap ParseObject::valueMap(bool onlyUserValues) const
-    {
-        QVariantMap map;
-        QStringList list = keys(onlyUserValues);
-        for (auto & key : list)
-            map.insert(key, value(key));
+    //QVariantMap ParseObject::valueMap(bool onlyUserValues) const
+    //{
+    //    QVariantMap map;
+    //    QStringList list = keys(onlyUserValues);
+    //    for (auto & key : list)
+    //        map.insert(key, value(key));
 
-        return map;
-    }
+    //    return map;
+    //}
 
     ParseObjectPointer ParseObject::toPointer() const
     {
         return ParseObjectPointer(_className, objectId());
     }
 
-    QJsonObject ParseObject::toJsonObject() const
+    QJsonObject ParseObject::toJsonObject(bool onlyUserValues) const
     {
-        // TODO: Do we need more data?
-        return toPointer().toJsonObject();
+        QJsonObject jsonObject = QJsonObject::fromVariantMap(_valueMap);
+
+        if (onlyUserValues)
+        {
+            jsonObject.remove(ObjectIdKey);
+            jsonObject.remove(CreatedAtKey);
+            jsonObject.remove(UpdatedAtKey);
+        }
+
+        return jsonObject;
     }
 
     void ParseObject::setValues(const QJsonObject &jsonObject)
     {
-        _valueMap = jsonObject.toVariantMap();
-        //for (auto & key : valueMap.keys())
-        //    setValue(key, valueMap.value(key));
+        QVariantMap newMap = jsonObject.toVariantMap();
+        for (auto & key : newMap.keys())
+            _valueMap.insert(key, newMap.value(key));
     }
 
-    QFuture<ParseError> ParseObject::save()
+    QFuture<int> ParseObject::save()
     {
-        return QFuture<ParseError>();
+        QFuture<int> future;
+        if (createdAt().isNull())
+        {
+            ParseRequestObject::instance()->createObject(sharedFromThis());
+            future = AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::createObjectFinished).future();
+        }
+        else
+        {
+            ParseRequestObject::instance()->updateObject(sharedFromThis());
+            future = AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::updateObjectFinished).future();
+        }
+        
+        return future;
     }
 
-    QFuture<ParseError> ParseObject::fetch()
+    QFuture<int> ParseObject::fetch()
     {
-        return QFuture<ParseError>();
+        ParseRequestObject::instance()->fetchObject(sharedFromThis());
+        return AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::fetchObjectFinished).future();
     }
 
-    QFuture<ParseError> ParseObject::deleteObject()
+    QFuture<int> ParseObject::deleteObject()
     {
-        return QFuture<ParseError>();
+        ParseRequestObject::instance()->deleteObject(sharedFromThis());
+        return AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::deleteObjectFinished).future();
     }
 }

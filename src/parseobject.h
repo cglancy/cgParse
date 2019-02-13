@@ -24,6 +24,7 @@
 #include "parseerror.h"
 #include "parseobjectpointer.h"
 
+#include <QEnableSharedFromThis>
 #include <QString>
 #include <QDateTime>
 #include <QVariant>
@@ -31,7 +32,7 @@
 
 namespace cg
 {
-    class CGPARSE_API ParseObject
+    class CGPARSE_API ParseObject : public QEnableSharedFromThis<ParseObject>
     {
     public:
         static const QString ClassNameKey;
@@ -122,17 +123,17 @@ namespace cg
 
         bool contains(const QString &key) const;
 
-        QFuture<ParseError> save();
-        QFuture<ParseError> fetch();
-        QFuture<ParseError> deleteObject();
+        QFuture<int> save();
+        QFuture<int> fetch();
+        QFuture<int> deleteObject();
 
     private:
         friend class ParseRequestObject;
         ParseObjectPointer toPointer() const;
-        QJsonObject toJsonObject() const;
+        QJsonObject toJsonObject(bool onlyUserValues = true) const;
         void setValues(const QJsonObject &jsonObject);
         QStringList keys(bool onlyUserValues = true) const;
-        QVariantMap valueMap(bool onlyUserValues = true) const;
+        //QVariantMap valueMap(bool onlyUserValues = true) const;
         void clearDirtyState();
         static bool isUserValue(const QString &key);
 

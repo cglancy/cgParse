@@ -31,7 +31,8 @@ namespace cg
 
         static QFuture<ParseUserReply> login(const QString &username, const QString &password);
         static QFuture<int> logout();
-        static ParseUserPtr currentUser() { return _pCurrentUser; }
+        static ParseUserPtr currentUser();
+        static QFuture<int> requestPasswordReset(const QString &email);
 
         bool isAuthenticated() const;
 
@@ -46,8 +47,8 @@ namespace cg
 
         QString sessionToken() const;
 
-        void signUp();
-        void deleteUser();
+        QFuture<ParseUserReply> signUp();
+        QFuture<int> deleteUser();
 
     private:
         friend class ParseRequestObject;
