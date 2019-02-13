@@ -18,12 +18,12 @@
 #include "parsefile.h"
 #include "parseuser.h"
 #include "parserelation.h"
-#include "parseutil.h"
 
 #include <QJsonObject>
 #include <QJsonArray>
 
 namespace cg {
+    const QString ParseObject::ClassNameKey = QStringLiteral("className");
     const QString ParseObject::ObjectIdKey = QStringLiteral("objectId");
     const QString ParseObject::CreatedAtKey = QStringLiteral("createdAt");
     const QString ParseObject::UpdatedAtKey = QStringLiteral("updatedAt");
@@ -44,7 +44,7 @@ namespace cg {
 
     ParseObjectPtr ParseObject::create(const QString &className)
     {
-        ParseObjectPtr pObject = QSharedPointer<ParseObject>::create(className);
+        return QSharedPointer<ParseObject>::create(className);
     }
 
     ParseObjectPtr ParseObject::createWithoutData(const QString &className, const QString &objectId)
@@ -146,7 +146,7 @@ namespace cg {
     void ParseObject::add(const QString & key, const QVariant & value)
     {
         QJsonArray objectsArray;
-        objectsArray.append(ParseUtil::toJsonValue(value));
+        objectsArray.append(value.toJsonObject());
         QJsonObject jsonObject;
         jsonObject.insert("__op", "Add");
         jsonObject.insert("objects", objectsArray);
@@ -156,7 +156,7 @@ namespace cg {
     void ParseObject::addUnique(const QString & key, const QVariant & value)
     {
         QJsonArray objectsArray;
-        objectsArray.append(ParseUtil::toJsonValue(value));
+        objectsArray.append(value.toJsonObject());
         QJsonObject jsonObject;
         jsonObject.insert("__op", "AddUnique");
         jsonObject.insert("objects", objectsArray);
@@ -167,7 +167,7 @@ namespace cg {
     {
         QJsonArray objectsArray;
         for (auto & value : valueList)
-            objectsArray.append(ParseUtil::toJsonValue(value));
+            objectsArray.append(value.toJsonObject());
 
         QJsonObject jsonObject;
         jsonObject.insert("__op", "Add");
@@ -179,7 +179,7 @@ namespace cg {
     {
         QJsonArray objectsArray;
         for (auto & value : valueList)
-            objectsArray.append(ParseUtil::toJsonValue(value));
+            objectsArray.append(value.toJsonObject());
 
         QJsonObject jsonObject;
         jsonObject.insert("__op", "AddUnique");
@@ -191,7 +191,7 @@ namespace cg {
     {
         QJsonArray objectsArray;
         for (auto & value : valueList)
-            objectsArray.append(ParseUtil::toJsonValue(value));
+            objectsArray.append(value.toJsonObject());
 
         QJsonObject jsonObject;
         jsonObject.insert("__op", "Remove");
@@ -199,51 +199,28 @@ namespace cg {
         setValue(key, jsonObject);
     }
 
-    ParseObjectPtr ParseObject::objectValue(const QString &key) const
+    ParseFilePtr ParseObject::file(const QString &key) const
     {
-        return value(key).value<ParseObjectPtr>();
+        ParseFilePtr pFile = QSharedPointer<ParseFile>::create();
+        pFile->setValues(value(key).toJsonObject());
+        return pFile;
     }
 
-    void ParseObject::setObject(const QString &key, ParseObjectPtr pObject)
+    void ParseObject::setFile(const QString &key, ParseFilePtr pFile)
     {
-        setValue(key, QVariant::fromValue(pObject));
+        setValue(key, pFile->toJsonObject());
     }
 
-    ParseFile* ParseObject::file(const QString &key) const
+    ParseUserPtr ParseObject::user(const QString & key) const
     {
-        return qvariant_cast<ParseFile*>(value(key));
+        ParseUserPtr pUser = QSharedPointer<ParseUser>::create();
+        pUser->setValues(value(key).toJsonObject());
+        return pUser;
     }
 
-    void ParseObject::setFile(const QString &key, ParseFile *pFile)
+    void ParseObject::setUser(const QString & key, ParseUserPtr pUser)
     {
-        setValue(key, QVariant::fromValue<ParseFile*>(pFile));
-    }
-
-    ParseUser * ParseObject::user(const QString & key) const
-    {
-        return qvariant_cast<ParseUser*>(value(key));
-    }
-
-    void ParseObject::setUser(const QString & key, ParseUser * pUser)
-    {
-        setValue(key, QVariant::fromValue<ParseUser*>(pUser));
-    }
-
-    ParseRelationPtr ParseObject::relation(const QString &key)
-    {
-        ParseRelationPtr pRelation;
-
-        if (_valueMap.contains(key) && _valueMap.value(key).canConvert<ParseRelationPtr>())
-        {
-            return value(key).value<ParseRelationPtr>();
-        }
-        else
-        {
-            pRelation = QSharedPointer<ParseRelation>::create(className(), objectId(), key, this);
-            setValue(key, QVariant::fromValue<ParseRelationPtr>(pRelation));
-        }
-
-        return pRelation;
+        setValue(key, pUser->toPointer().toJsonObject());
     }
 
     bool ParseObject::contains(const QString &key) const
@@ -279,27 +256,36 @@ namespace cg {
         return map;
     }
 
-    void ParseObject::setValues(const QVariantMap &valueMap)
+    ParseObjectPointer ParseObject::toPointer() const
     {
-        for (auto & key : valueMap.keys())
-            setValue(key, valueMap.value(key));
+        return ParseObjectPointer(_className, objectId());
     }
 
-    void ParseObject::save()
+    QJsonObject ParseObject::toJsonObject() const
     {
-        if (createdAt().isNull())
-            ParseClient::instance()->createObject(this);
-        else
-            ParseClient::instance()->updateObject(this);
+        // TODO: Do we need more data?
+        return toPointer().toJsonObject();
     }
 
-    void ParseObject::fetch()
+    void ParseObject::setValues(const QJsonObject &jsonObject)
     {
-        ParseClient::instance()->fetchObject(this);
+        _valueMap = jsonObject.toVariantMap();
+        //for (auto & key : valueMap.keys())
+        //    setValue(key, valueMap.value(key));
     }
 
-    void ParseObject::deleteObject()
+    QFuture<ParseError> ParseObject::save()
     {
-        ParseClient::instance()->deleteObject(this);
+        return QFuture<ParseError>();
+    }
+
+    QFuture<ParseError> ParseObject::fetch()
+    {
+        return QFuture<ParseError>();
+    }
+
+    QFuture<ParseError> ParseObject::deleteObject()
+    {
+        return QFuture<ParseError>();
     }
 }

@@ -18,6 +18,7 @@
 #pragma once
 
 #include "cgparse.h"
+#include "parsetypes.h"
 #include "parsequery.h"
 
 namespace cg
@@ -39,8 +40,63 @@ namespace cg
         void add(QSharedPointer<T> pObject) { _addList.append(pObject); }
         void remove(QSharedPointer<T> pObject) { _removeList.append(pObject); }
 
-        const QList<QSharedPointer<T>> & addList() const { return _addList; } 
+        const QList<QSharedPointer<T>> & addList() const { return _addList; }
         const QList<QSharedPointer<T>> & removeList() const { return _removeList; }
+
+        void setValues(const QJsonObject &jsonObject)
+        {
+            if (jsonObject.contains("__op") && jsonObject.value("__op").toString() == "AddRelation")
+            {
+                QJsonArray objectsArray = jsonObject.value("objects").toArray();
+                for (auto & jsonValue : objectsArray)
+                {
+                    if (jsonValue.isObject())
+                    {
+                        QSharedPointer<T> pObject = QSharedPointer<T>::create();
+                        pObject->setValues(jsonValue.toObject());
+                        _addList.append(pObject);
+                    }
+                }
+            }
+            else if (jsonObject.contains("__op") && jsonObject.value("__op").toString() == "RemoveRelation")
+            {
+                QJsonArray objectsArray = jsonObject.value("objects").toArray();
+                for (auto & jsonValue : objectsArray)
+                {
+                    if (jsonValue.isObject())
+                    {
+                        QSharedPointer<T> pObject = QSharedPointer<T>::create();
+                        pObject->setValues(jsonValue.toObject());
+                        _removeList.append(pObject);
+                    }
+                }
+            }
+        }
+
+        QJsonObject toJsonObject() const
+        {
+            QJsonObject jsonObject;
+            QJsonArray objectsArray;
+
+            if (_addList.size() > 0)
+            {
+                for (auto & pObject : _addList)
+                    objectsArray.append(pObject->toJsonObject());
+
+                jsonObject.insert("__op", "AddRelation");
+                jsonObject.insert("objects", objectsArray);
+            }
+            else if (_removeList.size() > 0)
+            {
+                for (auto & pObject : _removeList)
+                    objectsArray.append(pObject->toJsonObject());
+
+                jsonObject.insert("__op", "RemoveRelation");
+                jsonObject.insert("objects", objectsArray);
+            }
+
+            return jsonObject;
+        }
 
     private:
         QString _objectClassName, _objectId, _objectKey;

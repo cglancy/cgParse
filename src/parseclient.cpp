@@ -14,50 +14,55 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parseclient.h"
-#include "parseclient_p.h"
-#include "parseobject.h"
-#include "parseuser.h"
-#include "parsequery.h"
-#include "parsefile.h"
-#include "parseutil.h"
-#include "parserequest.h"
+#include "parsereply.h"
 
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QNetworkInterface>
-#include <QUrlQuery>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QJsonArray>
-#include <QCoreApplication>
-#include <QDebug>
+#include <QMetaType>
+
 
 namespace cg {
-    ParseClient * ParseClientPrivate::instance = nullptr;
-    const QString ParseClientPrivate::JsonContentType = "application/json";
+    ParseClient * ParseClient::_pInstance = nullptr;
 
-    ParseClientPrivate::ParseClientPrivate(ParseClient *pParseClient)
-        : QObject(pParseClient),
-        q_ptr(pParseClient),
-        currentUser(nullptr)
+    ParseClient::ParseClient()
     {
-        userAgent = QString("%1 %2").arg(QCoreApplication::applicationName())
-            .arg(QCoreApplication::applicationVersion()).toUtf8();
-        nam = new QNetworkAccessManager(this);
-
-        // register so these types can be used in signals/slots and created
-        qRegisterMetaType<ParseObject*>();
-        qRegisterMetaType<ParseUser*>();
-        qRegisterMetaType<ParseFile*>();
-        qRegisterMetaType<QList<ParseObject*>>();
+        qRegisterMetaType<ParseReply>();
+        qRegisterMetaType<ParseUserReply>();
     }
 
-    ParseClientPrivate::~ParseClientPrivate()
+    ParseClient::~ParseClient()
     {
     }
 
+    ParseClient * ParseClient::instance()
+    {
+        if (!_pInstance)
+            _pInstance = new ParseClient();
+
+        return _pInstance;
+    }
+
+    void ParseClient::initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost)
+    {
+        _appId = appId;
+        _clientKey = clientKey;
+        _apiHost = apiHost;
+    }
+
+    QByteArray ParseClient::applicationId() const
+    {
+        return _appId;
+    }
+
+    QByteArray ParseClient::clientKey() const
+    {
+        return _clientKey;
+    }
+
+    QByteArray ParseClient::apiHost() const
+    {
+        return _apiHost;
+    }
+
+#if 0
     void ParseClientPrivate::setCurrentUser(ParseUser *pUser)
     {
         if (currentUser)
@@ -1126,6 +1131,55 @@ namespace cg {
         pReply->deleteLater();
     }
 
+    QFuture<ParseReply> ParseClient::sendFileRequest(ParseFilePtr pFile, const ParseRequest &request)
+    {
+        Q_D(ParseClient);
+
+        QNetworkReply *pReply = nullptr;
+
+        switch (request.httpMethod())
+        {
+            case ParseRequest::GetHttpMethod:
+                pReply = d->nam->get(request.networkRequest());
+                break;
+            case ParseRequest::PutHttpMethod:
+                pReply = d->nam->put(request.networkRequest(), request.content());
+                break;
+            case ParseRequest::PostHttpMethod:
+                pReply = d->nam->post(request.networkRequest(), request.content());
+                break;
+            case ParseRequest::DeleteHttpMethod:
+                pReply = d->nam->deleteResource(request.networkRequest());
+                break;
+        }
+
+        ParseReply parseReply;
+        if (pReply)
+        {
+            QSignalSpy replySpy(pReply, &QNetworkReply::finished);
+            replySpy.wait(100000);
+
+            int status = d->statusCode(pReply);
+            parseReply.setStatusCode(status);
+
+            if (d->isError(status))
+            {
+                status = d->errorCode(pReply);
+                parseReply.setErrorCode(status);
+            }
+            else if (pFile)
+            {
+                QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+                if (doc.isObject() && status == 201)  // 201 = Created
+                {
+                    QJsonObject obj = doc.object();
+                    pFile->setUrl(obj.value("url").toString());
+                    pFile->setName(obj.value("name").toString());
+                }
+            }
+        }
+    }
+
     ParseReply* ParseClient::saveFile(ParseFile * pFile)
     {
         Q_D(ParseClient);
@@ -1284,4 +1338,6 @@ namespace cg {
 
         return jsonObject;
     }
+
+#endif
 }

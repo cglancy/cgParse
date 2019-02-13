@@ -15,15 +15,15 @@
 */
 #include "parsefile.h"
 #include "parseclient.h"
+#include "parserequest.h"
 
 #include <QFile>
 #include <QFileInfo>
 
 namespace cg
 {
-    ParseFile::ParseFile(ParseObject *pParent)
+    ParseFile::ParseFile()
     {
-        pParent;
     }
 
     ParseFile::ParseFile(const QString &path)
@@ -96,8 +96,30 @@ namespace cg
         return _data;
     }
 
-    ParseReply* ParseFile::save()
+    QJsonObject ParseFile::toJsonObject() const
     {
-        return ParseClient::instance()->saveFile(this);
+        QJsonObject jsonObject;
+        jsonObject.insert("__type", "File");
+        jsonObject.insert("name", _name);
+        if (_url.isEmpty())
+            jsonObject.insert("url", _url);
+        return jsonObject;
+    }
+
+    void ParseFile::setValues(const QJsonObject &jsonObject)
+    {
+        if (jsonObject.contains("name"))
+            _name = jsonObject.value("name").toString();
+
+        if (jsonObject.contains("url"))
+            _url = jsonObject.value("url").toString();
+    }
+
+    QFuture<void> ParseFile::save()
+    {
+        //ParseRequest request(ParseRequest::PostHttpMethod, "/parse/files/" + name(), data(), contentType());
+        //QFuture<ParseReply> reply = ParseRequest::sendRequest(request);
+        //reply.waitForFinished();
+        return QFuture<void>();
     }
 }

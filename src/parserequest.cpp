@@ -14,21 +14,21 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parserequest.h"
+#include "parseclient.h"
+
+#include <QCoreApplication>
 
 namespace cg
 {
-    QByteArray ParseRequest::_applicationId;
-    QByteArray ParseRequest::_clientKey;
-    QByteArray ParseRequest::_apiHost;
-    QByteArray ParseRequest::_userAgent;
+    const QString ParseRequest::JsonContentType = QStringLiteral("application/json");
 
-    ParseRequest::ParseRequest(HttpMethod method, const QByteArray & apiRoute)
+    ParseRequest::ParseRequest(HttpMethod method, const QString & apiRoute)
         : _method(method),
         _apiRoute(apiRoute)
     {
     }
 
-    ParseRequest::ParseRequest(HttpMethod method, const QByteArray & apiRoute, const QByteArray & content, ContentType contentType)
+    ParseRequest::ParseRequest(HttpMethod method, const QString & apiRoute, const QByteArray & content, const QString &contentType)
         : _method(method),
         _apiRoute(apiRoute),
         _content(content),
@@ -46,44 +46,10 @@ namespace cg
         _headers = request._headers;
     }
 
-    QByteArray ParseRequest::apiHost()
-    {
-        return _apiHost;
-    }
-
-    void ParseRequest::setApiHost(const QByteArray &apiHost)
-    {
-        _apiHost = apiHost;
-    }
-
-    QByteArray ParseRequest::applicationId()
-    {
-        return _applicationId;
-    }
-
-    void ParseRequest::setApplicationId(const QByteArray &applicationId)
-    {
-        _applicationId = applicationId;
-    }
-
-    QByteArray ParseRequest::clientKey()
-    {
-        return _clientKey;
-    }
-
-    void ParseRequest::setClientKey(const QByteArray &clientKey)
-    {
-        _clientKey = clientKey;
-    }
-
     QByteArray ParseRequest::userAgent()
     {
-        return _userAgent;
-    }
-
-    void ParseRequest::setUserAgent(const QByteArray &userAgent)
-    {
-        _userAgent = userAgent;
+        return QString("%1 %2").arg(QCoreApplication::applicationName())
+            .arg(QCoreApplication::applicationVersion()).toUtf8();
     }
 
     ParseRequest::HttpMethod ParseRequest::httpMethod() const
@@ -106,22 +72,22 @@ namespace cg
         _urlQuery = urlQuery;
     }
 
-    ParseRequest::ContentType ParseRequest::contentType() const
+    QString ParseRequest::contentType() const
     {
         return _contentType;
     }
 
-    void ParseRequest::setContentType(ContentType contentType)
+    void ParseRequest::setContentType(const QString &contentType)
     {
         _contentType = contentType;
     }
 
-    QByteArray ParseRequest::apiRoute() const
+    QString ParseRequest::apiRoute() const
     {
         return _apiRoute;
     }
 
-    void ParseRequest::setApiRoute(const QByteArray & apiRoute)
+    void ParseRequest::setApiRoute(const QString & apiRoute)
     {
         _apiRoute = apiRoute;
     }
@@ -143,7 +109,7 @@ namespace cg
 
     QNetworkRequest ParseRequest::networkRequest() const
     {
-        QString fullUrlStr = "https://" + _apiHost;
+        QString fullUrlStr = "https://" + ParseClient::instance()->apiHost();
         if (_apiRoute.startsWith("/"))
             fullUrlStr += _apiRoute;
         else
@@ -154,12 +120,12 @@ namespace cg
             url.setQuery(_urlQuery);
         QNetworkRequest request(url);
 
-        request.setRawHeader("User-Agent", _userAgent);
-        request.setRawHeader("X-Parse-Application-Id", _applicationId);
-        request.setRawHeader("X-Parse-REST-API-Key", _clientKey);
+        request.setRawHeader("User-Agent", userAgent());
+        request.setRawHeader("X-Parse-Application-Id", ParseClient::instance()->applicationId());
+        request.setRawHeader("X-Parse-REST-API-Key", ParseClient::instance()->clientKey());
 
-        if (_contentType == JsonContentType)
-            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        if (!_contentType.isEmpty())
+            request.setHeader(QNetworkRequest::ContentTypeHeader, _contentType.toUtf8());
 
         for (auto & header : _headers.keys())
             request.setRawHeader(header, _headers.value(header));

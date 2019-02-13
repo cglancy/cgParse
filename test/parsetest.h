@@ -22,7 +22,6 @@
 #include <QObject>
 #include <QDir>
 
-
 class QSignalSpy;
 
 //
@@ -30,11 +29,8 @@ class QSignalSpy;
 //
 class TestMovie : public cg::ParseObject
 {
-    Q_OBJECT
-    Q_PROPERTY(QString title READ title WRITE setTitle)
-
 public:
-    Q_INVOKABLE TestMovie();
+    TestMovie();
     TestMovie(const QString &title);
 
     QString title() const { return value("title").toString(); }
@@ -43,58 +39,49 @@ private:
     void setTitle(const QString &title) { setValue("title", title); }
 };
 
-Q_DECLARE_METATYPE(TestMovie*);
+Q_DECLARE_METATYPE(QSharedPointer<TestMovie>);
 
 //
 // TestCharacter
 //
 class TestCharacter : public cg::ParseObject
 {
-    Q_OBJECT
-    Q_PROPERTY(QString name READ name WRITE setName)
-    Q_PROPERTY(cg::ParseFile* picture READ picture WRITE setPicture)
-
 public:
-    Q_INVOKABLE TestCharacter();
+    TestCharacter();
     TestCharacter(const QString &name);
 
     QString name() const { return value("name").toString(); }
-    cg::ParseFile * picture() { return file("picture"); }
-    void setPicture(cg::ParseFile* pFile) { setFile("picture", pFile); }
+    cg::ParseFilePtr picture() { return file("picture"); }
+    void setPicture(cg::ParseFilePtr pFile) { setFile("picture", pFile); }
 
 private:
     void setName(const QString &name) { setValue("name", name); }
 };
 
-Q_DECLARE_METATYPE(TestCharacter*);
+Q_DECLARE_METATYPE(QSharedPointer<TestCharacter>);
 
 //
 // TestQuote
 //
 class TestQuote : public cg::ParseObject
 {
-    Q_OBJECT
-    Q_PROPERTY(int rank READ rank WRITE setRank)
-    Q_PROPERTY(QString quote READ quote WRITE setQuote)
-    Q_PROPERTY(TestMovie* movie READ movie WRITE setMovie)
-    Q_PROPERTY(TestCharacter* character READ character WRITE setCharacter)
 public:
-    Q_INVOKABLE TestQuote();
+    TestQuote();
     TestQuote(TestMovie *movie, TestCharacter *character, int rank, const QString &quote);
 
     int rank() const { return value("rank").toInt(); }
     QString quote() const { return value("quote").toString(); }
-    TestMovie* movie() const { return object<TestMovie>("movie"); }
-    TestCharacter* character() const { return object<TestCharacter>("character"); }
+    QSharedPointer<TestMovie> movie() const { return object<TestMovie>("movie"); }
+    QSharedPointer<TestCharacter> character() const { return object<TestCharacter>("character"); }
 
 private:
     void setRank(int rank) { setValue("rank", rank); }
     void setQuote(const QString &quote) { setValue("quote", quote); }
-    void setMovie(TestMovie *pMovie) { setObject("movie", pMovie); }
-    void setCharacter(TestCharacter *pCharacter) { setObject("character", pCharacter); }
+    void setMovie(QSharedPointer<TestMovie> pMovie) { setObject<TestMovie>("movie", pMovie); }
+    void setCharacter(QSharedPointer<TestCharacter> pCharacter) { setObject<TestCharacter>("character", pCharacter); }
 };
 
-Q_DECLARE_METATYPE(TestQuote*);
+Q_DECLARE_METATYPE(QSharedPointer<TestQuote>);
 
 //
 // ParseTest
@@ -112,21 +99,22 @@ class ParseTest : public QObject
 
 private slots:
     void initTestCase();
-    void cleanupTestCase();
+    //void cleanupTestCase();
 
-    void testObject();
-    void testObjectRevert();
-    void testObjectArray();
-    void testObjectRelation();
-    void testUserSignUp();
+    void testAsyncFuture();
     void testUserLogin();
-    void testResetPassword();
-    void testGetQuery();
-    void testFindAllQuery();
-    void testCountQuery();
-    void testOrderQuery();
-    void testComparisonQuery();
-    void testFullTextQuery();
+    //void testObject();
+    //void testObjectRevert();
+    //void testObjectArray();
+    //void testObjectRelation();
+    //void testUserSignUp();
+    //void testResetPassword();
+    //void testGetQuery();
+    //void testFindAllQuery();
+    //void testCountQuery();
+    //void testOrderQuery();
+    //void testComparisonQuery();
+    //void testFullTextQuery();
 
 private:
     TestMovie *episode1, *episode2, *episode3, *episode4, *episode5, *episode6, *episode7, *episode8, *rogue1;

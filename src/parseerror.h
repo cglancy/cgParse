@@ -13,31 +13,13 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSECLIENT_H
-#define CGPARSE_PARSECLIENT_H
 #pragma once
-
-#include "cgparse.h"
-#include <QByteArray>
 
 namespace cg
 {
-    class CGPARSE_API ParseClient
+    enum ParseError
     {
-    public:
-        static ParseClient * instance();
-
-        void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost);
-        QByteArray applicationId() const;
-        QByteArray clientKey() const;
-        QByteArray apiHost() const;
-
-    private:
-        ParseClient();
-        ~ParseClient();
-        static ParseClient *_pInstance;
-        QByteArray _appId, _clientKey, _apiHost;
+        NoError = 0,
+        SomeError = 1
     };
 }
-
-#endif // CGPARSE_PARSECLIENT_H

@@ -51,7 +51,7 @@ namespace cg
         static bool isError(int status);
         static int statusCode(QNetworkReply *pReply);
         static int errorCode(QNetworkReply *pReply);
-        ParseObject * constructQueryResultObject(ParseQuery *pQuery);
+        //ParseObject * constructQueryResultObject(ParseQuery *pQuery);
 
         static ParseClient *instance;
         static const QString JsonContentType;
@@ -64,35 +64,35 @@ namespace cg
         QByteArray userAgent;
         QMap<QNetworkReply*, ParseObject*> replyObjectMap;
         QMap<QNetworkReply*, QList<ParseObject*>> replyObjectListMap;
-        QMap<QNetworkReply*, ParseQuery*> replyQueryMap;
+        //QMap<QNetworkReply*, ParseQuery*> replyQueryMap;
         QMap<QNetworkReply*, ParseFile*> replyFileMap;
         QMap<QNetworkReply*, QString> replyStringMap;
         ParseUser *currentUser;
 
     public slots:
-        void loginFinished();
-        void logoutFinished();
-        void becomeFinished();
-        void requestPasswordResetFinished();
-        void signUpUserFinished();
-        void deleteUserFinished();
+        //void loginFinished();
+        //void logoutFinished();
+        //void becomeFinished();
+        //void requestPasswordResetFinished();
+        //void signUpUserFinished();
+        //void deleteUserFinished();
 
-        void createObjectFinished();
-        void fetchObjectFinished();
-        void updateObjectFinished();
-        void deleteObjectFinished();
+        //void createObjectFinished();
+        //void fetchObjectFinished();
+        //void updateObjectFinished();
+        //void deleteObjectFinished();
 
-        void createAllFinished();
-        void updateAllFinished();
-        void deleteAllFinished();
+        //void createAllFinished();
+        //void updateAllFinished();
+        //void deleteAllFinished();
 
-        void getObjectFinished();
-        void findObjectsFinished();
-        void countObjectsFinished();
+        //void getObjectFinished();
+        //void findObjectsFinished();
+        //void countObjectsFinished();
 
-        void saveFileFinished();
-        void deleteFileFinished();
-        void deleteSessionFinished();
+        //void saveFileFinished();
+        //void deleteFileFinished();
+        //void deleteSessionFinished();
     };
 }
 

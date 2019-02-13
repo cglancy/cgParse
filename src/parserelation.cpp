@@ -18,32 +18,5 @@
 
 namespace cg
 {
-    ParseRelation::ParseRelation(const QMetaObject *pMetaObject, const QString &className, 
-        const QString &objectId, const QString &key, QObject *pParent)
-        : QObject(pParent),
-        _pMetaObject(pMetaObject),
-        _className(className),
-        _objectId(objectId),
-        _key(key)
-    {
-    }
 
-    ParseRelation::~ParseRelation()
-    {
-    }
-
-    ParseQuery * ParseRelation::query()
-    {
-        return new ParseQuery(_pMetaObject, _className, _objectId, _key, this);
-    }
-
-    void ParseRelation::add(ParseObject *pObject)
-    {
-        _addList.append(pObject);
-    }
-
-    void ParseRelation::remove(ParseObject *pObject)
-    {
-        _removeList.append(pObject);
-    }
 }

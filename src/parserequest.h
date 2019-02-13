@@ -17,11 +17,17 @@
 #define CGPARSE_PARSEREQUEST_H
 #pragma once
 
+#include "parsereply.h"
+#include "parsetypes.h"
+
 #include <QVariant>
 #include <QByteArray>
 #include <QUrlQuery>
 #include <QNetworkRequest>
 #include <QMap>
+#include <QFuture>
+
+class QNetworkReply;
 
 namespace cg
 {
@@ -36,27 +42,13 @@ namespace cg
             DeleteHttpMethod
         };
 
-        enum ContentType
-        {
-            NoContentType,
-            JsonContentType
-        };
-
-        static QByteArray apiHost();
-        static void setApiHost(const QByteArray &apiHost);
-
-        static QByteArray applicationId();
-        static void setApplicationId(const QByteArray &applicationId);
-
-        static QByteArray clientKey();
-        static void setClientKey(const QByteArray &clientKey);
-
+        static const QString JsonContentType;
         static QByteArray userAgent();
-        static void setUserAgent(const QByteArray &userAgent);
 
     public:
-        ParseRequest(HttpMethod method, const QByteArray &apiRoute);
-        ParseRequest(HttpMethod method, const QByteArray &apiRoute, const QByteArray &content, ContentType contentType = JsonContentType);
+        ParseRequest(HttpMethod method, const QString &apiRoute);
+        ParseRequest(HttpMethod method, const QString &apiRoute, const QByteArray &content,
+            const QString &contentType = JsonContentType);
         ParseRequest(const ParseRequest &request);
 
         HttpMethod httpMethod() const;
@@ -65,11 +57,11 @@ namespace cg
         QUrlQuery urlQuery() const;
         void setUrlQuery(const QUrlQuery &urlQuery);
 
-        ContentType contentType() const;
-        void setContentType(ContentType contentType);
+        QString contentType() const;
+        void setContentType(const QString &contentType);
 
-        QByteArray apiRoute() const;
-        void setApiRoute(const QByteArray &apiRoute);
+        QString apiRoute() const;
+        void setApiRoute(const QString &apiRoute);
 
         QByteArray content() const;
 
@@ -79,12 +71,10 @@ namespace cg
         QNetworkRequest networkRequest() const;
 
     private:
-        static QByteArray _applicationId, _clientKey, _apiHost, _userAgent;
         HttpMethod _method;
-        QByteArray _apiRoute;
-        ContentType _contentType;
-        QUrlQuery _urlQuery;
+        QString _apiRoute, _contentType;
         QByteArray _content;
+        QUrlQuery _urlQuery;
         QMap<QByteArray, QByteArray> _headers;
     };
 }

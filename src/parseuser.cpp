@@ -15,9 +15,17 @@
 */
 #include "parseuser.h"
 #include "parseclient.h"
+#include "parserequest.h"
+#include "parserequestobject.h"
+#include <asyncfuture.h>
+
+#include <QtConcurrent>
+#include <QNetworkReply>
 
 namespace cg
 {
+    ParseUserPtr ParseUser::_pCurrentUser;
+
     ParseUser::ParseUser()
         : ParseObject("_User")
     {
@@ -25,6 +33,18 @@ namespace cg
 
     ParseUser::~ParseUser()
     {
+    }
+
+    QFuture<ParseUserReply> ParseUser::login(const QString &username, const QString &password)
+    {
+        ParseRequestObject::instance()->login(username, password);
+        return AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::loginFinished).future();
+    }
+
+    QFuture<int> ParseUser::logout()
+    {
+        ParseRequestObject::instance()->logout(_pCurrentUser);
+        return AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::logoutFinished).future();
     }
 
     bool ParseUser::isAuthenticated() const
@@ -69,11 +89,11 @@ namespace cg
 
     void ParseUser::signUp()
     {
-        ParseClient::instance()->signUpUser(this);
+        //ParseClient::instance()->signUpUser(this);
     }
 
     void ParseUser::deleteUser()
     {
-        ParseClient::instance()->deleteUser(this);
+        //ParseClient::instance()->deleteUser(this);
     }
 }

@@ -13,24 +13,47 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEUTIL_H
-#define CGPARSE_PARSEUTIL_H
+#ifndef CGPARSE_PARSEOBJECTPOINTER_H
+#define CGPARSE_PARSEOBJECTPOINTER_H
 #pragma once
 
-#include <QVariant>
-#include <QJsonValue>
+#include <QString>
+#include <QJsonObject>
+#include <QHash>
 
 namespace cg
 {
-    class ParseObject;
-
-    class ParseUtil
+    class ParseObjectPointer
     {
     public:
-        static QVariant toVariant(const QJsonValue &jsonValue, ParseObject *pParent);
-        static QVariantMap toVariantMap(const QJsonObject &jsonObject, ParseObject *pParent);
-        static QJsonValue toJsonValue(const QVariant &variant);
+        ParseObjectPointer();
+        ParseObjectPointer(const QString &className, const QString &objectId);
+        ParseObjectPointer(const QJsonObject &jsonObject);
+        ParseObjectPointer(const ParseObjectPointer &ptr);
+
+        bool isNull() const;
+        QString className() const;
+        QString objectId() const;
+
+        ParseObjectPointer & operator=(const ParseObjectPointer &ptr);
+        bool operator==(const ParseObjectPointer &ptr) const;
+        bool operator<(const ParseObjectPointer &ptr) const;
+
+        QJsonObject toJsonObject() const;
+
+    private:
+        QString _className, _objectId;
     };
+
+    inline bool operator==(const ParseObjectPointer &p1, const ParseObjectPointer &p2)
+    {
+        return p1.className() == p2.className() && p1.objectId() == p2.objectId();
+    }
+
+    inline uint qHash(const ParseObjectPointer &p, uint seed)
+    {
+        return qHash(p.className() + p.objectId(), seed);
+    }
 }
 
-#endif // CGPARSE_PARSEUTIL_H
+#endif // CGPARSE_PARSEOBJECTPOINTER_H

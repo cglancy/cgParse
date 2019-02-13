@@ -15,91 +15,39 @@
 */
 #include "parsereply.h"
 
-#include <QNetworkReply>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-
 namespace cg
 {
-    ParseReply::ParseReply(QNetworkReply *pReply)
-        : _pReply(pReply)
+    //
+    // ParseReply
+    //
+    ParseReply::ParseReply()
+        : _errorCode(0)
     {
-        if (pReply)
-            connect(pReply, &QNetworkReply::finished, this, &ParseReply::requestFinished);
+    }
+
+    ParseReply::ParseReply(const ParseReply &reply)
+    {
+        _errorCode = reply._errorCode;
     }
 
     ParseReply::~ParseReply()
     {
     }
 
-    int ParseReply::statusCode(QNetworkReply * pReply)
+    //
+    // ParseUserReply
+    //
+    ParseUserReply::ParseUserReply()
     {
-        int status = 0;
-
-        if (pReply)
-        {
-            status = pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-#if 0
-            int replyError = pReply->error();
-            qDebug() << "Status = " << status << ", Network Error = " << replyError;
-#endif
-        }
-
-        return status;
     }
 
-    int ParseReply::errorCode(QNetworkReply * pReply)
+    ParseUserReply::ParseUserReply(const ParseUserReply &reply)
+        : ParseReply(reply)
     {
-        int error = 0;
-
-        if (pReply)
-        {
-            QByteArray data = pReply->readAll();
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            if (doc.isObject())
-            {
-                QJsonObject jsonObject = doc.object();
-                error = jsonObject.value("code").toInt();
-
-#if 1
-                QString message = jsonObject.value("error").toString();
-                qDebug() << "Error: " << message;
-#endif
-            }
-        }
-        else
-        {
-            error = -1;
-        }
-
-        return error;
+        _pUser = reply._pUser;
     }
 
-    bool ParseReply::isError(int statusCode)
+    ParseUserReply::~ParseUserReply()
     {
-        return statusCode >= 400 && statusCode < 500;
-    }
-
-    void ParseReply::requestFinished()
-    {
-        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
-        if (!pReply)
-            return;
-
-        _statusCode = statusCode(pReply);
-
-        if (isError(_statusCode))
-        {
-            _errorCode = errorCode(pReply);
-        }
-        else
-        {
-            _data = pReply->readAll();
-        }
-
-        emit finished();
-        _pReply->deleteLater();
-        _pReply = nullptr;
     }
 }

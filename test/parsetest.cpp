@@ -20,6 +20,10 @@
 #include "parsequery.h"
 #include "parsefile.h"
 #include "parserelation.h"
+#include "parserequestobject.h"
+
+#include <QTimer>
+#include <asyncfuture.h>
 
 // used to define your own PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY
 #include "parsesecret.h"
@@ -33,12 +37,33 @@
 #include <QSequentialIterable>
 #include <QScopedPointer>
 
+
+template <typename T>
+inline void await(QFuture<T> future, int timeout = -1) {
+    if (future.isFinished()) {
+        return;
+    }
+
+    QEventLoop loop;
+    QFutureWatcher<T> watcher;
+    QObject::connect(&watcher, SIGNAL(finished()), &loop, SLOT(quit()));
+
+    watcher.setFuture(future);
+
+    if (timeout > 0) {
+        QTimer::singleShot(timeout, &loop, &QEventLoop::quit);
+    }
+
+    loop.exec();
+}
+
 using namespace cg;
 
 QTEST_MAIN(ParseTest)
 
+
 //
-// TestCharacter
+// TestMovie
 //
 
 TestMovie::TestMovie()
@@ -59,6 +84,7 @@ TestMovie * ParseTest::createMovie(const QString &title)
     return movieObject;
 }
 
+#if 0
 //
 // TestCharacter
 //
@@ -288,7 +314,78 @@ void ParseTest::deleteTestObjects()
         QVERIFY(deleteAllSpy.wait(10000));
     }
 }
+#endif
 
+void ParseTest::initTestCase()
+{
+    // set name & version for user-agent
+    QCoreApplication::setApplicationName("ParseTest");
+    QCoreApplication::setApplicationVersion("0.1");
+
+    ParseClient::instance()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
+}
+
+QFuture<void> timeoutFunction(QTimer *timer)
+{
+    return AsyncFuture::observe(timer, &QTimer::timeout).future();
+}
+
+void ParseTest::testAsyncFuture()
+{
+    QTimer *timer = new QTimer();
+    timer->setInterval(500);
+    timer->setSingleShot(true);
+    timer->start();
+    QFuture<void> future = timeoutFunction(timer);
+    await(future);
+    QVERIFY(future.isFinished());
+}
+
+void ParseTest::testUserLogin()
+{
+#if 0
+    ParseUserPtr testUser = ();
+    testUser->setUsername("TestLogin");
+    testUser->setPassword("Parse123");
+    testUser->setEmail(PARSE_TEST_EMAIL);
+    QVERIFY(testUser->sessionToken().isEmpty());
+
+    testUser->signUp();
+    QSignalSpy signUpSpy(testUser, &ParseUser::signUpFinished);
+    QVERIFY(signUpSpy.wait(10000));
+#endif
+
+#if 0
+    ParseRequestObject *pRequestObject = ParseRequestObject::instance();
+    pRequestObject->login("TestLogin", "Parse123");
+    QSignalSpy loginSpy(pRequestObject, &ParseRequestObject::loginFinished);
+    QVERIFY(loginSpy.wait(10000));
+
+    QVERIFY(ParseUser::currentUser() != nullptr);
+
+    pRequestObject->logout(ParseUser::currentUser());
+    QSignalSpy logoutSpy(pRequestObject, &ParseRequestObject::logoutFinished);
+    QVERIFY(logoutSpy.wait(10000));
+
+#else
+    QFuture<ParseUserReply> loginFuture = ParseUser::login("TestLogin", "Parse123");
+    await(loginFuture);
+
+    ParseUserReply reply = loginFuture.result();
+    ParseUserPtr pUser = reply.user();
+    QVERIFY(pUser != nullptr);
+    QVERIFY(pUser->isAuthenticated());
+    QVERIFY(pUser == ParseUser::currentUser());
+
+    QFuture<int> logoutFuture = ParseUser::logout();
+    await(logoutFuture);
+
+    QVERIFY(logoutFuture.result() == 200);
+    QVERIFY(nullptr == ParseUser::currentUser());
+#endif
+}
+
+#if 0
 void ParseTest::testObject()
 {
     ParseObject *gameScore = new ParseObject("TestGameScore");
@@ -322,6 +419,7 @@ void ParseTest::testObject()
 
     delete gameScore;
 }
+
 
 void ParseTest::testObjectRevert()
 {
@@ -595,3 +693,5 @@ void ParseTest::testFullTextQuery()
             QVERIFY(objectIds.contains(pCharacter->objectId()));
     }
 }
+
+#endif

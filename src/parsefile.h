@@ -21,18 +21,17 @@
 #include <QString>
 #include <QByteArray>
 #include <QMetaType>
+#include <QJsonObject>
+#include <QFuture>
 
 class QFile;
 
 namespace cg
 {
-    class ParseObject;
-    class ParseReply;
-
     class CGPARSE_API ParseFile
     {
     public:
-        ParseFile(ParseObject *pParent = nullptr);
+        ParseFile();
         ParseFile(const QString &localPath);
         ParseFile(const QString &name, const QByteArray &data, const QString &contentType);
         ~ParseFile();
@@ -49,15 +48,15 @@ namespace cg
         void setContentType(const QString &contentType);
 
         QByteArray data() const;
+        QJsonObject toJsonObject() const;
+        void setValues(const QJsonObject &jsonObject);
 
-        ParseReply * save();
+        QFuture<void> save();
 
     private:
         QString _name, _url, _contentType;
         QByteArray _data;
     };
-
-    Q_DECLARE_METATYPE(ParseFile*);
 }
 
 #endif // CGPARSE_PARSEFILE_H

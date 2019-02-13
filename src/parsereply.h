@@ -17,42 +17,43 @@
 #define CGPARSE_PARSEREPLY_H
 #pragma once
 
-#include <QObject>
+#include "cgparse.h"
+#include "parsetypes.h"
 #include <QByteArray>
-
-class QNetworkReply;
 
 namespace cg
 {
-	class ParseReply : public QObject
+	class CGPARSE_API ParseReply
 	{
-		Q_OBJECT
 	public:
-		ParseReply(QNetworkReply *pReply);
-		virtual ~ParseReply();
+        ParseReply();
+        ParseReply(const ParseReply &reply);
+        virtual ~ParseReply();
 
-        QByteArray data() const { return _data; }
-        int statusCode() const { return _statusCode; }
         int errorCode() const { return _errorCode; }
-        QString errorMessage() const { return _errorMessage; }
-
-    signals:
-        void finished();
-
-    private slots:
-        void requestFinished();
+        void setErrorCode(int errorCode) { _errorCode = errorCode; }
 
     private:
-        static int statusCode(QNetworkReply *pReply);
-        static int errorCode(QNetworkReply *pReply);
-        static bool isError(int statusCode);
-
-    private:
-        QNetworkReply *_pReply;
-        QByteArray _data;
-        int _errorCode, _statusCode;
-        QString _errorMessage;
+        int _errorCode;
     };
+
+    Q_DECLARE_METATYPE(ParseReply);
+
+    class CGPARSE_API ParseUserReply : public ParseReply
+    {
+    public:
+        ParseUserReply();
+        ParseUserReply(const ParseUserReply &reply);
+        ~ParseUserReply();
+
+        ParseUserPtr user() const { return _pUser; }
+        void setUser(ParseUserPtr pUser) { _pUser = pUser; }
+
+    private:
+        ParseUserPtr _pUser;
+    };
+
+    Q_DECLARE_METATYPE(ParseUserReply);
 }
 
 #endif // CGPARSE_PARSEREPLY_H

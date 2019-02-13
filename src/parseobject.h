@@ -19,17 +19,22 @@
 
 #include "cgparse.h"
 #include "parsetypes.h"
-#include "parserelation.h"
 #include "parsequery.h"
+#include "parserelation.h"
+#include "parseerror.h"
+#include "parseobjectpointer.h"
+
 #include <QString>
 #include <QDateTime>
 #include <QVariant>
+#include <QFuture>
 
 namespace cg
 {
     class CGPARSE_API ParseObject
     {
     public:
+        static const QString ClassNameKey;
         static const QString ObjectIdKey;
         static const QString CreatedAtKey;
         static const QString UpdatedAtKey;
@@ -39,18 +44,18 @@ namespace cg
         ParseObject(const QString &className);
         virtual ~ParseObject();
 
-        static ParseObject* create(const QString &className);
-        static ParseObject* createWithoutData(const QString &className, const QString &objectId);
+        static ParseObjectPtr create(const QString &className);
+        static ParseObjectPtr createWithoutData(const QString &className, const QString &objectId);
 
         template <class T>
-        static T* create()
+        static QSharedPointer<T> create()
         {
-            return new T;
+            return QSharedPointer<T>::create();
         }
         template <class T>
-        static T* createWithoutData(const QString &objectId)
+        static QSharedPointer<T> createWithoutData(const QString &objectId)
         {
-            T* pObject = new T;
+            QSharedPointer<T> pObject = QSharedPointer<T>::create();
             pObject->setValue(ParseObject::ObjectIdKey, objectId);
             return pObject;
         }
@@ -60,7 +65,7 @@ namespace cg
         QDateTime createdAt() const;
         QDateTime updatedAt() const;
 
-        bool hasSameId(ParseObject* pObject) const;
+        bool hasSameId(ParseObjectPtr pObject) const;
         bool isDirty() const;
         bool isDirty(const QString &key) const;
         void revert();
@@ -77,51 +82,64 @@ namespace cg
         void removeAll(const QString &key, const QVariantList &valueList);
 
         template <class T>
-        T* object(const QString &key) const
+        QSharedPointer<T> object(const QString &key) const
         {
-            return dynamic_cast(objectValue(key));
+            QSharedPointer<T> pObject = QSharedPointer<T>::create();
+            QJsonObject jsonObject = value(key).toJsonObject();
+            pObject->setValues(jsonObject);
+            return pObject;
         }
-        void setObject(const QString &key, ParseObject* pObject);
+        template <class T>
+        void setObject(const QString &key, QSharedPointer<T> pObject)
+        {
+            setValue(key, pObject->toPointer().toJsonObject());
+        }
 
-        ParseFile* file(const QString &key) const;
-        void setFile(const QString &key, ParseFile *pFile);
+        ParseFilePtr file(const QString &key) const;
+        void setFile(const QString &key, ParseFilePtr pFile);
 
-        ParseUser* user(const QString &key) const;
-        void setUser(const QString &key, ParseUser *pFile);
-
-        //template <class T>
-        //ParseRelation<T>* relation(const QString &key)
-        //{
-        //    return new ParseRelation<T>(className(), objectId(), key);
-        //}
+        ParseUserPtr user(const QString &key) const;
+        void setUser(const QString &key, ParseUserPtr pUser);
 
         template <class T>
-        ParseRelation<T>* relation(const QString &key)
+        QSharedPointer<ParseRelation<T>> relation(const QString &key)
         {
+            QSharedPointer<ParseRelation<T>> pRelation = QSharedPointer<ParseRelation<T>>::create();
 
+            if (_valueMap.contains(key) && value(key).canConvert<QJsonObject>())
+            {
+                pRelation->setValues(value(key).toJsonObject());
+            }
+
+            return pRelation;
+        }
+
+        template <class T>
+        void setRelation(const QString &key, QSharedPointer<ParseRelation<T>> pRelation)
+        {
+            setValue(key, pRelation->toJsonObject());
         }
 
         bool contains(const QString &key) const;
+
+        QFuture<ParseError> save();
+        QFuture<ParseError> fetch();
+        QFuture<ParseError> deleteObject();
+
+    private:
+        friend class ParseRequestObject;
+        ParseObjectPointer toPointer() const;
+        QJsonObject toJsonObject() const;
+        void setValues(const QJsonObject &jsonObject);
         QStringList keys(bool onlyUserValues = true) const;
         QVariantMap valueMap(bool onlyUserValues = true) const;
-        void setValues(const QVariantMap &valueMap);
         void clearDirtyState();
         static bool isUserValue(const QString &key);
 
-        void save();
-        void fetch();
-        void deleteObject();
-
     private:
-        ParseObject* objectValue(const QString &key) const;
-
-    private:
-        ParseObject *_pParent;
         QString _className;
         QVariantMap _valueMap, _savedValueMap;
     };
-
-    Q_DECLARE_METATYPE(ParseObject*);
 }
 
 #endif // CGPARSE_PARSEOBJECT_H

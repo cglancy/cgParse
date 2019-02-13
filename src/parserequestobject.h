@@ -13,31 +13,53 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSECLIENT_H
-#define CGPARSE_PARSECLIENT_H
+#ifndef CGPARSE_PARSEREQUESTOBJECT_H
+#define CGPARSE_PARSEREQUESTOBJECT_H
 #pragma once
 
 #include "cgparse.h"
-#include <QByteArray>
+#include "parsetypes.h"
+#include "parserequest.h"
+#include "parsereply.h"
+
+#include <QObject>
+
+class QNetworkAccessManager;
+class QNetworkReply;
 
 namespace cg
 {
-    class CGPARSE_API ParseClient
+    class CGPARSE_API ParseRequestObject : public QObject
     {
+        Q_OBJECT
     public:
-        static ParseClient * instance();
+        static ParseRequestObject * instance();
 
-        void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost);
-        QByteArray applicationId() const;
-        QByteArray clientKey() const;
-        QByteArray apiHost() const;
+    public slots:
+        void login(const QString &username, const QString &password);
+        void logout(ParseUserPtr pUser);
 
     private:
-        ParseClient();
-        ~ParseClient();
-        static ParseClient *_pInstance;
-        QByteArray _appId, _clientKey, _apiHost;
+        void privateLoginFinished();
+        void privateLogoutFinished();
+
+    signals:
+        void loginFinished(ParseUserReply userReply);
+        void logoutFinished(int error);
+
+    private:
+        ParseRequestObject();
+        ~ParseRequestObject();
+
+        QNetworkReply* sendRequest(const ParseRequest &request);
+        static int statusCode(QNetworkReply *pReply);
+        static int errorCode(QNetworkReply *pReply);
+        static bool isError(int status);
+
+    private:
+        static ParseRequestObject *_pInstance;
+        QNetworkAccessManager *_pNam;
     };
 }
 
-#endif // CGPARSE_PARSECLIENT_H
+#endif // CGPARSE_PARSEREQUESTOBJECT_H

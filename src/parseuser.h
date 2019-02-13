@@ -19,6 +19,7 @@
 
 #include "cgparse.h"
 #include "parseobject.h"
+#include "parsereply.h"
 
 namespace cg
 {
@@ -27,6 +28,10 @@ namespace cg
     public:
         Q_INVOKABLE ParseUser();
         ~ParseUser();
+
+        static QFuture<ParseUserReply> login(const QString &username, const QString &password);
+        static QFuture<int> logout();
+        static ParseUserPtr currentUser() { return _pCurrentUser; }
 
         bool isAuthenticated() const;
 
@@ -41,13 +46,12 @@ namespace cg
 
         QString sessionToken() const;
 
-    public slots:
         void signUp();
         void deleteUser();
 
-    signals:
-        void signUpFinished(int errorCode);
-        void deleteUserFinished(int errorCode);
+    private:
+        friend class ParseRequestObject;
+        static ParseUserPtr _pCurrentUser;
     };
 }
 
