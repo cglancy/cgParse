@@ -13,10 +13,40 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "parserelation.h"
-#include "parsequery.h"
+#ifndef CGPARSE_PARSEFILEHELPER_H
+#define CGPARSE_PARSEFILEHELPER_H
+#pragma once
+
+#include "cgparse.h"
+#include "parsetypes.h"
+#include "parsereply.h"
+
+#include <QObject>
 
 namespace cg
 {
+    class CGPARSE_API ParseFileHelper : public QObject
+    {
+        Q_OBJECT
+    public:
+        ParseFileHelper(ParseFilePtr pFile);
+        ~ParseFileHelper();
 
+    public slots:
+        void saveFile(ParseFilePtr pFile);
+        void deleteFile(const QString &url, const QString &masterKey);
+
+    private:
+        void privateSaveFileFinished();
+        void privateDeleteFileFinished();
+
+    signals:
+        void saveFileFinished(ParseFileReply fileReply);
+        void deleteFileFinished(int status);
+
+    private:
+        QWeakPointer<ParseFile> _pFile;
+    };
 }
+
+#endif // CGPARSE_PARSEFILEHELPER_H

@@ -29,9 +29,12 @@
 #include <QDateTime>
 #include <QVariant>
 #include <QFuture>
+#include <QScopedPointer>
 
 namespace cg
 {
+    class ParseObjectHelper;
+
     class CGPARSE_API ParseObject : public QEnableSharedFromThis<ParseObject>
     {
     public:
@@ -128,7 +131,8 @@ namespace cg
         QFuture<int> deleteObject();
 
     private:
-        friend class ParseRequestObject;
+        friend class ParseObjectHelper;
+        friend class ParseUserHelper;
         ParseObjectPointer toPointer() const;
         QJsonObject toJsonObject(bool onlyUserValues = true) const;
         void setValues(const QJsonObject &jsonObject);
@@ -140,6 +144,7 @@ namespace cg
     private:
         QString _className;
         QVariantMap _valueMap, _savedValueMap;
+        QScopedPointer<ParseObjectHelper> _pHelper;
     };
 }
 

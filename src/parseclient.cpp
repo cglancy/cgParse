@@ -26,6 +26,7 @@ namespace cg {
     {
         qRegisterMetaType<ParseReply>();
         qRegisterMetaType<ParseUserReply>();
+        qRegisterMetaType<ParseFileReply>();
     }
 
     ParseClient::~ParseClient()

@@ -24,10 +24,9 @@
 #include <QByteArray>
 #include <QUrlQuery>
 #include <QNetworkRequest>
-#include <QMap>
-#include <QFuture>
 
 class QNetworkReply;
+class QNetworkAccessManager;
 
 namespace cg
 {
@@ -67,10 +66,20 @@ namespace cg
 
         QByteArray header(const QByteArray &header) const;
         void setHeader(const QByteArray &header, const QByteArray &value);
+        void removeHeader(const QByteArray &header);
 
-        QNetworkRequest networkRequest() const;
+        QNetworkReply * sendRequest() const;
+
+        static int statusCode(QNetworkReply *pReply);
+        static int errorCode(QNetworkReply *pReply);
+        static bool isError(int status);
 
     private:
+        QNetworkRequest networkRequest() const;
+        static QNetworkAccessManager* networkAccessManager();
+
+    private:
+        static QNetworkAccessManager *_pNam;
         HttpMethod _method;
         QString _apiRoute, _contentType;
         QByteArray _content;

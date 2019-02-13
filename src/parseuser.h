@@ -50,9 +50,13 @@ namespace cg
         QFuture<ParseUserReply> signUp();
         QFuture<int> deleteUser();
 
+        static ParseUserHelper * staticHelper();
+
     private:
-        friend class ParseRequestObject;
+        friend class ParseUserHelper;
         static ParseUserPtr _pCurrentUser;
+        QScopedPointer<ParseUserHelper> _pHelper;
+        static ParseUserHelper *_pStaticHelper;
     };
 }
 

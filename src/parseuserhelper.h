@@ -13,28 +13,25 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEREQUESTOBJECT_H
-#define CGPARSE_PARSEREQUESTOBJECT_H
+#ifndef CGPARSE_PARSEUSERHELPER_H
+#define CGPARSE_PARSEUSERHELPER_H
 #pragma once
 
 #include "cgparse.h"
 #include "parsetypes.h"
-#include "parserequest.h"
 #include "parsereply.h"
 
 #include <QObject>
-#include <QMap>
-
-class QNetworkAccessManager;
-class QNetworkReply;
 
 namespace cg
 {
-    class CGPARSE_API ParseRequestObject : public QObject
+    class CGPARSE_API ParseUserHelper : public QObject
     {
         Q_OBJECT
     public:
-        static ParseRequestObject * instance();
+        ParseUserHelper();
+        ParseUserHelper(ParseUserPtr pUser);
+        ~ParseUserHelper();
 
     public slots:
         void login(const QString &username, const QString &password);
@@ -45,11 +42,6 @@ namespace cg
         void deleteSession(const QString &sessionToken);
         void deleteUser(ParseUserPtr pUser);
 
-        void createObject(ParseObjectPtr pObject);
-        void fetchObject(ParseObjectPtr pObject);
-        void updateObject(ParseObjectPtr pObject);
-        void deleteObject(ParseObjectPtr pObject);
-
     private:
         void privateLoginFinished();
         void privateLogoutFinished();
@@ -58,11 +50,6 @@ namespace cg
         void privateSignUpUserFinished();
         void privateDeleteSessionFinished();
         void privateDeleteUserFinished();
-
-        void privateCreateObjectFinished();
-        void privateFetchObjectFinished();
-        void privateUpdateObjectFinished();
-        void privateDeleteObjectFinished();
 
     signals:
         void loginFinished(ParseUserReply userReply);
@@ -73,26 +60,9 @@ namespace cg
         void deleteSessionFinished(int status);
         void deleteUserFinished(int status);
 
-        void createObjectFinished(int status);
-        void fetchObjectFinished(int status);
-        void updateObjectFinished(int status);
-        void deleteObjectFinished(int status);
-
     private:
-        ParseRequestObject();
-        ~ParseRequestObject();
-
-        QNetworkReply* sendRequest(const ParseRequest &request);
-        static int statusCode(QNetworkReply *pReply);
-        static int errorCode(QNetworkReply *pReply);
-        static bool isError(int status);
-
-    private:
-        static ParseRequestObject *_pInstance;
-        QNetworkAccessManager *_pNam;
-        QMap<QNetworkReply*, ParseUserPtr> _replyUserMap;
-        QMap<QNetworkReply*, ParseObjectPtr> _replyObjectMap;
+        QWeakPointer<ParseUser> _pUser;
     };
 }
 
-#endif // CGPARSE_PARSEREQUESTOBJECT_H
+#endif // CGPARSE_PARSEUSERHELPER_H

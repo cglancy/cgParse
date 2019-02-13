@@ -1,4 +1,4 @@
-QT += core network testlib concurrent
+QT += core network
 QT -= gui
 
 TARGET = cgParse
@@ -12,24 +12,31 @@ HEADERS += cgparse.h \
 	parseclient.h \
 	parseerror.h \
 	parsefile.h \
+	parsefilehelper.h \
     parseobject.h \
+	parseobjecthelper.h \
 	parseobjectpointer.h \
 	parsequery.h \
+	parsequeryhelper.h \
 	parserelation.h \
 	parsereply.h \
 	parserequest.h \
-	parserequestobject.h \
 	parsetypes.h \
-	parseuser.h
+	parseuser.h \
+	parseuserhelper.h
 	
 SOURCES += parseclient.cpp \
 	parsefile.cpp \
+	parsefilehelper.cpp \
 	parseobject.cpp \
+	parseobjecthelper.cpp \
 	parseobjectpointer.cpp \
+	parsequeryhelper.cpp \
 	parsereply.cpp \
 	parserequest.cpp \
 	parserequestobject.cpp \
-	parseuser.cpp
+	parseuser.cpp \
+	parseuserhelper.cpp
 
 
 DEFINES += CGPARSE_EXPORTS

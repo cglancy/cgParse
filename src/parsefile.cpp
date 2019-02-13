@@ -16,6 +16,8 @@
 #include "parsefile.h"
 #include "parseclient.h"
 #include "parserequest.h"
+#include "parsefilehelper.h"
+#include <asyncfuture.h>
 
 #include <QFile>
 #include <QFileInfo>
@@ -23,6 +25,7 @@
 namespace cg
 {
     ParseFile::ParseFile()
+        : _pHelper(new ParseFileHelper(sharedFromThis()))
     {
     }
 
@@ -54,6 +57,13 @@ namespace cg
 
     ParseFile::~ParseFile()
     {
+    }
+
+    QFuture<int> ParseFile::deleteFile(const QString &url, const QString &masterKey)
+    {
+        QScopedPointer<ParseFileHelper> pHelper(new ParseFileHelper(nullptr));
+        pHelper->deleteFile(url, masterKey);
+        return AsyncFuture::observe(pHelper.data(), &ParseFileHelper::deleteFileFinished).future();
     }
 
     bool ParseFile::isDirty() const
@@ -115,11 +125,9 @@ namespace cg
             _url = jsonObject.value("url").toString();
     }
 
-    QFuture<void> ParseFile::save()
+    QFuture<ParseFileReply> ParseFile::save()
     {
-        //ParseRequest request(ParseRequest::PostHttpMethod, "/parse/files/" + name(), data(), contentType());
-        //QFuture<ParseReply> reply = ParseRequest::sendRequest(request);
-        //reply.waitForFinished();
-        return QFuture<void>();
+        _pHelper->saveFile(sharedFromThis());
+        return AsyncFuture::observe(_pHelper.data(), &ParseFileHelper::saveFileFinished).future();
     }
 }

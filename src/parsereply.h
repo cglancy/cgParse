@@ -54,6 +54,22 @@ namespace cg
     };
 
     Q_DECLARE_METATYPE(ParseUserReply);
+
+    class CGPARSE_API ParseFileReply: public ParseReply
+    {
+    public:
+        ParseFileReply();
+        ParseFileReply(const ParseFileReply &reply);
+        ~ParseFileReply();
+
+        ParseFilePtr file() const { return _pFile; }
+        void setFile(ParseFilePtr pFile) { _pFile = pFile; }
+
+    private:
+        ParseFilePtr _pFile;
+    };
+
+    Q_DECLARE_METATYPE(ParseFileReply);
 }
 
 #endif // CGPARSE_PARSEREPLY_H

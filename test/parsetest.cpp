@@ -20,7 +20,7 @@
 #include "parsequery.h"
 #include "parsefile.h"
 #include "parserelation.h"
-#include "parserequestobject.h"
+#include "parseuserhelper.h"
 
 #include <QTimer>
 #include <asyncfuture.h>
@@ -395,8 +395,9 @@ void ParseTest::testUserSignUp()
     QFuture<int> deleteFuture = testUser->deleteUser();
     await(deleteFuture);
 
-    ParseRequestObject::instance()->deleteSession(sessionToken);
-    QSignalSpy sessionSpy(ParseRequestObject::instance(), &ParseRequestObject::deleteSessionFinished);
+    QScopedPointer<ParseUserHelper> pUserHelper(new ParseUserHelper(nullptr));
+    pUserHelper->deleteSession(sessionToken);
+    QSignalSpy sessionSpy(pUserHelper.data(), &ParseUserHelper::deleteSessionFinished);
     QVERIFY(sessionSpy.wait(10000));
 }
 

@@ -13,6 +13,46 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "parsequery.h"
+#ifndef CGPARSE_PARSEOBJECTHELPER_H
+#define CGPARSE_PARSEOBJECTHELPER_H
+#pragma once
 
+#include "cgparse.h"
+#include "parsetypes.h"
+#include "parsereply.h"
 
+#include <QObject>
+
+namespace cg
+{
+    class CGPARSE_API ParseObjectHelper : public QObject
+    {
+        Q_OBJECT
+    public:
+        ParseObjectHelper(ParseObjectPtr pObject);
+        ~ParseObjectHelper();
+
+    public slots:
+        void createObject(ParseObjectPtr pObject);
+        void fetchObject(ParseObjectPtr pObject);
+        void updateObject(ParseObjectPtr pObject);
+        void deleteObject(ParseObjectPtr pObject);
+
+    private:
+        void privateCreateObjectFinished();
+        void privateFetchObjectFinished();
+        void privateUpdateObjectFinished();
+        void privateDeleteObjectFinished();
+
+    signals:
+        void createObjectFinished(int status);
+        void fetchObjectFinished(int status);
+        void updateObjectFinished(int status);
+        void deleteObjectFinished(int status);
+
+    private:
+        QWeakPointer<ParseObject> _pObject;
+    };
+}
+
+#endif // CGPARSE_PARSEOBJECTHELPER_H

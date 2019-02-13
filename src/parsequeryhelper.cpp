@@ -13,59 +13,23 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "parsereply.h"
-#include "parseerror.h"
+#include "parsequeryhelper.h"
+#include "parsequery.h"
+#include "parseuser.h"
+#include "parserequest.h"
+
+
+#include <QNetworkReply>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 namespace cg
 {
-    //
-    // ParseReply
-    //
-    ParseReply::ParseReply()
-        : _statusCode(ParseError::UnknownError)
+    ParseQueryHelper::ParseQueryHelper()
     {
     }
 
-    ParseReply::ParseReply(const ParseReply &reply)
-    {
-        _statusCode = reply._statusCode;
-    }
-
-    ParseReply::~ParseReply()
-    {
-    }
-
-    //
-    // ParseUserReply
-    //
-    ParseUserReply::ParseUserReply()
-    {
-    }
-
-    ParseUserReply::ParseUserReply(const ParseUserReply &reply)
-        : ParseReply(reply)
-    {
-        _pUser = reply._pUser;
-    }
-
-    ParseUserReply::~ParseUserReply()
-    {
-    }
-
-    //
-    // ParseFileReply
-    //
-    ParseFileReply::ParseFileReply()
-    {
-    }
-
-    ParseFileReply::ParseFileReply(const ParseFileReply &reply)
-        : ParseReply(reply)
-    {
-        _pFile = reply._pFile;
-    }
-
-    ParseFileReply::~ParseFileReply()
+    ParseQueryHelper::~ParseQueryHelper()
     {
     }
 

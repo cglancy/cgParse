@@ -18,7 +18,7 @@
 #include "parsefile.h"
 #include "parseuser.h"
 #include "parserelation.h"
-#include "parserequestobject.h"
+#include "parseobjecthelper.h"
 #include <asyncfuture.h>
 
 #include <QJsonObject>
@@ -31,12 +31,14 @@ namespace cg {
     const QString ParseObject::UpdatedAtKey = QStringLiteral("updatedAt");
 
     ParseObject::ParseObject()
-        : _className("ParseObject")
+        : _className("ParseObject"),
+        _pHelper(new ParseObjectHelper(sharedFromThis()))
     {
     }
 
     ParseObject::ParseObject(const QString &className)
-        : _className(className)
+        : _className(className),
+        _pHelper(new ParseObjectHelper(sharedFromThis()))
     {
     }
 
@@ -289,13 +291,13 @@ namespace cg {
         QFuture<int> future;
         if (createdAt().isNull())
         {
-            ParseRequestObject::instance()->createObject(sharedFromThis());
-            future = AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::createObjectFinished).future();
+            _pHelper->createObject(sharedFromThis());
+            future = AsyncFuture::observe(_pHelper.data(), &ParseObjectHelper::createObjectFinished).future();
         }
         else
         {
-            ParseRequestObject::instance()->updateObject(sharedFromThis());
-            future = AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::updateObjectFinished).future();
+            _pHelper->updateObject(sharedFromThis());
+            future = AsyncFuture::observe(_pHelper.data(), &ParseObjectHelper::updateObjectFinished).future();
         }
         
         return future;
@@ -303,13 +305,13 @@ namespace cg {
 
     QFuture<int> ParseObject::fetch()
     {
-        ParseRequestObject::instance()->fetchObject(sharedFromThis());
-        return AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::fetchObjectFinished).future();
+        _pHelper->fetchObject(sharedFromThis());
+        return AsyncFuture::observe(_pHelper.data(), &ParseObjectHelper::fetchObjectFinished).future();
     }
 
     QFuture<int> ParseObject::deleteObject()
     {
-        ParseRequestObject::instance()->deleteObject(sharedFromThis());
-        return AsyncFuture::observe(ParseRequestObject::instance(), &ParseRequestObject::deleteObjectFinished).future();
+        _pHelper->deleteObject(sharedFromThis());
+        return AsyncFuture::observe(_pHelper.data(), &ParseObjectHelper::deleteObjectFinished).future();
     }
 }

@@ -17,10 +17,24 @@
 #include "parseclient.h"
 
 #include <QCoreApplication>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 namespace cg
 {
+    QNetworkAccessManager * ParseRequest::_pNam = nullptr;
     const QString ParseRequest::JsonContentType = QStringLiteral("application/json");
+
+    // static
+    QNetworkAccessManager * ParseRequest::networkAccessManager()
+    {
+        if (_pNam == nullptr)
+            _pNam = new QNetworkAccessManager();
+
+        return _pNam;
+    }
 
     ParseRequest::ParseRequest(HttpMethod method, const QString & apiRoute)
         : _method(method),
@@ -34,6 +48,9 @@ namespace cg
         _content(content),
         _contentType(contentType)
     {
+        _headers.insert("User-Agent", userAgent());
+        _headers.insert("X-Parse-Application-Id", ParseClient::instance()->applicationId());
+        _headers.insert("X-Parse-REST-API-Key", ParseClient::instance()->clientKey());
     }
 
     ParseRequest::ParseRequest(const ParseRequest & request)
@@ -107,6 +124,11 @@ namespace cg
         _headers.insert(header, value);
     }
 
+    void ParseRequest::removeHeader(const QByteArray & header)
+    {
+        _headers.remove(header);
+    }
+
     QNetworkRequest ParseRequest::networkRequest() const
     {
         QString fullUrlStr = "https://" + ParseClient::instance()->apiHost();
@@ -120,10 +142,6 @@ namespace cg
             url.setQuery(_urlQuery);
         QNetworkRequest request(url);
 
-        request.setRawHeader("User-Agent", userAgent());
-        request.setRawHeader("X-Parse-Application-Id", ParseClient::instance()->applicationId());
-        request.setRawHeader("X-Parse-REST-API-Key", ParseClient::instance()->clientKey());
-
         if (!_contentType.isEmpty())
             request.setHeader(QNetworkRequest::ContentTypeHeader, _contentType.toUtf8());
 
@@ -131,5 +149,77 @@ namespace cg
             request.setRawHeader(header, _headers.value(header));
 
         return request;
+    }
+
+    QNetworkReply* ParseRequest::sendRequest() const
+    {
+        QNetworkReply *pReply = nullptr;
+
+        switch (httpMethod())
+        {
+        case ParseRequest::PutHttpMethod:
+            pReply = networkAccessManager()->put(networkRequest(),content());
+            break;
+        case ParseRequest::PostHttpMethod:
+            pReply = networkAccessManager()->post(networkRequest(), content());
+            break;
+        case ParseRequest::DeleteHttpMethod:
+            pReply = networkAccessManager()->deleteResource(networkRequest());
+            break;
+        default:
+        case ParseRequest::GetHttpMethod:
+            pReply = networkAccessManager()->get(networkRequest());
+            break;
+        }
+
+        return pReply;
+    }
+
+    bool ParseRequest::isError(int status)
+    {
+        return status >= 400 && status < 500;
+    }
+
+    int ParseRequest::statusCode(QNetworkReply *pReply)
+    {
+        int status = 0;
+
+        if (pReply)
+        {
+            status = pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+#if 0
+            int replyError = pReply->error();
+            qDebug() << "Status = " << status << ", Network Error = " << replyError;
+#endif
+        }
+
+        return status;
+    }
+
+    int ParseRequest::errorCode(QNetworkReply *pReply)
+    {
+        int error = 0;
+
+        if (pReply)
+        {
+            QByteArray data = pReply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            if (doc.isObject())
+            {
+                QJsonObject jsonObject = doc.object();
+                error = jsonObject.value("code").toInt();
+
+#if 1
+                QString message = jsonObject.value("error").toString();
+                qDebug() << "Error: " << message;
+#endif
+            }
+        }
+        else
+        {
+            error = -1;
+        }
+
+        return error;
     }
 }

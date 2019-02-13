@@ -13,60 +13,31 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+#ifndef CGPARSE_PARSEQUERYHELPER_H
+#define CGPARSE_PARSEQUERYHELPER_H
+#pragma once
+
+#include "cgparse.h"
+#include "parsetypes.h"
 #include "parsereply.h"
-#include "parseerror.h"
+
+#include <QObject>
 
 namespace cg
 {
-    //
-    // ParseReply
-    //
-    ParseReply::ParseReply()
-        : _statusCode(ParseError::UnknownError)
+    class CGPARSE_API ParseQueryHelper : public QObject
     {
-    }
+        Q_OBJECT
+    public:
+        ParseQueryHelper();
+        ~ParseQueryHelper();
 
-    ParseReply::ParseReply(const ParseReply &reply)
-    {
-        _statusCode = reply._statusCode;
-    }
+    public slots:
 
-    ParseReply::~ParseReply()
-    {
-    }
+    private:
 
-    //
-    // ParseUserReply
-    //
-    ParseUserReply::ParseUserReply()
-    {
-    }
-
-    ParseUserReply::ParseUserReply(const ParseUserReply &reply)
-        : ParseReply(reply)
-    {
-        _pUser = reply._pUser;
-    }
-
-    ParseUserReply::~ParseUserReply()
-    {
-    }
-
-    //
-    // ParseFileReply
-    //
-    ParseFileReply::ParseFileReply()
-    {
-    }
-
-    ParseFileReply::ParseFileReply(const ParseFileReply &reply)
-        : ParseReply(reply)
-    {
-        _pFile = reply._pFile;
-    }
-
-    ParseFileReply::~ParseFileReply()
-    {
-    }
-
+    signals:
+    };
 }
+
+#endif // CGPARSE_PARSEQUERYHELPER_H

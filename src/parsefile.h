@@ -18,23 +18,30 @@
 #pragma once
 
 #include "cgparse.h"
+#include "parsereply.h"
+#include <QEnableSharedFromThis>
 #include <QString>
 #include <QByteArray>
 #include <QMetaType>
 #include <QJsonObject>
 #include <QFuture>
+#include <QScopedPointer>
 
 class QFile;
 
 namespace cg
 {
-    class CGPARSE_API ParseFile
+    class ParseFileHelper;
+
+    class CGPARSE_API ParseFile : public QEnableSharedFromThis<ParseFile>
     {
     public:
         ParseFile();
         ParseFile(const QString &localPath);
         ParseFile(const QString &name, const QByteArray &data, const QString &contentType);
         ~ParseFile();
+
+        static QFuture<int> deleteFile(const QString &url, const QString &masterKey);
 
         bool isDirty() const;
 
@@ -51,11 +58,12 @@ namespace cg
         QJsonObject toJsonObject() const;
         void setValues(const QJsonObject &jsonObject);
 
-        QFuture<void> save();
+        QFuture<ParseFileReply> save();
 
     private:
         QString _name, _url, _contentType;
         QByteArray _data;
+        QScopedPointer<ParseFileHelper> _pHelper;
     };
 }
 
