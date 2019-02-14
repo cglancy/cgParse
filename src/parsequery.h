@@ -123,6 +123,12 @@ namespace cg
             return sharedFromThis();
         }
 
+        QSharedPointer<ParseQuery<T>> include(const QString &key)
+        {
+            _includeList.append(key);
+            return sharedFromThis();
+        }
+
         QSharedPointer<ParseQuery<T>> whereEqualTo(const QString &key, const QVariant &value)
         {
             _whereObject.insert(key, QJsonValue::fromVariant(value));
@@ -197,29 +203,22 @@ namespace cg
             }
 
             if (!_orderList.isEmpty())
-            {
                 urlQuery.addQueryItem("order", _orderList.join(','));
-            }
 
             if (_count > 0)
-            {
                 urlQuery.addQueryItem("count", QString::number(_count));
-            }
 
             if (_limit >= 0)
-            {
                 urlQuery.addQueryItem("limit", QString::number(_limit));
-            }
 
             if (_skip > 0)
-            {
                 urlQuery.addQueryItem("skip", QString::number(_skip));
-            }
 
             if (!_keysList.isEmpty())
-            {
                 urlQuery.addQueryItem("keys", _keysList.join(','));
-            }
+
+            if (!_includeList.isEmpty())
+                urlQuery.addQueryItem("include", _includeList.join(','));
 
             return urlQuery;
         }
@@ -250,7 +249,11 @@ namespace cg
         {
             _pHelper->getObject(_className, objectId);
             QFuture<ParseJsonArrayReply> future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::getObjectFinished).future();
+#ifdef CGPARSE_NO_EVENT_LOOP
             await(future);
+#else
+            future.waitForFinished();
+#endif
             ParseJsonArrayReply arrayReply = future.result();
             QJsonArray jsonArray = arrayReply.jsonArray();
             _results.clear();
@@ -279,7 +282,11 @@ namespace cg
         {
             _pHelper->findObjects(_className, urlQuery());
             QFuture<ParseJsonArrayReply> future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::findObjectsFinished).future();
+#ifdef CGPARSE_NO_EVENT_LOOP
             await(future);
+#else
+            future.waitForFinished();
+#endif
             ParseJsonArrayReply arrayReply = future.result();
             QJsonArray jsonArray = arrayReply.jsonArray();
             _results.clear();
