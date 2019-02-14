@@ -17,14 +17,14 @@
 #define CGPARSE_PARSERELATION_H
 #pragma once
 
-#include "cgparse.h"
 #include "parsetypes.h"
 #include "parsequery.h"
+#include <QVariant>
 
 namespace cg
 {
     template <class T>
-    class CGPARSE_API ParseRelation
+    class ParseRelation
     {
     public:
         ParseRelation(const QString &objectClassName, const QString &objectId, const QString &objectKey)
@@ -43,59 +43,59 @@ namespace cg
         const QList<QSharedPointer<T>> & addList() const { return _addList; }
         const QList<QSharedPointer<T>> & removeList() const { return _removeList; }
 
-        void setValues(const QJsonObject &jsonObject)
+        void setValues(const QVariantMap &map)
         {
-            if (jsonObject.contains("__op") && jsonObject.value("__op").toString() == "AddRelation")
+            if (map.contains("__op") && map.value("__op").toString() == "AddRelation")
             {
-                QJsonArray objectsArray = jsonObject.value("objects").toArray();
-                for (auto & jsonValue : objectsArray)
+                QVariantList list = map.value("objects").toList();
+                for (auto & variant : list)
                 {
-                    if (jsonValue.isObject())
+                    if (variant.canConvert<QVariantMap>() && ParseObjectPointer::isPointer(variant))
                     {
-                        QSharedPointer<T> pObject = QSharedPointer<T>::create();
-                        pObject->setValues(jsonValue.toObject());
+                        ParseObjectPointer pointer(variant);
+                        QSharedPointer<T> pObject = ParseObject::createWithoutData<T>(pointer.objectId());
                         _addList.append(pObject);
                     }
                 }
             }
-            else if (jsonObject.contains("__op") && jsonObject.value("__op").toString() == "RemoveRelation")
+            else if (map.contains("__op") && map.value("__op").toString() == "RemoveRelation")
             {
-                QJsonArray objectsArray = jsonObject.value("objects").toArray();
-                for (auto & jsonValue : objectsArray)
+                QVariantList list = map.value("objects").toList();
+                for (auto & variant : list)
                 {
-                    if (jsonValue.isObject())
+                    if (variant.canConvert<QVariantMap>() && ParseObjectPointer::isPointer(variant))
                     {
-                        QSharedPointer<T> pObject = QSharedPointer<T>::create();
-                        pObject->setValues(jsonValue.toObject());
+                        ParseObjectPointer pointer(variant);
+                        QSharedPointer<T> pObject = ParseObject::createWithoutData<T>(pointer.objectId());
                         _removeList.append(pObject);
                     }
                 }
             }
         }
 
-        QJsonObject toJsonObject() const
+        QVariantMap toMap() const
         {
-            QJsonObject jsonObject;
-            QJsonArray objectsArray;
+            QVariantMap map;
+            QVariantList list;
 
             if (_addList.size() > 0)
             {
                 for (auto & pObject : _addList)
-                    objectsArray.append(pObject->toJsonObject());
+                    list.append(pObject->toPointer().toMap());
 
-                jsonObject.insert("__op", "AddRelation");
-                jsonObject.insert("objects", objectsArray);
+                map.insert("__op", "AddRelation");
+                map.insert("objects", list);
             }
             else if (_removeList.size() > 0)
             {
                 for (auto & pObject : _removeList)
-                    objectsArray.append(pObject->toJsonObject());
+                    list.append(pObject->toPointer().toMap());
 
-                jsonObject.insert("__op", "RemoveRelation");
-                jsonObject.insert("objects", objectsArray);
+                map.insert("__op", "RemoveRelation");
+                map.insert("objects", list);
             }
 
-            return jsonObject;
+            return map;
         }
 
     private:

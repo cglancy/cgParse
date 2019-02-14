@@ -75,6 +75,7 @@ namespace cg
         static bool isError(int status);
 
     private:
+        void init();
         QNetworkRequest networkRequest() const;
         static QNetworkAccessManager* networkAccessManager();
 

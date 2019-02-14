@@ -36,7 +36,7 @@ namespace cg
 
     ParseUser::ParseUser()
         : ParseObject("_User"),
-        _pHelper(new ParseUserHelper(sharedFromThis().staticCast<ParseUser>()))
+        _pHelper(new ParseUserHelper())
     {
     }
 

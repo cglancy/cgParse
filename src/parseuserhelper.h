@@ -22,6 +22,7 @@
 #include "parsereply.h"
 
 #include <QObject>
+#include <QWeakPointer>
 
 namespace cg
 {
@@ -30,7 +31,6 @@ namespace cg
         Q_OBJECT
     public:
         ParseUserHelper();
-        ParseUserHelper(ParseUserPtr pUser);
         ~ParseUserHelper();
 
     public slots:

@@ -17,18 +17,21 @@
 #define CGPARSE_PARSEOBJECTPOINTER_H
 #pragma once
 
+#include "cgparse.h"
 #include <QString>
 #include <QJsonObject>
+#include <QVariant>
 #include <QHash>
 
 namespace cg
 {
-    class ParseObjectPointer
+    class CGPARSE_API ParseObjectPointer
     {
     public:
         ParseObjectPointer();
         ParseObjectPointer(const QString &className, const QString &objectId);
         ParseObjectPointer(const QJsonObject &jsonObject);
+        ParseObjectPointer(const QVariant &variant);
         ParseObjectPointer(const ParseObjectPointer &ptr);
 
         bool isNull() const;
@@ -40,6 +43,12 @@ namespace cg
         bool operator<(const ParseObjectPointer &ptr) const;
 
         QJsonObject toJsonObject() const;
+        QVariantMap toMap() const;
+
+        static bool isPointer(const QVariant &variant);
+        static bool isPointer(const QJsonValue &jsonValue);
+        static bool isObject(const QVariant &variant);
+        static bool isObject(const QJsonValue &variant);
 
     private:
         QString _className, _objectId;

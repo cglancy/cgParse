@@ -17,6 +17,7 @@
 #include "parseclient.h"
 #include "parserequest.h"
 #include "parsefilehelper.h"
+#include "parseobject.h"
 #include <asyncfuture.h>
 
 #include <QFile>
@@ -24,13 +25,24 @@
 
 namespace cg
 {
+    ParseFileHelper * ParseFile::_pStaticHelper = nullptr;
+
+    ParseFileHelper * ParseFile::staticHelper()
+    {
+        if (!_pStaticHelper)
+            _pStaticHelper = new ParseFileHelper();
+
+        return _pStaticHelper;
+    }
+
     ParseFile::ParseFile()
-        : _pHelper(new ParseFileHelper(sharedFromThis()))
+        : _pHelper(new ParseFileHelper())
     {
     }
 
     ParseFile::ParseFile(const QString &path)
-        : _contentType("unknown/unknown")
+        : _contentType("unknown/unknown"),
+        _pHelper(new ParseFileHelper())
     {
         QFileInfo fi(path);
         _name = fi.fileName();
@@ -51,7 +63,8 @@ namespace cg
     ParseFile::ParseFile(const QString &name, const QByteArray &data, const QString &contentType)
         : _name(name),
         _data(data),
-        _contentType(contentType)
+        _contentType(contentType),
+        _pHelper(new ParseFileHelper())
     {
     }
 
@@ -61,9 +74,8 @@ namespace cg
 
     QFuture<int> ParseFile::deleteFile(const QString &url, const QString &masterKey)
     {
-        QScopedPointer<ParseFileHelper> pHelper(new ParseFileHelper(nullptr));
-        pHelper->deleteFile(url, masterKey);
-        return AsyncFuture::observe(pHelper.data(), &ParseFileHelper::deleteFileFinished).future();
+        staticHelper()->deleteFile(url, masterKey);
+        return AsyncFuture::observe(staticHelper(), &ParseFileHelper::deleteFileFinished).future();
     }
 
     bool ParseFile::isDirty() const
@@ -109,11 +121,47 @@ namespace cg
     QJsonObject ParseFile::toJsonObject() const
     {
         QJsonObject jsonObject;
-        jsonObject.insert("__type", "File");
+        jsonObject.insert(ParseObject::ParseTypeKey, "File");
         jsonObject.insert("name", _name);
         if (_url.isEmpty())
             jsonObject.insert("url", _url);
         return jsonObject;
+    }
+
+    QVariantMap ParseFile::toMap() const
+    {
+        QVariantMap map;
+        map.insert(ParseObject::ParseTypeKey, "File");
+        map.insert("name", _name);
+        if (_url.isEmpty())
+            map.insert("url", _url);
+        return map;
+    }
+
+    bool ParseFile::isFile(const QVariant &variant)
+    {
+        bool file = false;
+        if (variant.canConvert<QVariantMap>())
+        {
+            QVariantMap map = variant.toMap();
+            file = map.contains(ParseObject::ParseTypeKey) &&
+                map.value(ParseObject::ParseTypeKey).toString() == "File";
+        }
+
+        return file;
+    }
+
+    bool ParseFile::isFile(const QJsonValue &jsonValue)
+    {
+        bool file = false;
+        if (jsonValue.isObject())
+        {
+            QJsonObject jsonObject = jsonValue.toObject();
+            file = jsonObject.contains(ParseObject::ParseTypeKey) &&
+                jsonObject.value(ParseObject::ParseTypeKey).toString() == "File";
+        }
+
+        return file;
     }
 
     void ParseFile::setValues(const QJsonObject &jsonObject)
@@ -123,6 +171,15 @@ namespace cg
 
         if (jsonObject.contains("url"))
             _url = jsonObject.value("url").toString();
+    }
+
+    void ParseFile::setValues(const QVariantMap &map)
+    {
+        if (map.contains("name"))
+            _name = map.value("name").toString();
+
+        if (map.contains("url"))
+            _url = map.value("url").toString();
     }
 
     QFuture<ParseFileReply> ParseFile::save()

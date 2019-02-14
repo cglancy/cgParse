@@ -69,4 +69,39 @@ namespace cg
     {
     }
 
+    //
+    // ParseJsonArrayReply
+    //
+    ParseJsonArrayReply::ParseJsonArrayReply()
+    {
+    }
+
+    ParseJsonArrayReply::ParseJsonArrayReply(const ParseJsonArrayReply &reply)
+        : ParseReply(reply)
+    {
+        _jsonArray = reply._jsonArray;
+    }
+
+    ParseJsonArrayReply::~ParseJsonArrayReply()
+    {
+    }
+
+    //
+    // ParseCountReply
+    //
+    ParseCountReply::ParseCountReply()
+        : _count(0)
+    {
+    }
+
+    ParseCountReply::ParseCountReply(const ParseCountReply &reply)
+        : ParseReply(reply)
+    {
+        _count = reply._count;
+    }
+
+    ParseCountReply::~ParseCountReply()
+    {
+    }
+
 }

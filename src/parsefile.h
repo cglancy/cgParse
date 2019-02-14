@@ -24,6 +24,7 @@
 #include <QByteArray>
 #include <QMetaType>
 #include <QJsonObject>
+#include <QVariant>
 #include <QFuture>
 #include <QScopedPointer>
 
@@ -56,14 +57,23 @@ namespace cg
 
         QByteArray data() const;
         QJsonObject toJsonObject() const;
+        QVariantMap toMap() const;
         void setValues(const QJsonObject &jsonObject);
+        void setValues(const QVariantMap &map);
 
         QFuture<ParseFileReply> save();
+
+        static bool isFile(const QVariant &variant);
+        static bool isFile(const QJsonValue &jsonValue);
+
+    private:
+        static ParseFileHelper * staticHelper();
 
     private:
         QString _name, _url, _contentType;
         QByteArray _data;
         QScopedPointer<ParseFileHelper> _pHelper;
+        static ParseFileHelper *_pStaticHelper;
     };
 }
 

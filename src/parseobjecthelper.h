@@ -22,6 +22,10 @@
 #include "parsereply.h"
 
 #include <QObject>
+#include <QWeakPointer>
+#include <QMap>
+
+class QNetworkReply;
 
 namespace cg
 {
@@ -29,7 +33,7 @@ namespace cg
     {
         Q_OBJECT
     public:
-        ParseObjectHelper(ParseObjectPtr pObject);
+        ParseObjectHelper();
         ~ParseObjectHelper();
 
     public slots:
@@ -38,11 +42,19 @@ namespace cg
         void updateObject(ParseObjectPtr pObject);
         void deleteObject(ParseObjectPtr pObject);
 
+        void createAll(const QList<ParseObjectPtr> &objects);
+        void updateAll(const QList<ParseObjectPtr> &objects);
+        void deleteAll(const QList<ParseObjectPtr> &objects);
+
     private:
         void privateCreateObjectFinished();
         void privateFetchObjectFinished();
         void privateUpdateObjectFinished();
         void privateDeleteObjectFinished();
+
+        void privateCreateAllFinished();
+        void privateUpdateAllFinished();
+        void privateDeleteAllFinished();
 
     signals:
         void createObjectFinished(int status);
@@ -50,8 +62,13 @@ namespace cg
         void updateObjectFinished(int status);
         void deleteObjectFinished(int status);
 
+        void createAllFinished(int status);
+        void updateAllFinished(int status);
+        void deleteAllFinished(int status);
+
     private:
         QWeakPointer<ParseObject> _pObject;
+        QMap<QNetworkReply*, QList<ParseObjectPtr>> _replyObjectListMap;
     };
 }
 

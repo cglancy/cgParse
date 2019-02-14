@@ -24,8 +24,7 @@
 
 namespace cg
 {
-    ParseFileHelper::ParseFileHelper(ParseFilePtr pFile)
-        : _pFile(pFile)
+    ParseFileHelper::ParseFileHelper()
     {
     }
 
@@ -41,6 +40,7 @@ namespace cg
             return;
         }
 
+        _pFile = pFile;
         ParseRequest request(ParseRequest::PostHttpMethod, "/parse/files/" + pFile->name(), pFile->data(), pFile->contentType());
         QNetworkReply *pReply = request.sendRequest();
         connect(pReply, &QNetworkReply::finished, this, &ParseFileHelper::privateSaveFileFinished);

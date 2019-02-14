@@ -29,16 +29,27 @@ namespace cg {
     const QString ParseObject::ObjectIdKey = QStringLiteral("objectId");
     const QString ParseObject::CreatedAtKey = QStringLiteral("createdAt");
     const QString ParseObject::UpdatedAtKey = QStringLiteral("updatedAt");
+    const QString ParseObject::ParseTypeKey = QStringLiteral("__type");
+
+    ParseObjectHelper * ParseObject::_pStaticHelper = nullptr;
+
+    ParseObjectHelper * ParseObject::staticHelper()
+    {
+        if (!_pStaticHelper)
+            _pStaticHelper = new ParseObjectHelper();
+
+        return _pStaticHelper;
+    }
 
     ParseObject::ParseObject()
         : _className("ParseObject"),
-        _pHelper(new ParseObjectHelper(sharedFromThis()))
+        _pHelper(new ParseObjectHelper())
     {
     }
 
     ParseObject::ParseObject(const QString &className)
         : _className(className),
-        _pHelper(new ParseObjectHelper(sharedFromThis()))
+        _pHelper(new ParseObjectHelper())
     {
     }
 
@@ -142,89 +153,89 @@ namespace cg {
 
     void ParseObject::remove(const QString & key)
     {
-        QJsonObject jsonObject;
-        jsonObject.insert("__op", "Delete");
-        setValue(key, jsonObject);
+        QVariantMap map;
+        map.insert("__op", "Delete");
+        setValue(key, map);
     }
 
     void ParseObject::add(const QString & key, const QVariant & value)
     {
-        QJsonArray objectsArray;
-        objectsArray.append(value.toJsonObject());
-        QJsonObject jsonObject;
-        jsonObject.insert("__op", "Add");
-        jsonObject.insert("objects", objectsArray);
-        setValue(key, jsonObject);
+        QVariantList list;
+        list.append(value);
+        QVariantMap map;
+        map.insert("__op", "Add");
+        map.insert("objects", list);
+        setValue(key, map);
     }
 
     void ParseObject::addUnique(const QString & key, const QVariant & value)
     {
-        QJsonArray objectsArray;
-        objectsArray.append(value.toJsonObject());
-        QJsonObject jsonObject;
-        jsonObject.insert("__op", "AddUnique");
-        jsonObject.insert("objects", objectsArray);
-        setValue(key, jsonObject);
+        QVariantList list;
+        list.append(value);
+        QVariantMap map;
+        map.insert("__op", "AddUnique");
+        map.insert("objects", list);
+        setValue(key, map);
     }
 
     void ParseObject::addAll(const QString & key, const QVariantList & valueList)
     {
-        QJsonArray objectsArray;
-        for (auto & value : valueList)
-            objectsArray.append(value.toJsonObject());
-
-        QJsonObject jsonObject;
-        jsonObject.insert("__op", "Add");
-        jsonObject.insert("objects", objectsArray);
-        setValue(key, jsonObject);
+        QVariantMap map;
+        map.insert("__op", "Add");
+        map.insert("objects", valueList);
+        setValue(key, map);
     }
 
     void ParseObject::addAllUnique(const QString & key, const QVariantList & valueList)
     {
-        QJsonArray objectsArray;
-        for (auto & value : valueList)
-            objectsArray.append(value.toJsonObject());
-
-        QJsonObject jsonObject;
-        jsonObject.insert("__op", "AddUnique");
-        jsonObject.insert("objects", objectsArray);
-        setValue(key, jsonObject);
+        QVariantMap map;
+        map.insert("__op", "AddUnique");
+        map.insert("objects", valueList);
+        setValue(key, map);
     }
 
     void ParseObject::removeAll(const QString & key, const QVariantList & valueList)
     {
-        QJsonArray objectsArray;
-        for (auto & value : valueList)
-            objectsArray.append(value.toJsonObject());
-
-        QJsonObject jsonObject;
-        jsonObject.insert("__op", "Remove");
-        jsonObject.insert("objects", objectsArray);
-        setValue(key, jsonObject);
+        QVariantMap map;
+        map.insert("__op", "Remove");
+        map.insert("objects", valueList);
+        setValue(key, map);
     }
 
     ParseFilePtr ParseObject::file(const QString &key) const
     {
-        ParseFilePtr pFile = QSharedPointer<ParseFile>::create();
-        pFile->setValues(value(key).toJsonObject());
+        ParseFilePtr pFile;
+        if (_valueMap.contains(key) && ParseFile::isFile(_valueMap.value(key)))
+        {
+            QVariantMap map = value(key).toMap();
+            pFile = QSharedPointer<ParseFile>::create();
+            pFile->setValues(map);
+        }
+
         return pFile;
     }
 
     void ParseObject::setFile(const QString &key, ParseFilePtr pFile)
     {
-        setValue(key, pFile->toJsonObject());
+        setValue(key, pFile->toMap());
     }
 
     ParseUserPtr ParseObject::user(const QString & key) const
     {
-        ParseUserPtr pUser = QSharedPointer<ParseUser>::create();
-        pUser->setValues(value(key).toJsonObject());
+        ParseUserPtr pUser;
+
+        if (_valueMap.contains(key) && ParseObjectPointer::isPointer(_valueMap.value(key)))
+        {
+            ParseObjectPointer pointer(_valueMap.value(key));
+            pUser = ParseObject::createWithoutData<ParseUser>(pointer.objectId());
+        }
+
         return pUser;
     }
 
     void ParseObject::setUser(const QString & key, ParseUserPtr pUser)
     {
-        setValue(key, pUser->toPointer().toJsonObject());
+        setValue(key, pUser->toPointer().toMap());
     }
 
     bool ParseObject::contains(const QString &key) const
@@ -247,18 +258,10 @@ namespace cg {
 
     bool ParseObject::isUserValue(const QString &key)
     {
-        return key != ObjectIdKey && key !=CreatedAtKey && key != UpdatedAtKey;
+        return key != ObjectIdKey &&
+            key != CreatedAtKey &&
+            key != UpdatedAtKey;
     }
-
-    //QVariantMap ParseObject::valueMap(bool onlyUserValues) const
-    //{
-    //    QVariantMap map;
-    //    QStringList list = keys(onlyUserValues);
-    //    for (auto & key : list)
-    //        map.insert(key, value(key));
-
-    //    return map;
-    //}
 
     ParseObjectPointer ParseObject::toPointer() const
     {
@@ -279,11 +282,29 @@ namespace cg {
         return jsonObject;
     }
 
+    QVariantMap ParseObject::toMap(bool onlyUserValues) const
+    {
+        QVariantMap map = _valueMap;
+        if (onlyUserValues)
+        {
+            map.remove(ObjectIdKey);
+            map.remove(CreatedAtKey);
+            map.remove(UpdatedAtKey);
+        }
+
+        return map;
+    }
+
     void ParseObject::setValues(const QJsonObject &jsonObject)
     {
-        QVariantMap newMap = jsonObject.toVariantMap();
-        for (auto & key : newMap.keys())
-            _valueMap.insert(key, newMap.value(key));
+        QVariantMap variantMap = jsonObject.toVariantMap();
+        setValues(variantMap);
+    }
+
+    void ParseObject::setValues(const QVariantMap &variantMap)
+    {
+        for (auto & key : variantMap.keys())
+            _valueMap.insert(key, variantMap.value(key));
     }
 
     QFuture<int> ParseObject::save()
@@ -313,5 +334,23 @@ namespace cg {
     {
         _pHelper->deleteObject(sharedFromThis());
         return AsyncFuture::observe(_pHelper.data(), &ParseObjectHelper::deleteObjectFinished).future();
+    }
+
+    QFuture<int> ParseObject::createAll(const QList<ParseObjectPtr>& objects)
+    {
+        staticHelper()->createAll(objects);
+        return AsyncFuture::observe(staticHelper(), &ParseObjectHelper::createAllFinished).future();
+    }
+
+    QFuture<int> ParseObject::updateAll(const QList<ParseObjectPtr>& objects)
+    {
+        staticHelper()->updateAll(objects);
+        return AsyncFuture::observe(staticHelper(), &ParseObjectHelper::updateAllFinished).future();
+    }
+
+    QFuture<int> ParseObject::deleteAll(const QList<ParseObjectPtr>& objects)
+    {
+        staticHelper()->deleteAll(objects);
+        return AsyncFuture::observe(staticHelper(), &ParseObjectHelper::deleteAllFinished).future();
     }
 }

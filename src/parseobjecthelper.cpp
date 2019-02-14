@@ -22,11 +22,11 @@
 #include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 
 namespace cg
 {
-    ParseObjectHelper::ParseObjectHelper(ParseObjectPtr pObject)
-        : _pObject(pObject)
+    ParseObjectHelper::ParseObjectHelper()
     {
     }
 
@@ -42,6 +42,7 @@ namespace cg
             return;
         }
 
+        _pObject = pObject;
         QJsonObject object = pObject->toJsonObject();
         QJsonDocument doc(object);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
@@ -88,6 +89,7 @@ namespace cg
             return;
         }
 
+        _pObject = pObject;
         ParseRequest request(ParseRequest::GetHttpMethod, "/parse/classes/" + pObject->className() + "/" + pObject->objectId());
         QNetworkReply *pReply = request.sendRequest();
         connect(pReply, &QNetworkReply::finished, this, &ParseObjectHelper::privateFetchObjectFinished);
@@ -99,8 +101,8 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseObjectPtr pObject = _pObject.lock();
         int status = ParseRequest::statusCode(pReply);
+        ParseObjectPtr pObject = _pObject.lock();
 
         if (ParseRequest::isError(status))
         {
@@ -129,6 +131,7 @@ namespace cg
             return;
         }
 
+        _pObject = pObject;
         QJsonObject object = pObject->toJsonObject();
         QJsonDocument doc(object);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
@@ -144,8 +147,8 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseObjectPtr pObject = _pObject.lock();
         int status = ParseRequest::statusCode(pReply);
+        ParseObjectPtr pObject = _pObject.lock();
 
         if (ParseRequest::isError(status))
         {
@@ -174,6 +177,7 @@ namespace cg
             return;
         }
 
+        _pObject = pObject;
         ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/classes/" + pObject->className() + "/" + pObject->objectId());
         QNetworkReply *pReply = request.sendRequest();
         connect(pReply, &QNetworkReply::finished, this, &ParseObjectHelper::privateDeleteObjectFinished);
@@ -193,6 +197,207 @@ namespace cg
         }
 
         emit deleteObjectFinished(status);
+        pReply->deleteLater();
+    }
+
+    void ParseObjectHelper::createAll(const QList<ParseObjectPtr>& objects)
+    {
+        if (objects.size() == 0)
+        {
+            emit createAllFinished(-1);
+            return;
+        }
+
+        QString pathStr = "/parse/classes/";
+        QJsonArray requestsArray;
+
+        for (auto & pObject : objects)
+        {
+            QJsonObject bodyObject = pObject->toJsonObject();
+
+            QString apiPath = pathStr + pObject->className();
+            QJsonObject requestObject;
+            requestObject.insert("method", "POST");
+            requestObject.insert("path", apiPath);
+            requestObject.insert("body", bodyObject);
+            requestsArray.append(requestObject);
+        }
+
+        QJsonObject contentObject;
+        contentObject.insert("requests", requestsArray);
+        QJsonDocument doc(contentObject);
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/batch", content);
+        QNetworkReply *pReply = request.sendRequest();
+        connect(pReply, &QNetworkReply::finished, this, &ParseObjectHelper::privateCreateAllFinished);
+        _replyObjectListMap.insert(pReply, objects);
+    }
+
+    void ParseObjectHelper::privateCreateAllFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = ParseRequest::statusCode(pReply);
+        QList<ParseObjectPtr> objects = _replyObjectListMap.take(pReply);
+
+        if (ParseRequest::isError(status))
+        {
+            status = ParseRequest::errorCode(pReply);
+        }
+        else
+        {
+            QByteArray bytes = pReply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(bytes);
+            if (doc.isArray())
+            {
+                QJsonArray resultsArray = doc.array();
+                for (int i = 0; i < resultsArray.size(); i++)
+                {
+                    QJsonObject arrayObject = resultsArray.at(i).toObject();
+                    if (arrayObject.contains("success"))
+                    {
+                        QJsonObject successObject = arrayObject.value("success").toObject();
+                        ParseObjectPtr pObject = objects.at(i);
+                        pObject->setValues(successObject);
+                        pObject->clearDirtyState();
+                    }
+                }
+            }
+        }
+
+        emit createAllFinished(status);
+        pReply->deleteLater();
+    }
+
+    void ParseObjectHelper::updateAll(const QList<ParseObjectPtr>& objects)
+    {
+        if (objects.size() == 0)
+        {
+            emit updateAllFinished(-1);
+            return;
+        }
+
+        QString pathStr = "/parse/classes/";
+        QJsonArray requestsArray;
+
+        for (auto & pObject : objects)
+        {
+            QJsonObject bodyObject = pObject->toJsonObject();
+
+            QString apiPath = pathStr + pObject->className() + "/" + pObject->objectId();
+            QJsonObject requestObject;
+            requestObject.insert("method", "PUT");
+            requestObject.insert("path", apiPath);
+            requestObject.insert("body", bodyObject);
+            requestsArray.append(requestObject);
+        }
+
+        QJsonObject contentObject;
+        contentObject.insert("requests", requestsArray);
+        QJsonDocument doc(contentObject);
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/batch", content);
+        QNetworkReply *pReply = request.sendRequest();
+        connect(pReply, &QNetworkReply::finished, this, &ParseObjectHelper::privateUpdateAllFinished);
+    }
+
+    void ParseObjectHelper::privateUpdateAllFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = ParseRequest::statusCode(pReply);
+
+        if (ParseRequest::isError(status))
+        {
+            status = ParseRequest::errorCode(pReply);
+        }
+        else
+        {
+            QByteArray bytes = pReply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(bytes);
+            if (doc.isArray())
+            {
+                QJsonArray resultsArray = doc.array();
+                for (int i = 0; i < resultsArray.size(); i++)
+                {
+                    QJsonObject arrayObject = resultsArray.at(i).toObject();
+                    if (arrayObject.contains("success"))
+                    {
+                    }
+                }
+            }
+        }
+
+        emit updateAllFinished(status);
+        pReply->deleteLater();
+    }
+
+    void ParseObjectHelper::deleteAll(const QList<ParseObjectPtr>& objects)
+    {
+        if (objects.size() == 0)
+        {
+            emit deleteAllFinished(-1);
+            return;
+        }
+
+        QString pathStr = "/parse/classes/";
+        QJsonArray requestsArray;
+
+        for (auto & pObject : objects)
+        {
+            QString apiPath = pathStr + pObject->className() + "/" + pObject->objectId();
+            QJsonObject requestObject;
+            requestObject.insert("method", "DELETE");
+            requestObject.insert("path", apiPath);
+            requestsArray.append(requestObject);
+        }
+
+        QJsonObject contentObject;
+        contentObject.insert("requests", requestsArray);
+        QJsonDocument doc(contentObject);
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/batch", content);
+        QNetworkReply *pReply = request.sendRequest();
+        connect(pReply, &QNetworkReply::finished, this, &ParseObjectHelper::privateDeleteAllFinished);
+    }
+
+    void ParseObjectHelper::privateDeleteAllFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = ParseRequest::statusCode(pReply);
+
+        if (ParseRequest::isError(status))
+        {
+            status = ParseRequest::errorCode(pReply);
+        }
+        else
+        {
+            QByteArray bytes = pReply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(bytes);
+            if (doc.isArray())
+            {
+                QJsonArray resultsArray = doc.array();
+                for (int i = 0; i < resultsArray.size(); i++)
+                {
+                    QJsonObject arrayObject = resultsArray.at(i).toObject();
+                    if (arrayObject.contains("success"))
+                    {
+                    }
+                }
+            }
+        }
+
+        emit deleteAllFinished(status);
         pReply->deleteLater();
     }
 }

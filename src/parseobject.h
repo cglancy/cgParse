@@ -19,7 +19,6 @@
 
 #include "cgparse.h"
 #include "parsetypes.h"
-#include "parsequery.h"
 #include "parserelation.h"
 #include "parseerror.h"
 #include "parseobjectpointer.h"
@@ -42,6 +41,7 @@ namespace cg
         static const QString ObjectIdKey;
         static const QString CreatedAtKey;
         static const QString UpdatedAtKey;
+        static const QString ParseTypeKey;
 
     public:
         ParseObject();
@@ -63,6 +63,10 @@ namespace cg
             pObject->setValue(ParseObject::ObjectIdKey, objectId);
             return pObject;
         }
+
+        static QFuture<int> createAll(const QList<ParseObjectPtr> &objects);
+        static QFuture<int> updateAll(const QList<ParseObjectPtr> &objects);
+        static QFuture<int> deleteAll(const QList<ParseObjectPtr> &objects);
 
         QString className() const;
         QString objectId() const;
@@ -88,15 +92,27 @@ namespace cg
         template <class T>
         QSharedPointer<T> object(const QString &key) const
         {
-            QSharedPointer<T> pObject = QSharedPointer<T>::create();
-            QJsonObject jsonObject = value(key).toJsonObject();
-            pObject->setValues(jsonObject);
+            QSharedPointer<T> pObject;
+
+            if (_valueMap.contains(key) && ParseObjectPointer::isPointer(_valueMap.value(key)))
+            {
+                ParseObjectPointer pointer(_valueMap.value(key));
+                pObject = ParseObject::createWithoutData<T>(pointer.objectId());
+            }
+            else if (_valueMap.contains(key) && ParseObjectPointer::isObject(_valueMap.value(key)))
+            {
+                QVariantMap map = _valueMap.value(key).toMap();
+                pObject = ParseObject::create<T>();
+                map.remove(ParseTypeKey);
+                pObject->setValues(map);
+            }
+
             return pObject;
         }
         template <class T>
         void setObject(const QString &key, QSharedPointer<T> pObject)
         {
-            setValue(key, pObject->toPointer().toJsonObject());
+            setValue(key, pObject->toPointer().toMap());
         }
 
         ParseFilePtr file(const QString &key) const;
@@ -108,11 +124,11 @@ namespace cg
         template <class T>
         QSharedPointer<ParseRelation<T>> relation(const QString &key)
         {
-            QSharedPointer<ParseRelation<T>> pRelation = QSharedPointer<ParseRelation<T>>::create();
+            QSharedPointer<ParseRelation<T>> pRelation = QSharedPointer<ParseRelation<T>>::create(_className, objectId(), key);
 
-            if (_valueMap.contains(key) && value(key).canConvert<QJsonObject>())
+            if (_valueMap.contains(key) && value(key).canConvert<QVariantMap>())
             {
-                pRelation->setValues(value(key).toJsonObject());
+                pRelation->setValues(value(key).toMap());
             }
 
             return pRelation;
@@ -121,30 +137,31 @@ namespace cg
         template <class T>
         void setRelation(const QString &key, QSharedPointer<ParseRelation<T>> pRelation)
         {
-            setValue(key, pRelation->toJsonObject());
+            setValue(key, pRelation->toMap());
         }
 
         bool contains(const QString &key) const;
+        void setValues(const QJsonObject &jsonObject);
+        void setValues(const QVariantMap &variantMap);
+        void clearDirtyState();
+        QJsonObject toJsonObject(bool onlyUserValues = true) const;
+        QVariantMap toMap(bool onlyUserValues = true) const;
+        ParseObjectPointer toPointer() const;
 
         QFuture<int> save();
         QFuture<int> fetch();
         QFuture<int> deleteObject();
 
     private:
-        friend class ParseObjectHelper;
-        friend class ParseUserHelper;
-        ParseObjectPointer toPointer() const;
-        QJsonObject toJsonObject(bool onlyUserValues = true) const;
-        void setValues(const QJsonObject &jsonObject);
         QStringList keys(bool onlyUserValues = true) const;
-        //QVariantMap valueMap(bool onlyUserValues = true) const;
-        void clearDirtyState();
         static bool isUserValue(const QString &key);
+        static ParseObjectHelper * staticHelper();
 
     private:
         QString _className;
         QVariantMap _valueMap, _savedValueMap;
         QScopedPointer<ParseObjectHelper> _pHelper;
+        static ParseObjectHelper *_pStaticHelper;
     };
 }
 

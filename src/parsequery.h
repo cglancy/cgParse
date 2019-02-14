@@ -17,14 +17,19 @@
 #define CGPARSE_PARSEQUERY_H
 #pragma once
 
-#include "cgparse.h"
 #include "parseclient.h"
+#include "parsequeryhelper.h"
 #include <QEnableSharedFromThis>
 #include <QString>
 #include <QSharedPointer>
 #include <QList>
 #include <QUrlQuery>
+#include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
+#include <QScopedPointer>
+#include <QFuture>
+#include <asyncfuture.h>
 #include <typeinfo>
 
 #define CLASSNAME_FROM_TYPE(T) QString(typeid(T).name()).mid(6)
@@ -32,23 +37,39 @@
 namespace cg
 {
     template <class T>
-    class CGPARSE_API ParseQuery : public QEnableSharedFromThis<ParseQuery<T>>
+    class ParseQuery : public QEnableSharedFromThis<ParseQuery<T>>
     {
     public:
         ParseQuery()
-            : _limit(-1), _skip(0), _count(0)
+            : _pHelper(new ParseQueryHelper()),
+            _limit(-1),
+            _skip(0),
+            _count(0)
         {
             _className = CLASSNAME_FROM_TYPE(T);
         }
 
         ParseQuery(const QString &relationClassName, const QString &relationObjectId, const QString &relationKey)
-            : _limit(-1), _skip(0), _count(0)
+            : _pHelper(new ParseQueryHelper()),
+            _limit(-1),
+            _skip(0), 
+            _count(0)
         {
             _className = CLASSNAME_FROM_TYPE(T);
+
+            QJsonObject pointerObject;
+            pointerObject.insert(ParseObject::ParseTypeKey, "Pointer");
+            pointerObject.insert(ParseObject::ClassNameKey, relationClassName);
+            pointerObject.insert(ParseObject::ObjectIdKey, relationObjectId);
+
+            QJsonObject relatedToObject;
+            relatedToObject.insert("object", pointerObject);
+            relatedToObject.insert("key", relationKey);
+
+            _whereObject.insert("$relatedTo", relatedToObject);
         }
 
-        template <class T>
-        static QSharedPointer<ParseQuery<T>> createQuery()
+        static QSharedPointer<ParseQuery<T>> create()
         {
             return QSharedPointer<ParseQuery<T>>::create();
         }
@@ -104,7 +125,7 @@ namespace cg
 
         QSharedPointer<ParseQuery<T>> whereEqualTo(const QString &key, const QVariant &value)
         {
-            _whereObject.insert(key, ParseUtil::toJsonValue(value));
+            _whereObject.insert(key, QJsonValue::fromVariant(value));
             return sharedFromThis();
         }
 
@@ -203,7 +224,7 @@ namespace cg
             return urlQuery;
         }
 
-        QSharedPointer<T> firstObject() const
+        QSharedPointer<T> first() const
         {
             if (_results.size() > 0)
                 return _results.first();
@@ -213,8 +234,77 @@ namespace cg
 
         const QList<QSharedPointer<T>> & results() const { return _results; }
 
+        QFuture<ParseCountReply> count()
+        {
+            int origCount = _count, origLimit = _limit;
+            _count = 1;
+            _limit = 0;
+            _pHelper->countObjects(_className, urlQuery());
+            auto future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::countObjectsFinished).future();
+            _count = origCount;
+            _limit = origLimit;
+            return future;
+        }
+
+        QFuture<ParseJsonArrayReply> get(const QString &objectId)
+        {
+            _pHelper->getObject(_className, objectId);
+            QFuture<ParseJsonArrayReply> future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::getObjectFinished).future();
+            await(future);
+            ParseJsonArrayReply arrayReply = future.result();
+            QJsonArray jsonArray = arrayReply.jsonArray();
+            _results.clear();
+            for (auto &jsonValue : jsonArray)
+            {
+                if (jsonValue.isObject())
+                {
+                    QJsonObject jsonObject = jsonValue.toObject();
+                    QString objectId = jsonObject.value(ParseObject::ObjectIdKey).toString();
+                    if (!objectId.isEmpty())
+                    {
+                        QSharedPointer<T> pObject = QSharedPointer<T>::create();
+                        if (pObject)
+                        {
+                            pObject->setValues(jsonObject);
+                            pObject->clearDirtyState();
+                            _results.append(pObject);
+                        }
+                    }
+                }
+            }            
+            return future;
+        }
+
+        QFuture<ParseJsonArrayReply> find()
+        {
+            _pHelper->findObjects(_className, urlQuery());
+            QFuture<ParseJsonArrayReply> future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::findObjectsFinished).future();
+            await(future);
+            ParseJsonArrayReply arrayReply = future.result();
+            QJsonArray jsonArray = arrayReply.jsonArray();
+            _results.clear();
+            for (auto &jsonValue : jsonArray)
+            {
+                if (jsonValue.isObject())
+                {
+                    QJsonObject jsonObject = jsonValue.toObject();
+                    QString objectId = jsonObject.value(ParseObject::ObjectIdKey).toString();
+                    if (!objectId.isEmpty())
+                    {
+                        QSharedPointer<T> pObject = QSharedPointer<T>::create();
+                        if (pObject)
+                        {
+                            pObject->setValues(jsonObject);
+                            pObject->clearDirtyState();
+                            _results.append(pObject);
+                        }
+                    }
+                }
+            }
+            return future;
+        }
+
     private:
-        void setResults(const QList<QSharedPointer<T>> &results) { _results = results; }
         void addConstraint(const QString &key, const QString &constraintKey, const QVariant &value)
         {
             if (_whereObject.contains(key))
@@ -222,14 +312,14 @@ namespace cg
                 if (_whereObject.value(key).isObject())
                 {
                     QJsonObject constraintObject = _whereObject.value(key).toObject();
-                    constraintObject.insert(constraintKey, ParseUtil::toJsonValue(value));
+                    constraintObject.insert(constraintKey, QJsonValue::fromVariant(value));
                     _whereObject.insert(key, constraintObject);
                 }
             }
             else
             {
                 QJsonObject constraintObject;
-                constraintObject.insert(constraintKey, ParseUtil::toJsonValue(value));
+                constraintObject.insert(constraintKey, QJsonValue::fromVariant(value));
                 _whereObject.insert(key, constraintObject);
             }
         }
@@ -240,6 +330,7 @@ namespace cg
         int _limit, _skip, _count;
         QStringList _keysList, _orderList, _includeList;
         QList<QSharedPointer<T>> _results;
+        QScopedPointer<ParseQueryHelper> _pHelper;
     };
 }
 

@@ -37,7 +37,6 @@
 #include <QSequentialIterable>
 #include <QScopedPointer>
 
-
 template <typename T>
 inline void await(QFuture<T> future, int timeout = -1) {
     if (future.isFinished()) {
@@ -61,30 +60,28 @@ using namespace cg;
 
 QTEST_MAIN(ParseTest)
 
-
 //
 // TestMovie
 //
 
 TestMovie::TestMovie()
-    : cg::ParseObject("TestMovie")
+    : ParseObject("TestMovie")
 {
 }
 
 TestMovie::TestMovie(const QString &title)
-    : cg::ParseObject("TestMovie")
+    : ParseObject("TestMovie")
 {
     setTitle(title);
 }
 
-TestMovie * ParseTest::createMovie(const QString &title)
+TestMoviePtr ParseTest::createMovie(const QString &title)
 {
-    TestMovie * movieObject = new TestMovie(title);
+    TestMoviePtr movieObject = QSharedPointer<TestMovie>::create(title);
     _movies.append(movieObject);
     return movieObject;
 }
 
-#if 0
 //
 // TestCharacter
 //
@@ -100,9 +97,9 @@ TestCharacter::TestCharacter(const QString &name)
     setName(name);
 }
 
-TestCharacter * ParseTest::createCharacter(const QString &name, const QString &imageFile)
+TestCharacterPtr ParseTest::createCharacter(const QString &name, const QString &imageFile)
 {
-    ParseFile *pFile = nullptr;
+    ParseFilePtr pFile;
 
     if (!imageFile.isEmpty())
     {
@@ -110,10 +107,9 @@ TestCharacter * ParseTest::createCharacter(const QString &name, const QString &i
         QFileInfo fi(imagePath);
         if (fi.exists())
         {
-            pFile = new ParseFile(imagePath);
-            pFile->save();
-            QSignalSpy saveSpy(pFile, &ParseFile::saveFinished);
-            saveSpy.wait(100000);
+            pFile = QSharedPointer<ParseFile>::create(imagePath);
+            auto saveFuture = pFile->save();
+            await(saveFuture);
         }
         else
         {
@@ -121,7 +117,7 @@ TestCharacter * ParseTest::createCharacter(const QString &name, const QString &i
         }
     }
 
-    TestCharacter * character = new TestCharacter(name);
+    TestCharacterPtr character = QSharedPointer<TestCharacter>::create(name);
     if (pFile)
         character->setPicture(pFile);
 
@@ -138,7 +134,7 @@ TestQuote::TestQuote()
 {
 }
 
-TestQuote::TestQuote(TestMovie *movie, TestCharacter *character, int rank, const QString &quote)
+TestQuote::TestQuote(TestMoviePtr movie, TestCharacterPtr character, int rank, const QString &quote)
     : cg::ParseObject("TestQuote")
 {
     setMovie(movie);
@@ -147,9 +143,9 @@ TestQuote::TestQuote(TestMovie *movie, TestCharacter *character, int rank, const
     setQuote(quote);
 }
 
-TestQuote * ParseTest::createQuote(TestMovie *movie, TestCharacter *character, int rank, const QString &quote)
+TestQuotePtr ParseTest::createQuote(TestMoviePtr movie, TestCharacterPtr character, int rank, const QString &quote)
 {
-    TestQuote * quoteObject = new TestQuote(movie, character, rank, quote);
+    TestQuotePtr quoteObject = QSharedPointer<TestQuote>::create(movie, character, rank, quote);
     _quotes.append(quoteObject);
     return quoteObject;
 }
@@ -160,10 +156,6 @@ TestQuote * ParseTest::createQuote(TestMovie *movie, TestCharacter *character, i
 
 void ParseTest::initTestCase()
 {
-    qRegisterMetaType<TestMovie*>();
-    qRegisterMetaType<TestCharacter*>();
-    qRegisterMetaType<TestQuote*>();
-
     // set name & version for user-agent
     QCoreApplication::setApplicationName("ParseTest");
     QCoreApplication::setApplicationVersion("0.1");
@@ -189,9 +181,8 @@ void ParseTest::createTestObjects()
     episode8 = createMovie("Star Wars: Episode VIII The Last Jedi");
     rogue1 = createMovie("Rogue One: A Star Wars Story");
 
-    cg::ParseClient::instance()->createAll(_movies);
-    QSignalSpy createSpy(cg::ParseClient::instance(), &ParseClient::createAllFinished);
-    QVERIFY(createSpy.wait(10000));
+    auto future = cg::ParseObject::createAll(_movies);
+    await(future);
 
     luke = createCharacter("Luke Skywalker", "luke.png");
     leia = createCharacter("Leia Organa", "leia.jpg");            
@@ -214,8 +205,8 @@ void ParseTest::createTestObjects()
     cassian = createCharacter("Cassian Andor");       
     k2so = createCharacter("K-2SO"); 
 
-    cg::ParseClient::instance()->createAll(_characters);
-    QVERIFY(createSpy.wait(10000));
+    auto future2 = cg::ParseObject::createAll(_characters);
+    await(future2);
 
     int rank = 1;
     QList<ParseObject*> quotes;
@@ -252,8 +243,8 @@ void ParseTest::createTestObjects()
     createQuote(rogue1, k2so, rank++, "Jyn, I'll be there for you. Cassian said I had to.");
     createQuote(rogue1, leia, rank++, "Hope.");
 
-    cg::ParseClient::instance()->createAll(_quotes);
-    QVERIFY(createSpy.wait(10000));
+    auto future3 = cg::ParseObject::createAll(_quotes);
+    await(future3);
 }
 
 void ParseTest::cleanupTestCase()
@@ -263,66 +254,60 @@ void ParseTest::cleanupTestCase()
 
 void ParseTest::deleteTestObjects()
 {
-    ParseQuery *pQuoteQuery = ParseQuery::createQuery<TestQuote>();
-    pQuoteQuery->find();
-    QSignalSpy findQuotesSpy(pQuoteQuery, &ParseQuery::findFinished);
-    QVERIFY(findQuotesSpy.wait(10000));
+    auto pQuoteQuery = ParseQuery<TestQuote>::create();
+    auto findFuture1 = pQuoteQuery->find();
+    await(findFuture1);
 
-    QList<ParseObject*> quotes = pQuoteQuery->resultObjects();
+    QList<TestQuotePtr> quotes = pQuoteQuery->results();
     if (quotes.size() > 0)
     {
-        ParseClient::instance()->deleteAll(quotes);
-        QSignalSpy deleteAllSpy(ParseClient::instance(), &ParseClient::deleteAllFinished);
-        QVERIFY(deleteAllSpy.wait(10000));
+        QList<ParseObjectPtr> objects;
+        for (auto & pQuote : quotes)
+            objects.append(pQuote);
+
+        auto deleteFuture1 = ParseObject::deleteAll(objects);
+        await(deleteFuture1);
     }
 
-    ParseQuery *pCharacterQuery = ParseQuery::createQuery<TestCharacter>();
-    pCharacterQuery->find();
-    QSignalSpy findCharactersSpy(pCharacterQuery, &ParseQuery::findFinished);
-    QVERIFY(findCharactersSpy.wait(10000));
+    auto pCharacterQuery = ParseQuery<TestCharacter>::create();
+    auto findFuture2 = pCharacterQuery->find();
+    await(findFuture2);
 
-    QList<TestCharacter*> characters = pCharacterQuery->results<TestCharacter>();
+    QList<TestCharacterPtr> characters = pCharacterQuery->results();
     for (auto & pCharacter : characters)
     {
-        ParseFile *pImageFile = pCharacter->picture();
+        ParseFilePtr pImageFile = pCharacter->picture();
         if (pImageFile)
         {
-            ParseClient::instance()->deleteFile(pImageFile->url(), PARSE_MASTER_KEY);
-            QSignalSpy deleteFileSpy(ParseClient::instance(), &ParseClient::deleteFileFinished);
-            QVERIFY(deleteFileSpy.wait(10000));
+            auto deleteFuture2 = ParseFile::deleteFile(pImageFile->url(), PARSE_MASTER_KEY);
+            await(deleteFuture2);
         }
     }
 
-    QList<ParseObject*> characterObjects = pCharacterQuery->resultObjects();
-    if (characterObjects.size() > 0)
+    if (characters.size() > 0)
     {
-        ParseClient::instance()->deleteAll(characterObjects);
-        QSignalSpy deleteAllSpy(ParseClient::instance(), &ParseClient::deleteAllFinished);
-        QVERIFY(deleteAllSpy.wait(10000));
+        QList<ParseObjectPtr> objects;
+        for (auto & pCharacter : characters)
+            objects.append(pCharacter);
+
+        auto deleteFuture3 = ParseObject::deleteAll(objects);
+        await(deleteFuture3);
     }
 
-    ParseQuery *pMovieQuery = ParseQuery::createQuery<TestMovie>();
-    pMovieQuery->find();
-    QSignalSpy findMoviesSpy(pMovieQuery, &ParseQuery::findFinished);
-    QVERIFY(findMoviesSpy.wait(10000));
+    auto pMovieQuery = QSharedPointer<ParseQuery<TestMovie>>::create();
+    auto findFuture3 = pMovieQuery->find();
+    await(findFuture3);
 
-    QList<ParseObject*> movies = pMovieQuery->resultObjects();
+    QList<TestMoviePtr> movies = pMovieQuery->results();
     if (movies.size() > 0)
     {
-        ParseClient::instance()->deleteAll(movies);
-        QSignalSpy deleteAllSpy(ParseClient::instance(), &ParseClient::deleteAllFinished);
-        QVERIFY(deleteAllSpy.wait(10000));
+        QList<ParseObjectPtr> objects;
+        for (auto & pMovie : movies)
+            objects.append(pMovie);
+
+        auto deleteFuture4 = ParseObject::deleteAll(objects);
+        await(deleteFuture4);
     }
-}
-#endif
-
-void ParseTest::initTestCase()
-{
-    // set name & version for user-agent
-    QCoreApplication::setApplicationName("ParseTest");
-    QCoreApplication::setApplicationVersion("0.1");
-
-    ParseClient::instance()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
 }
 
 QFuture<void> timeoutFunction(QTimer *timer)
@@ -350,9 +335,8 @@ void ParseTest::testUserLogin()
     testUser->setEmail(PARSE_TEST_EMAIL);
     QVERIFY(testUser->sessionToken().isEmpty());
 
-    testUser->signUp();
-    QSignalSpy signUpSpy(testUser, &ParseUser::signUpFinished);
-    QVERIFY(signUpSpy.wait(10000));
+    auto signupFuture = testUser->signUp();
+    await(signupFuture);
 #endif
 
     QFuture<ParseUserReply> loginFuture = ParseUser::login("TestLogin", "Parse123");
@@ -395,7 +379,7 @@ void ParseTest::testUserSignUp()
     QFuture<int> deleteFuture = testUser->deleteUser();
     await(deleteFuture);
 
-    QScopedPointer<ParseUserHelper> pUserHelper(new ParseUserHelper(nullptr));
+    QScopedPointer<ParseUserHelper> pUserHelper(new ParseUserHelper());
     pUserHelper->deleteSession(sessionToken);
     QSignalSpy sessionSpy(pUserHelper.data(), &ParseUserHelper::deleteSessionFinished);
     QVERIFY(sessionSpy.wait(10000));
@@ -431,7 +415,6 @@ void ParseTest::testObject()
     await(deleteFuture);
 }
 
-
 void ParseTest::testObjectRevert()
 {
     ParseObjectPtr gameScore = ParseObject::create("TestGameScore");
@@ -446,7 +429,6 @@ void ParseTest::testObjectRevert()
     QVERIFY(!gameScore->isDirty("playerName"));
     QVERIFY(!gameScore->isDirty());
 }
-
 
 void ParseTest::testObjectArray()
 {
@@ -476,134 +458,76 @@ void ParseTest::testObjectArray()
     await(deleteFuture);
 }
 
-#if 0
 void ParseTest::testObjectRelation()
 {
-    ParseRelation *charactersInEpisode4 = episode4->relation<TestCharacter>("characters");
+    auto charactersInEpisode4 = episode4->relation<TestCharacter>("characters");
     charactersInEpisode4->add(vader);
     charactersInEpisode4->add(c3po);
     charactersInEpisode4->add(leia);
     charactersInEpisode4->add(luke);
     charactersInEpisode4->add(obiwan);
     charactersInEpisode4->add(han);
+    episode4->setRelation("characters", charactersInEpisode4);
 
-    episode4->save();
-    QSignalSpy saveSpy(episode4, &ParseObject::saveFinished);
-    QVERIFY(saveSpy.wait(10000));
+    auto saveFuture = episode4->save();
+    await(saveFuture);
 
-    ParseQuery *charactersQuery = charactersInEpisode4->query();
-    charactersQuery->find();
-    QSignalSpy findSpy(charactersQuery, &ParseQuery::findFinished);
-    QVERIFY(findSpy.wait(10000));
+    auto charactersQuery = charactersInEpisode4->query();
+    auto findFuture = charactersQuery->find();
+    await(findFuture);
 
-    QList<ParseObject*> characters = charactersQuery->resultObjects();
+    QList<TestCharacterPtr> characters = charactersQuery->results();
     QCOMPARE(characters.size(), 6);
-}
-
-void ParseTest::testUserLogin()
-{
-    ParseClient *client = ParseClient::instance();
-
-#if 0
-    ParseUser *testUser = new ParseUser();
-    testUser->setUsername("TestLogin");
-    testUser->setPassword("Parse123");
-    testUser->setEmail(PARSE_TEST_EMAIL);
-    QVERIFY(testUser->sessionToken().isEmpty());
-
-    testUser->signUp();
-    QSignalSpy signUpSpy(testUser, &ParseUser::signUpFinished);
-    QVERIFY(signUpSpy.wait(10000));
-#endif
-
-    client->login("TestLogin", "Parse123");
-    QSignalSpy loginSpy(client, &ParseClient::loginFinished);
-    QVERIFY(loginSpy.wait(10000));
-
-    ParseUser *currentUser = client->currentUser();
-    QVERIFY(currentUser != nullptr);
-    QVERIFY(currentUser->isAuthenticated());
-
-    client->logout();
-    QSignalSpy logoutSpy(client, &ParseClient::logoutFinished);
-    QVERIFY(logoutSpy.wait(10000));
-
-    currentUser = client->currentUser();
-    QVERIFY(currentUser == nullptr);
 }
 
 void ParseTest::testGetQuery()
 {
-    QScopedPointer<TestQuote> pQuote(new TestQuote(episode1, luke, 1, "I have a very bad feeling about this."));
-    pQuote->save();
-    QSignalSpy saveSpy(pQuote.data(), &ParseObject::saveFinished);
-    QVERIFY(saveSpy.wait(10000));
+    auto pQuote = QSharedPointer<TestQuote>::create(episode1, luke, 1, "I have a very bad feeling about this.");
+    auto saveFuture1 = pQuote->save();
+    await(saveFuture1);
+
     QString id = pQuote->objectId();
 
-    QScopedPointer<ParseQuery> pQuery(ParseQuery::createQuery<TestQuote>());
-    pQuery->get(id);
-    QSignalSpy getSpy(pQuery.data(), &ParseQuery::getFinished);
-    QVERIFY(getSpy.wait(10000));
+    auto pQuery = QSharedPointer<ParseQuery<TestQuote>>::create();
+    auto getFuture = pQuery->get(id);
+    await(getFuture);
 
-    QList<QVariant> arguments = getSpy.takeFirst();
-    ParseObject *gotObject = qvariant_cast<ParseObject*>(arguments.at(0));
-    QVERIFY(gotObject != nullptr);
-    QVERIFY(gotObject->objectId() == id);
+    TestQuotePtr gotQuote = pQuery->first();
+    QVERIFY(gotQuote != nullptr);
+    QVERIFY(gotQuote->objectId() == id);
 
-    pQuote->deleteObject();
-    QSignalSpy deleteSpy(pQuote.data(), &ParseObject::deleteFinished);
-    QVERIFY(deleteSpy.wait(10000));
-}
-
-int ParseTest::getListCount(QSignalSpy &spy, int argIndex)
-{
-    int count = 0;
-
-    QList<QVariant> arguments = spy.takeFirst();
-    QVariant variant = arguments.at(argIndex);
-    if (variant.canConvert<QVariantList>())
-    {
-        QSequentialIterable iterable = variant.value<QSequentialIterable>();
-        count = iterable.size();
-    }
-
-    return count;
+    auto deleteFuture = pQuote->deleteObject();
+    await(deleteFuture);
 }
 
 void ParseTest::testFindAllQuery()
 {
-    ParseQuery *pQuery = ParseQuery::createQuery<TestCharacter>();
-    pQuery->find();
-    QSignalSpy findSpy(pQuery, &ParseQuery::findFinished);
-    QVERIFY(findSpy.wait(10000));
+    auto pQuery = QSharedPointer<ParseQuery<TestCharacter>>::create();
+    auto findFuture = pQuery->find();
+    await(findFuture);
 
-    QCOMPARE(getListCount(findSpy, 0), 20);
-
-    delete pQuery;
+    ParseJsonArrayReply jsonArrayReply = findFuture.result();
+    QCOMPARE(jsonArrayReply.jsonArray().size(), 20);
 }
 
 void ParseTest::testCountQuery()
 {
-    ParseQuery *pQuery = ParseQuery::createQuery<TestQuote>();
-    pQuery->count();
-    QSignalSpy countSpy(pQuery, &ParseQuery::countFinished);
-    QVERIFY(countSpy.wait(10000));
+    auto pQuery = QSharedPointer<ParseQuery<TestQuote>>::create();
+    auto countFuture = pQuery->count();
+    await(countFuture);
 
-    QList<QVariant> arguments = countSpy.takeFirst();
-    QCOMPARE(arguments.at(0).toInt(), 32);
-
-    delete pQuery;
+    ParseCountReply countReply = countFuture.result();
+    QCOMPARE(countReply.count(), 32);
 }
 
 void ParseTest::testOrderQuery()
 {
-    QScopedPointer<ParseQuery> pAscendingQuery(ParseQuery::createQuery<TestQuote>());
+    auto pAscendingQuery = ParseQuery<TestQuote>::create();
     pAscendingQuery->orderByAscending("rank");
-    pAscendingQuery->find();
-    QSignalSpy ascendingSpy(pAscendingQuery.data(), &ParseQuery::findFinished);
-    QVERIFY(ascendingSpy.wait(10000));
+    auto findFuture = pAscendingQuery->find();
+    await(findFuture);
 
-    QList<TestQuote*> quotes = pAscendingQuery->results<TestQuote>();
+    QList<TestQuotePtr> quotes = pAscendingQuery->results();
     QCOMPARE(quotes.size(), 32);
 
     int prevRank = 0;
@@ -613,14 +537,13 @@ void ParseTest::testOrderQuery()
         prevRank = pQuote->rank();
     }
 
-    QScopedPointer<ParseQuery> pDescendingQuery(ParseQuery::createQuery<TestQuote>());
+    auto pDescendingQuery = ParseQuery<TestQuote>::create();
     pDescendingQuery->orderByDescending("rank");
-    pDescendingQuery->find();
-    QSignalSpy descendingSpy(pDescendingQuery.data(), &ParseQuery::findFinished);
-    QVERIFY(descendingSpy.wait(10000));
+    auto findFuture2 = pDescendingQuery->find();
+    await(findFuture2);
 
     prevRank++;
-    quotes = pDescendingQuery->results<TestQuote>();
+    quotes = pDescendingQuery->results();
     QCOMPARE(quotes.size(), 32);
 
     for (auto & pQuote : quotes)
@@ -633,26 +556,24 @@ void ParseTest::testOrderQuery()
 void ParseTest::testComparisonQuery()
 {
     {
-        QScopedPointer<ParseQuery> pEqualToQuery(ParseQuery::createQuery<TestCharacter>());
+        auto pEqualToQuery = ParseQuery<TestCharacter>::create();
         pEqualToQuery->whereEqualTo("name", "Yoda");
-        pEqualToQuery->find();
-        QSignalSpy spy(pEqualToQuery.data(), &ParseQuery::findFinished);
-        QVERIFY(spy.wait(10000));
+        auto findFuture = pEqualToQuery->find();
+        await(findFuture);
 
-        TestCharacter *pFoundCharacter = pEqualToQuery->first<TestCharacter>();
+        TestCharacterPtr pFoundCharacter = pEqualToQuery->first();
         QVERIFY(yoda->hasSameId(pFoundCharacter));
     }
 }
 
 void ParseTest::testFullTextQuery()
 {
-    QScopedPointer<ParseQuery> pFullTextQuery(ParseQuery::createQuery<TestQuote>());
+    auto pFullTextQuery = ParseQuery<TestQuote>::create();
     pFullTextQuery->whereFullText("quote", "force");
-    pFullTextQuery->find();
-    QSignalSpy fullTextSpy(pFullTextQuery.data(), &ParseQuery::findFinished);
-    QVERIFY(fullTextSpy.wait(10000));
+    auto findFuture = pFullTextQuery->find();
+    await(findFuture);
 
-    QList<TestQuote*> quotes = pFullTextQuery->results<TestQuote>();
+    QList<TestQuotePtr> quotes = pFullTextQuery->results();
     QCOMPARE(quotes.size(), 4);
 
     QStringList objectIds;
@@ -663,11 +584,9 @@ void ParseTest::testFullTextQuery()
 
     for (auto & pQuote : quotes)
     {
-        TestCharacter *pCharacter = pQuote->character();
+        TestCharacterPtr pCharacter = pQuote->character();
         QVERIFY(pCharacter);
         if (pCharacter)
             QVERIFY(objectIds.contains(pCharacter->objectId()));
     }
 }
-
-#endif

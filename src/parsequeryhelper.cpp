@@ -14,14 +14,14 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parsequeryhelper.h"
-#include "parsequery.h"
-#include "parseuser.h"
 #include "parserequest.h"
-
 
 #include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
+#include <QMetaType>
+#include <QDebug>
 
 namespace cg
 {
@@ -33,4 +33,141 @@ namespace cg
     {
     }
 
+    void ParseQueryHelper::getObject(const QString &className, const QString &objectId)
+    {
+        if (className.isEmpty() || objectId.isEmpty())
+        {
+            emit getObjectFinished(ParseJsonArrayReply());
+            return;
+        }
+
+        QString queryStr = QString("where={\"objectId\":\"%1\"}").arg(objectId);
+        QUrlQuery urlQuery;
+        urlQuery.setQuery(queryStr);
+
+        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/classes/" + className);
+        request.setUrlQuery(urlQuery);
+
+        QNetworkReply *pReply = request.sendRequest();
+        connect(pReply, &QNetworkReply::finished, this, &ParseQueryHelper::privateGetObjectFinished);
+    }
+
+    void ParseQueryHelper::privateGetObjectFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = ParseRequest::statusCode(pReply);
+        ParseJsonArrayReply jsonArrayReply;
+
+        if (ParseRequest::isError(status))
+        {
+            status = ParseRequest::errorCode(pReply);
+        }
+        else
+        {
+            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            if (doc.isObject())
+            {
+                QJsonObject obj = doc.object();
+                QJsonArray resultsArray = obj.value("results").toArray();
+                jsonArrayReply.setJsonArray(resultsArray);
+            }
+        }
+
+        jsonArrayReply.setStatusCode(status);
+        emit getObjectFinished(jsonArrayReply);
+
+        pReply->deleteLater();
+    }
+
+    void ParseQueryHelper::findObjects(const QString & className, const QUrlQuery & urlQuery)
+    {
+        if (className.isEmpty())
+        {
+            emit findObjectsFinished(ParseJsonArrayReply());
+            return;
+        }
+
+        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/classes/" + className);
+        request.setUrlQuery(urlQuery);
+
+        QNetworkReply *pReply = request.sendRequest();
+        connect(pReply, &QNetworkReply::finished, this, &ParseQueryHelper::privateFindObjectsFinished);
+    }
+
+    void ParseQueryHelper::privateFindObjectsFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = ParseRequest::statusCode(pReply);
+        ParseJsonArrayReply jsonArrayReply;
+
+        if (ParseRequest::isError(status))
+        {
+            status = ParseRequest::errorCode(pReply);
+        }
+        else
+        {
+            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            if (doc.isObject())
+            {
+                QJsonObject obj = doc.object();
+                QJsonArray resultsArray = obj.value("results").toArray();
+                jsonArrayReply.setJsonArray(resultsArray);
+            }
+        }
+
+        jsonArrayReply.setStatusCode(status);
+        emit findObjectsFinished(jsonArrayReply);
+        pReply->deleteLater();
+    }
+
+    void ParseQueryHelper::countObjects(const QString & className, const QUrlQuery & urlQuery)
+    {
+        if (className.isEmpty())
+        {
+            emit countObjectsFinished(ParseCountReply());
+            return;
+        }
+
+        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/classes/" + className);
+        request.setUrlQuery(urlQuery);
+
+        QNetworkReply *pReply = request.sendRequest();
+        connect(pReply, &QNetworkReply::finished, this, &ParseQueryHelper::privateCountObjectsFinished);
+    }
+
+    void ParseQueryHelper::privateCountObjectsFinished()
+    {
+        QNetworkReply *pReply = static_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        int status = ParseRequest::statusCode(pReply);
+        ParseCountReply countReply;
+
+        if (ParseRequest::isError(status))
+        {
+            status = ParseRequest::errorCode(pReply);
+        }
+        else
+        {
+            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            if (doc.isObject())
+            {
+                QJsonObject obj = doc.object();
+                int count = obj.value("count").toInt();
+                countReply.setCount(count);
+            }
+        }
+
+        countReply.setStatusCode(status);
+        emit countObjectsFinished(countReply);
+
+        pReply->deleteLater();
+    }
 }

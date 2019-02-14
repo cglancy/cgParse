@@ -28,11 +28,6 @@ namespace cg
     {
     }
 
-    ParseUserHelper::ParseUserHelper(ParseUserPtr pUser)
-        : _pUser(pUser)
-    {
-    }
-
     ParseUserHelper::~ParseUserHelper()
     {
     }
@@ -198,6 +193,7 @@ namespace cg
             return;
         }
 
+        _pUser = pUser;
         QJsonObject object = pUser->toJsonObject();
         QJsonDocument doc(object);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
@@ -281,6 +277,7 @@ namespace cg
             return;
         }
 
+        _pUser = pUser;
         ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/users/" + pUser->objectId());
         request.setHeader("X-Parse-Session-Token", pUser->sessionToken().toUtf8());
 
@@ -294,8 +291,8 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseUserPtr pUser = _pUser.lock();
         int status = ParseRequest::statusCode(pReply);
+        ParseUserPtr pUser = _pUser.lock();
 
         if (ParseRequest::isError(status))
         {

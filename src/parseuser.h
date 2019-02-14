@@ -23,10 +23,12 @@
 
 namespace cg
 {
+    class ParseUserHelper;
+
     class CGPARSE_API ParseUser : public ParseObject
     {
     public:
-        Q_INVOKABLE ParseUser();
+        ParseUser();
         ~ParseUser();
 
         static QFuture<ParseUserReply> login(const QString &username, const QString &password);
@@ -50,6 +52,7 @@ namespace cg
         QFuture<ParseUserReply> signUp();
         QFuture<int> deleteUser();
 
+    private:
         static ParseUserHelper * staticHelper();
 
     private:

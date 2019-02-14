@@ -23,6 +23,8 @@
 
 #include <QObject>
 
+class QUrlQuery;
+
 namespace cg
 {
     class CGPARSE_API ParseQueryHelper : public QObject
@@ -33,10 +35,19 @@ namespace cg
         ~ParseQueryHelper();
 
     public slots:
+        void getObject(const QString &className, const QString &objectId);
+        void findObjects(const QString &className, const QUrlQuery &urlQuery);
+        void countObjects(const QString &className, const QUrlQuery &urlQuery);
 
-    private:
+    private slots:
+        void privateGetObjectFinished();
+        void privateFindObjectsFinished();
+        void privateCountObjectsFinished();
 
     signals:
+        void getObjectFinished(ParseJsonArrayReply reply);
+        void findObjectsFinished(ParseJsonArrayReply reply);
+        void countObjectsFinished(ParseCountReply reply);
     };
 }
 

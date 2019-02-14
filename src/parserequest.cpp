@@ -40,6 +40,7 @@ namespace cg
         : _method(method),
         _apiRoute(apiRoute)
     {
+        init();
     }
 
     ParseRequest::ParseRequest(HttpMethod method, const QString & apiRoute, const QByteArray & content, const QString &contentType)
@@ -48,9 +49,7 @@ namespace cg
         _content(content),
         _contentType(contentType)
     {
-        _headers.insert("User-Agent", userAgent());
-        _headers.insert("X-Parse-Application-Id", ParseClient::instance()->applicationId());
-        _headers.insert("X-Parse-REST-API-Key", ParseClient::instance()->clientKey());
+        init();
     }
 
     ParseRequest::ParseRequest(const ParseRequest & request)
@@ -61,6 +60,13 @@ namespace cg
         _urlQuery = request._urlQuery;
         _content = request._content;
         _headers = request._headers;
+    }
+
+    void ParseRequest::init()
+    {
+        _headers.insert("User-Agent", userAgent());
+        _headers.insert("X-Parse-Application-Id", ParseClient::instance()->applicationId());
+        _headers.insert("X-Parse-REST-API-Key", ParseClient::instance()->clientKey());
     }
 
     QByteArray ParseRequest::userAgent()

@@ -22,6 +22,7 @@
 #include "parsereply.h"
 
 #include <QObject>
+#include <QWeakPointer>
 
 namespace cg
 {
@@ -29,7 +30,7 @@ namespace cg
     {
         Q_OBJECT
     public:
-        ParseFileHelper(ParseFilePtr pFile);
+        ParseFileHelper();
         ~ParseFileHelper();
 
     public slots:
