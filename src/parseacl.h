@@ -13,34 +13,47 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSECLIENT_H
-#define CGPARSE_PARSECLIENT_H
+#ifndef CGPARSE_PARSEACL_H
+#define CGPARSE_PARSEACL_H
 #pragma once
 
 #include "cgparse.h"
-#include <QByteArray>
+#include "parsetypes.h"
+#include <QVariant>
 
 namespace cg
 {
-    class CGPARSE_API ParseClient
+    class CGPARSE_API ParseACL
     {
     public:
-        static ParseClient * instance();
+        ParseACL();
+        ParseACL(ParseUserPtr pUser);
+        ParseACL(const ParseACL &acl);
+        ~ParseACL();
 
-        void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost);
-        QByteArray applicationId() const;
-        QByteArray clientKey() const;
-        QByteArray apiHost() const;
-        bool isLoggingEnabled() const;
-        void setLoggingEnabled(bool enabled);
+        static ParseACL defaultACL();
+        static void setDefaultACL(const ParseACL &acl, bool withAccessForCurrentUser);
+
+        bool publicReadAccess() const;
+        bool publicWriteAccess() const;
+        bool readAccess(ParseUserPtr pUser) const;
+        bool readAccess(const QString &userId) const;
+        bool writeAccess(ParseUserPtr pUser) const;
+        bool writeAccess(const QString &userId) const;
+
+        void setPublicReadAccess(bool allowed);
+        void setPublicWriteAccess(bool allowed);
+        void setReadAccess(ParseUserPtr pUser, bool allowed);
+        void setReadAccess(const QString &userId, bool allowed);
+        void setWriteAccess(ParseUserPtr pUser, bool allowed);
+        void setWriteAccess(const QString &userId, bool allowed);
+
+        QVariantMap toMap() const;
 
     private:
-        ParseClient();
-        ~ParseClient();
-        static ParseClient *_pInstance;
-        QByteArray _appId, _clientKey, _apiHost;
-        bool _loggingEnabled;
+        QVariantMap _map;
+        static ParseACL _defaultACL;
     };
 }
 
-#endif // CGPARSE_PARSECLIENT_H
+#endif // CGPARSE_PARSEACL_H

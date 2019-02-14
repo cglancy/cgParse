@@ -18,6 +18,7 @@
 #pragma once
 
 #include "cgparse.h"
+#include "parsehelperbase.h"
 #include "parsetypes.h"
 #include "parsereply.h"
 
@@ -26,7 +27,7 @@
 
 namespace cg
 {
-    class CGPARSE_API ParseFileHelper : public QObject
+    class CGPARSE_API ParseFileHelper : public QObject, public ParseHelperBase
     {
         Q_OBJECT
     public:

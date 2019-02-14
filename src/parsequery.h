@@ -58,9 +58,9 @@ namespace cg
             _className = CLASSNAME_FROM_TYPE(T);
 
             QJsonObject pointerObject;
-            pointerObject.insert(ParseObject::ParseTypeKey, "Pointer");
-            pointerObject.insert(ParseObject::ClassNameKey, relationClassName);
-            pointerObject.insert(ParseObject::ObjectIdKey, relationObjectId);
+            pointerObject.insert(Parse::TypeKey, Parse::PointerValue);
+            pointerObject.insert(Parse::ClassNameKey, relationClassName);
+            pointerObject.insert(Parse::ObjectIdKey, relationObjectId);
 
             QJsonObject relatedToObject;
             relatedToObject.insert("object", pointerObject);
@@ -262,7 +262,7 @@ namespace cg
                 if (jsonValue.isObject())
                 {
                     QJsonObject jsonObject = jsonValue.toObject();
-                    QString objectId = jsonObject.value(ParseObject::ObjectIdKey).toString();
+                    QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
                     if (!objectId.isEmpty())
                     {
                         QSharedPointer<T> pObject = QSharedPointer<T>::create();
@@ -295,7 +295,7 @@ namespace cg
                 if (jsonValue.isObject())
                 {
                     QJsonObject jsonObject = jsonValue.toObject();
-                    QString objectId = jsonObject.value(ParseObject::ObjectIdKey).toString();
+                    QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
                     if (!objectId.isEmpty())
                     {
                         QSharedPointer<T> pObject = QSharedPointer<T>::create();

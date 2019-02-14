@@ -37,13 +37,6 @@ namespace cg
     class CGPARSE_API ParseObject : public QEnableSharedFromThis<ParseObject>
     {
     public:
-        static const QString ClassNameKey;
-        static const QString ObjectIdKey;
-        static const QString CreatedAtKey;
-        static const QString UpdatedAtKey;
-        static const QString ParseTypeKey;
-
-    public:
         ParseObject();
         ParseObject(const QString &className);
         virtual ~ParseObject();
@@ -60,7 +53,7 @@ namespace cg
         static QSharedPointer<T> createWithoutData(const QString &objectId)
         {
             QSharedPointer<T> pObject = QSharedPointer<T>::create();
-            pObject->setValue(ParseObject::ObjectIdKey, objectId);
+            pObject->setValue(Parse::ObjectIdKey, objectId);
             return pObject;
         }
 
@@ -103,7 +96,7 @@ namespace cg
             {
                 QVariantMap map = _valueMap.value(key).toMap();
                 pObject = ParseObject::create<T>();
-                map.remove(ParseTypeKey);
+                map.remove(Parse::TypeKey);
                 pObject->setValues(map);
             }
 

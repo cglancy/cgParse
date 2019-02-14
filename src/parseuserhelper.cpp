@@ -54,14 +54,11 @@ namespace cg
 
         ParseUserReply userReply;
 
-        int status = ParseRequest::statusCode(pReply);
-        if (ParseRequest::isError(status))
+        int status;
+        QByteArray data;
+
+        if (!isError(pReply, status, data) && status == 200)
         {
-           status = ParseRequest::errorCode(pReply);
-        }
-        else if (status == 200)
-        {
-            QByteArray data = pReply->readAll();
             QJsonDocument doc = QJsonDocument::fromJson(data);
             if (doc.isObject())
             {
@@ -93,12 +90,10 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
-        if (ParseRequest::isError(status))
-        {
-            status = ParseRequest::errorCode(pReply);
-        }
-        else
+        int status;
+        QByteArray data;
+
+        if (!isError(pReply, status, data))
         {
             ParseUser::_pCurrentUser = nullptr;
         }
@@ -127,14 +122,11 @@ namespace cg
             return;
 
         ParseUserReply userReply;
-        int status = ParseRequest::statusCode(pReply);
-        if (ParseRequest::isError(status))
+        int status;
+        QByteArray data;
+
+        if (!isError(pReply, status, data))
         {
-            status = ParseRequest::errorCode(pReply);
-        }
-        else
-        {
-            QByteArray data = pReply->readAll();
             QJsonDocument doc = QJsonDocument::fromJson(data);
             if (doc.isObject())
             {
@@ -177,10 +169,9 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
-        if (ParseRequest::isError(status))
-            status = ParseRequest::errorCode(pReply);
-
+        int status;
+        QByteArray data;
+        isError(pReply, status, data);
         emit requestPasswordResetFinished(status);
         pReply->deleteLater();
     }
@@ -210,17 +201,14 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
+        int status;
+        QByteArray data;
         ParseUserPtr pUser = _pUser.lock();
-
         ParseUserReply userReply;
-        if (ParseRequest::isError(status))
+
+        if (!isError(pReply, status, data) && pUser)
         {
-            status = ParseRequest::errorCode(pReply);
-        }
-        else if (pUser)
-        {
-            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            QJsonDocument doc = QJsonDocument::fromJson(data);
             if (doc.isObject())
             {
                 if (status == 201) // Created
@@ -260,11 +248,9 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
-
-        if (ParseRequest::isError(status))
-            status = ParseRequest::errorCode(pReply);
-
+        int status;
+        QByteArray data;
+        isError(pReply, status, data);
         emit deleteSessionFinished(status);
         pReply->deleteLater();
     }
@@ -291,14 +277,11 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
+        int status;
+        QByteArray data;
         ParseUserPtr pUser = _pUser.lock();
 
-        if (ParseRequest::isError(status))
-        {
-            status = ParseRequest::errorCode(pReply);
-        }
-        else if (pUser)
+        if (!isError(pReply, status, data) && pUser)
         {
             if (pUser == ParseUser::_pCurrentUser)
                 ParseUser::_pCurrentUser = nullptr;

@@ -25,12 +25,6 @@
 #include <QJsonArray>
 
 namespace cg {
-    const QString ParseObject::ClassNameKey = QStringLiteral("className");
-    const QString ParseObject::ObjectIdKey = QStringLiteral("objectId");
-    const QString ParseObject::CreatedAtKey = QStringLiteral("createdAt");
-    const QString ParseObject::UpdatedAtKey = QStringLiteral("updatedAt");
-    const QString ParseObject::ParseTypeKey = QStringLiteral("__type");
-
     ParseObjectHelper * ParseObject::_pStaticHelper = nullptr;
 
     ParseObjectHelper * ParseObject::staticHelper()
@@ -66,7 +60,7 @@ namespace cg {
     {
         ParseObjectPtr pObject = create(className);
         if (pObject)
-            pObject->setValue(ObjectIdKey, objectId);
+            pObject->setValue(Parse::ObjectIdKey, objectId);
         return pObject;
     }
 
@@ -118,7 +112,7 @@ namespace cg {
 
     bool ParseObject::hasSameId(ParseObjectPtr pObject) const
     {
-        return pObject && pObject->value(ObjectIdKey) == value(ObjectIdKey);
+        return pObject && pObject->value(Parse::ObjectIdKey) == value(Parse::ObjectIdKey);
     }
 
     QString ParseObject::className() const
@@ -128,17 +122,17 @@ namespace cg {
 
     QString ParseObject::objectId() const
     {
-        return value(ObjectIdKey).toString();
+        return value(Parse::ObjectIdKey).toString();
     }
 
     QDateTime ParseObject::createdAt() const
     {
-        return value(CreatedAtKey).toDateTime();
+        return value(Parse::CreatedAtKey).toDateTime();
     }
 
     QDateTime ParseObject::updatedAt() const
     {
-        return value(UpdatedAtKey).toDateTime();
+        return value(Parse::UpdatedAtKey).toDateTime();
     }
 
     QVariant ParseObject::value(const QString &key) const
@@ -258,9 +252,9 @@ namespace cg {
 
     bool ParseObject::isUserValue(const QString &key)
     {
-        return key != ObjectIdKey &&
-            key != CreatedAtKey &&
-            key != UpdatedAtKey;
+        return key != Parse::ObjectIdKey &&
+            key != Parse::CreatedAtKey &&
+            key != Parse::UpdatedAtKey;
     }
 
     ParseObjectPointer ParseObject::toPointer() const
@@ -274,9 +268,9 @@ namespace cg {
 
         if (onlyUserValues)
         {
-            jsonObject.remove(ObjectIdKey);
-            jsonObject.remove(CreatedAtKey);
-            jsonObject.remove(UpdatedAtKey);
+            jsonObject.remove(Parse::ObjectIdKey);
+            jsonObject.remove(Parse::CreatedAtKey);
+            jsonObject.remove(Parse::UpdatedAtKey);
         }
 
         return jsonObject;
@@ -287,9 +281,9 @@ namespace cg {
         QVariantMap map = _valueMap;
         if (onlyUserValues)
         {
-            map.remove(ObjectIdKey);
-            map.remove(CreatedAtKey);
-            map.remove(UpdatedAtKey);
+            map.remove(Parse::ObjectIdKey);
+            map.remove(Parse::CreatedAtKey);
+            map.remove(Parse::UpdatedAtKey);
         }
 
         return map;

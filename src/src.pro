@@ -9,10 +9,12 @@ VERSION	= 0.1.1
 
 HEADERS += cgparse.h \
 	asyncfuture.h \
+	parseacl.h \
 	parseclient.h \
 	parseerror.h \
 	parsefile.h \
 	parsefilehelper.h \
+	parsehelperbase.h \
     parseobject.h \
 	parseobjecthelper.h \
 	parseobjectpointer.h \
@@ -25,16 +27,18 @@ HEADERS += cgparse.h \
 	parseuser.h \
 	parseuserhelper.h
 	
-SOURCES += parseclient.cpp \
+SOURCES += cgparse.cpp \
+	parseacl.cpp \
+	parseclient.cpp \
 	parsefile.cpp \
 	parsefilehelper.cpp \
+	parsehelperbase.cpp \
 	parseobject.cpp \
 	parseobjecthelper.cpp \
 	parseobjectpointer.cpp \
 	parsequeryhelper.cpp \
 	parsereply.cpp \
 	parserequest.cpp \
-	parserequestobject.cpp \
 	parseuser.cpp \
 	parseuserhelper.cpp
 

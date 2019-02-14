@@ -21,6 +21,7 @@
 #include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDebug>
 
 namespace cg
 {
@@ -135,7 +136,7 @@ namespace cg
         _headers.remove(header);
     }
 
-    QNetworkRequest ParseRequest::networkRequest() const
+    QString ParseRequest::fullUrl() const
     {
         QString fullUrlStr = "https://" + ParseClient::instance()->apiHost();
         if (_apiRoute.startsWith("/"))
@@ -143,7 +144,12 @@ namespace cg
         else
             fullUrlStr += "/" + _apiRoute;
 
-        QUrl url(fullUrlStr);
+        return fullUrlStr;
+    }
+
+    QNetworkRequest ParseRequest::networkRequest() const
+    {
+        QUrl url(fullUrl());
         if (!_urlQuery.isEmpty())
             url.setQuery(_urlQuery);
         QNetworkRequest request(url);
@@ -160,6 +166,9 @@ namespace cg
     QNetworkReply* ParseRequest::sendRequest() const
     {
         QNetworkReply *pReply = nullptr;
+
+        if (ParseClient::instance()->isLoggingEnabled())
+            logRequest();
 
         switch (httpMethod())
         {
@@ -181,51 +190,39 @@ namespace cg
         return pReply;
     }
 
-    bool ParseRequest::isError(int status)
+    void ParseRequest::logRequest() const
     {
-        return status >= 400 && status < 500;
-    }
-
-    int ParseRequest::statusCode(QNetworkReply *pReply)
-    {
-        int status = 0;
-
-        if (pReply)
+        QString method;
+        switch (_method)
         {
-            status = pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-#if 0
-            int replyError = pReply->error();
-            qDebug() << "Status = " << status << ", Network Error = " << replyError;
-#endif
+        case GetHttpMethod:
+            method = "GET";
+            break;
+        case PutHttpMethod:
+            method = "PUT";
+            break;
+        case PostHttpMethod:
+            method = "POST";
+            break;
+        case DeleteHttpMethod:
+            method = "DELETE";
+            break;
         }
 
-        return status;
-    }
+        qDebug() << QString("Network Request: %1 %2").arg(method).arg(fullUrl());
+        
+        for (auto & key : _headers.keys())
+            qDebug() << "Header " << key << ": " << _headers.value(key);
 
-    int ParseRequest::errorCode(QNetworkReply *pReply)
-    {
-        int error = 0;
+        qDebug() << "Query " << _urlQuery.toString();
 
-        if (pReply)
+        if (_method == PostHttpMethod || _method == PutHttpMethod)
         {
-            QByteArray data = pReply->readAll();
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            if (doc.isObject())
+            if (!_contentType.startsWith("image"))
             {
-                QJsonObject jsonObject = doc.object();
-                error = jsonObject.value("code").toInt();
-
-#if 1
-                QString message = jsonObject.value("error").toString();
-                qDebug() << "Error: " << message;
-#endif
+                qDebug() << "Content Type " << _contentType;
+                qDebug().noquote() << _content;
             }
         }
-        else
-        {
-            error = -1;
-        }
-
-        return error;
     }
 }

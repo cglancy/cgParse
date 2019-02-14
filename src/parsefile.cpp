@@ -121,7 +121,7 @@ namespace cg
     QJsonObject ParseFile::toJsonObject() const
     {
         QJsonObject jsonObject;
-        jsonObject.insert(ParseObject::ParseTypeKey, "File");
+        jsonObject.insert(Parse::TypeKey, "File");
         jsonObject.insert("name", _name);
         if (_url.isEmpty())
             jsonObject.insert("url", _url);
@@ -131,7 +131,7 @@ namespace cg
     QVariantMap ParseFile::toMap() const
     {
         QVariantMap map;
-        map.insert(ParseObject::ParseTypeKey, "File");
+        map.insert(Parse::TypeKey, "File");
         map.insert("name", _name);
         if (_url.isEmpty())
             map.insert("url", _url);
@@ -144,8 +144,8 @@ namespace cg
         if (variant.canConvert<QVariantMap>())
         {
             QVariantMap map = variant.toMap();
-            file = map.contains(ParseObject::ParseTypeKey) &&
-                map.value(ParseObject::ParseTypeKey).toString() == "File";
+            file = map.contains(Parse::TypeKey) &&
+                map.value(Parse::TypeKey).toString() == "File";
         }
 
         return file;
@@ -157,8 +157,8 @@ namespace cg
         if (jsonValue.isObject())
         {
             QJsonObject jsonObject = jsonValue.toObject();
-            file = jsonObject.contains(ParseObject::ParseTypeKey) &&
-                jsonObject.value(ParseObject::ParseTypeKey).toString() == "File";
+            file = jsonObject.contains(Parse::TypeKey) &&
+                jsonObject.value(Parse::TypeKey).toString() == "File";
         }
 
         return file;

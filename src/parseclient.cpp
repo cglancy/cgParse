@@ -23,6 +23,7 @@ namespace cg {
     ParseClient * ParseClient::_pInstance = nullptr;
 
     ParseClient::ParseClient()
+        : _loggingEnabled(false)
     {
         qRegisterMetaType<ParseReply>();
         qRegisterMetaType<ParseUserReply>();
@@ -63,5 +64,15 @@ namespace cg {
     QByteArray ParseClient::apiHost() const
     {
         return _apiHost;
+    }
+
+    bool ParseClient::isLoggingEnabled() const
+    {
+        return _loggingEnabled;
+    }
+
+    void ParseClient::setLoggingEnabled(bool enabled)
+    {
+        _loggingEnabled = enabled;
     }
 }

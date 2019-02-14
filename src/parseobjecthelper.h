@@ -18,6 +18,7 @@
 #pragma once
 
 #include "cgparse.h"
+#include "parsehelperbase.h"
 #include "parsetypes.h"
 #include "parsereply.h"
 
@@ -29,7 +30,7 @@ class QNetworkReply;
 
 namespace cg
 {
-    class CGPARSE_API ParseObjectHelper : public QObject
+    class CGPARSE_API ParseObjectHelper : public QObject, public ParseHelperBase
     {
         Q_OBJECT
     public:

@@ -13,47 +13,29 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_H
-#define CGPARSE_H
+#ifndef CGPARSE_PARSEHELPERBASE_H
+#define CGPARSE_PARSEHELPERBASE_H
 #pragma once
 
-#include <QtGlobal>
-
-#ifdef Q_OS_WIN32
-
-#ifdef CGPARSE_EXPORTS
-#define CGPARSE_API __declspec(dllexport)
-#else
-#define CGPARSE_API __declspec(dllimport)
-#endif
-
-#else
-
-#define CGPARSE_API __attribute__((visibility("default")))
-
-#endif
-
+#include "cgparse.h"
 #include <QString>
+
+class QNetworkReply;
+class QByteArray;
 
 namespace cg
 {
-    namespace Parse
+    class ParseHelperBase
     {
-        CGPARSE_API extern const QString ClassNameKey;
-        CGPARSE_API extern const QString ObjectIdKey;
-        CGPARSE_API extern const QString CreatedAtKey;
-        CGPARSE_API extern const QString UpdatedAtKey;
-        CGPARSE_API extern const QString TypeKey;
-        CGPARSE_API extern const QString ACLKey;
-        CGPARSE_API extern const QString PublicAccessKey;
-        CGPARSE_API extern const QString ReadKey;
-        CGPARSE_API extern const QString WriteKey;
+    protected:
+        static bool isError(QNetworkReply *pReply, int &status, QByteArray &data);
 
-        CGPARSE_API extern const QString PointerValue;
-        CGPARSE_API extern const QString ObjectValue;
-        CGPARSE_API extern const QString FileValue;
-        CGPARSE_API extern const QString DateValue;
-    }
+    private:
+        static int statusCode(QNetworkReply *pReply);
+        static int errorCode(const QByteArray &data);
+        static QString errorMessage(const QByteArray &data);
+        static bool isError(int status);
+    };
 }
 
-#endif // CGPARSE_H
+#endif // CGPARSE_PARSEHELPERBASE_H

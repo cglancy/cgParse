@@ -33,17 +33,17 @@ namespace cg
         if (variant.canConvert<QVariantMap>() && isPointer(variant))
         {
             QVariantMap map = variant.toMap();
-            _className = map.value(ParseObject::ClassNameKey).toString();
-            _objectId = map.value(ParseObject::ObjectIdKey).toString();
+            _className = map.value(Parse::ClassNameKey).toString();
+            _objectId = map.value(Parse::ObjectIdKey).toString();
         }
     }
 
     ParseObjectPointer::ParseObjectPointer(const QJsonObject & jsonObject)
     {
-        if (jsonObject.value("__type") == "Pointer")
+        if (jsonObject.value(Parse::TypeKey) == Parse::PointerValue)
         {
-            _className = jsonObject.value(ParseObject::ClassNameKey).toString();
-            _objectId = jsonObject.value(ParseObject::ObjectIdKey).toString();
+            _className = jsonObject.value(Parse::ClassNameKey).toString();
+            _objectId = jsonObject.value(Parse::ObjectIdKey).toString();
         }
     }
 
@@ -93,18 +93,18 @@ namespace cg
     QJsonObject ParseObjectPointer::toJsonObject() const
     {
         QJsonObject jsonObject;
-        jsonObject.insert(ParseObject::ParseTypeKey, "Pointer");
-        jsonObject.insert(ParseObject::ClassNameKey, _className);
-        jsonObject.insert(ParseObject::ObjectIdKey, _objectId);
+        jsonObject.insert(Parse::TypeKey, Parse::PointerValue);
+        jsonObject.insert(Parse::ClassNameKey, _className);
+        jsonObject.insert(Parse::ObjectIdKey, _objectId);
         return jsonObject;
     }
 
     QVariantMap ParseObjectPointer::toMap() const
     {
         QVariantMap map;
-        map.insert(ParseObject::ParseTypeKey, "Pointer");
-        map.insert(ParseObject::ClassNameKey, _className);
-        map.insert(ParseObject::ObjectIdKey, _objectId);
+        map.insert(Parse::TypeKey, Parse::PointerValue);
+        map.insert(Parse::ClassNameKey, _className);
+        map.insert(Parse::ObjectIdKey, _objectId);
         return map;
     }
 
@@ -114,8 +114,8 @@ namespace cg
         if (variant.canConvert<QVariantMap>())
         {
             QVariantMap map = variant.toMap();
-            pointer = map.contains(ParseObject::ParseTypeKey) && 
-                map.value(ParseObject::ParseTypeKey).toString() == "Pointer";
+            pointer = map.contains(Parse::TypeKey) && 
+                map.value(Parse::TypeKey).toString() == Parse::PointerValue;
         }
 
         return pointer;
@@ -127,8 +127,8 @@ namespace cg
         if (jsonValue.isObject())
         {
             QJsonObject jsonObject = jsonValue.toObject();
-            pointer = jsonObject.contains(ParseObject::ParseTypeKey) &&
-                jsonObject.value(ParseObject::ParseTypeKey).toString() == "Pointer";
+            pointer = jsonObject.contains(Parse::TypeKey) &&
+                jsonObject.value(Parse::TypeKey).toString() == Parse::PointerValue;
         }
 
         return pointer;
@@ -140,8 +140,8 @@ namespace cg
         if (variant.canConvert<QVariantMap>())
         {
             QVariantMap map = variant.toMap();
-            object = map.contains(ParseObject::ParseTypeKey) &&
-                map.value(ParseObject::ParseTypeKey).toString() == "Object";
+            object = map.contains(Parse::TypeKey) &&
+                map.value(Parse::TypeKey).toString() == Parse::ObjectValue;
         }
 
         return object;
@@ -153,8 +153,8 @@ namespace cg
         if (jsonValue.isObject())
         {
             QJsonObject jsonObject = jsonValue.toObject();
-            object = jsonObject.contains(ParseObject::ParseTypeKey) &&
-                jsonObject.value(ParseObject::ParseTypeKey).toString() == "Object";
+            object = jsonObject.contains(Parse::TypeKey) &&
+                jsonObject.value(Parse::TypeKey).toString() == Parse::ObjectValue;
         }
 
         return object;

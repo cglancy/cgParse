@@ -25,6 +25,8 @@
 #include "parseuserhelper.h"
 
 #include <QTimer>
+#include <QFile>
+#include <QTextStream>
 #include <asyncfuture.h>
 
 // used to define your own PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY
@@ -156,13 +158,46 @@ TestQuotePtr ParseTest::createQuote(TestMoviePtr movie, TestCharacterPtr charact
 // ParseTest
 //
 
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    QByteArray localMsg = msg.toLocal8Bit();
+    switch (type) {
+    case QtDebugMsg:
+    {
+        QFile file("C:\\Temp\\parselog.txt");
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
+        {
+            QTextStream outStream(&file);
+            outStream << localMsg << "\n";
+            file.close();
+        }
+    }
+        break;
+    case QtInfoMsg:
+        fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtWarningMsg:
+        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+        abort();
+    }
+}
+
 void ParseTest::initTestCase()
 {
+    qInstallMessageHandler(myMessageOutput); // Install the handler
+                                             
     // set name & version for user-agent
     QCoreApplication::setApplicationName("ParseTest");
     QCoreApplication::setApplicationVersion("0.1");
 
     ParseClient::instance()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
+    ParseClient::instance()->setLoggingEnabled(true);
 
     QString appDirPath = QCoreApplication::applicationDirPath();
     _testImagesDir.setPath(appDirPath + "/../../../../test/images");

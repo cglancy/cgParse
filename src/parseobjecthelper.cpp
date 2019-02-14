@@ -59,16 +59,13 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
+        int status;
+        QByteArray data;
         ParseObjectPtr pObject = _pObject.lock();
 
-        if (ParseRequest::isError(status))
+        if (!isError(pReply, status, data) && pObject)
         {
-            status = ParseRequest::errorCode(pReply);
-        }
-        else if (pObject)
-        {
-            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            QJsonDocument doc = QJsonDocument::fromJson(data);
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
@@ -101,16 +98,13 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
+        int status;
+        QByteArray data;
         ParseObjectPtr pObject = _pObject.lock();
 
-        if (ParseRequest::isError(status))
+        if (!isError(pReply, status, data) && pObject)
         {
-            status = ParseRequest::errorCode(pReply);
-        }
-        else if (pObject)
-        {
-            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            QJsonDocument doc = QJsonDocument::fromJson(data);
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
@@ -147,16 +141,13 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
+        int status;
+        QByteArray data;
         ParseObjectPtr pObject = _pObject.lock();
 
-        if (ParseRequest::isError(status))
+        if (!isError(pReply, status, data) && pObject)
         {
-            status = ParseRequest::errorCode(pReply);
-        }
-        else if (pObject)
-        {
-            QJsonDocument doc = QJsonDocument::fromJson(pReply->readAll());
+            QJsonDocument doc = QJsonDocument::fromJson(data);
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
@@ -189,13 +180,9 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
-
-        if (ParseRequest::isError(status))
-        {
-            status = ParseRequest::errorCode(pReply);
-        }
-
+        int status;
+        QByteArray data;
+        isError(pReply, status, data);
         emit deleteObjectFinished(status);
         pReply->deleteLater();
     }
@@ -240,17 +227,13 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
+        int status;
+        QByteArray data;
         QList<ParseObjectPtr> objects = _replyObjectListMap.take(pReply);
 
-        if (ParseRequest::isError(status))
+        if (!isError(pReply, status, data))
         {
-            status = ParseRequest::errorCode(pReply);
-        }
-        else
-        {
-            QByteArray bytes = pReply->readAll();
-            QJsonDocument doc = QJsonDocument::fromJson(bytes);
+            QJsonDocument doc = QJsonDocument::fromJson(data);
             if (doc.isArray())
             {
                 QJsonArray resultsArray = doc.array();
@@ -311,16 +294,12 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
+        int status;
+        QByteArray data;
 
-        if (ParseRequest::isError(status))
+        if (!isError(pReply, status, data))
         {
-            status = ParseRequest::errorCode(pReply);
-        }
-        else
-        {
-            QByteArray bytes = pReply->readAll();
-            QJsonDocument doc = QJsonDocument::fromJson(bytes);
+            QJsonDocument doc = QJsonDocument::fromJson(data);
             if (doc.isArray())
             {
                 QJsonArray resultsArray = doc.array();
@@ -374,16 +353,12 @@ namespace cg
         if (!pReply)
             return;
 
-        int status = ParseRequest::statusCode(pReply);
+        int status;
+        QByteArray data;
 
-        if (ParseRequest::isError(status))
+        if (!isError(pReply, status, data))
         {
-            status = ParseRequest::errorCode(pReply);
-        }
-        else
-        {
-            QByteArray bytes = pReply->readAll();
-            QJsonDocument doc = QJsonDocument::fromJson(bytes);
+            QJsonDocument doc = QJsonDocument::fromJson(data);
             if (doc.isArray())
             {
                 QJsonArray resultsArray = doc.array();

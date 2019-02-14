@@ -70,12 +70,10 @@ namespace cg
 
         QNetworkReply * sendRequest() const;
 
-        static int statusCode(QNetworkReply *pReply);
-        static int errorCode(QNetworkReply *pReply);
-        static bool isError(int status);
-
     private:
         void init();
+        void logRequest() const;
+        QString fullUrl() const;
         QNetworkRequest networkRequest() const;
         static QNetworkAccessManager* networkAccessManager();
 
