@@ -158,13 +158,15 @@ TestQuotePtr ParseTest::createQuote(TestMoviePtr movie, TestCharacterPtr charact
 // ParseTest
 //
 
+static QString logFileName;
+
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     QByteArray localMsg = msg.toLocal8Bit();
     switch (type) {
     case QtDebugMsg:
     {
-        QFile file("C:\\Temp\\parselog.txt");
+        QFile file(logFileName);
         if (file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
         {
             QTextStream outStream(&file);
@@ -197,10 +199,18 @@ void ParseTest::initTestCase()
     QCoreApplication::setApplicationVersion("0.1");
 
     ParseClient::instance()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
-    ParseClient::instance()->setLoggingEnabled(true);
 
-    QString appDirPath = QCoreApplication::applicationDirPath();
-    _testImagesDir.setPath(appDirPath + "/../../../../test/images");
+    QByteArray testDir = qgetenv("CGPARSE_TEST_DIR");
+    QVERIFY(!testDir.isEmpty());
+    _testImagesDir.setPath(testDir + "/images");
+    QVERIFY(_testImagesDir.exists());
+
+    logFileName = qgetenv("CGPARSE_TEST_LOG");
+    if (!logFileName.isEmpty())
+    {
+        ParseClient::instance()->setLoggingEnabled(true);
+        QFile::remove(logFileName);
+    }
 
     deleteTestObjects();
     createTestObjects();
