@@ -17,7 +17,7 @@
 #define CGPARSE_PARSEOBJECTPOINTER_H
 #pragma once
 
-#include "cgparse.h"
+#include "parse.h"
 #include <QString>
 #include <QJsonObject>
 #include <QVariant>

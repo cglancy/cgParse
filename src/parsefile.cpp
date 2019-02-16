@@ -35,6 +35,26 @@ namespace cg
         return _pStaticHelper;
     }
 
+    ParseFilePtr ParseFile::create()
+    {
+        return QSharedPointer<ParseFile>::create();
+    }
+
+    ParseFilePtr ParseFile::create(const QString &localPath)
+    {
+        return QSharedPointer<ParseFile>::create(localPath);
+    }
+
+    ParseFilePtr ParseFile::create(const QString &name, const QByteArray &data, const QString &contentType)
+    {
+        return QSharedPointer<ParseFile>::create(name, data, contentType);
+    }
+
+    QSharedPointer<ParseQuery<ParseFile>> ParseFile::query()
+    {
+        return QSharedPointer<ParseQuery<ParseFile>>::create();
+    }
+
     ParseFile::ParseFile()
         : _pHelper(new ParseFileHelper())
     {
@@ -182,7 +202,7 @@ namespace cg
             _url = map.value("url").toString();
     }
 
-    QFuture<ParseFileReply> ParseFile::save()
+    QFuture<ParseFileResult> ParseFile::save()
     {
         _pHelper->saveFile(sharedFromThis());
         return AsyncFuture::observe(_pHelper.data(), &ParseFileHelper::saveFileFinished).future();

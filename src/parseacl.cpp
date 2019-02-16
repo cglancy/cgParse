@@ -40,6 +40,16 @@ namespace cg
         }
     }
 
+    ParseACLPtr ParseACL::create()
+    {
+        return QSharedPointer<ParseACL>::create();
+    }
+
+    ParseACLPtr ParseACL::create(ParseUserPtr pUser)
+    {
+        return QSharedPointer<ParseACL>::create(pUser);
+    }
+
     ParseACL::ParseACL()
     {
     }

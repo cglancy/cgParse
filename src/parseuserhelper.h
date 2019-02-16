@@ -17,10 +17,10 @@
 #define CGPARSE_PARSEUSERHELPER_H
 #pragma once
 
-#include "cgparse.h"
+#include "parse.h"
 #include "parsehelperbase.h"
 #include "parsetypes.h"
-#include "parsereply.h"
+#include "parseresult.h"
 
 #include <QObject>
 #include <QWeakPointer>
@@ -40,7 +40,6 @@ namespace cg
         void become(const QString &sessionToken);
         void requestPasswordReset(const QString &email);
         void signUpUser(ParseUserPtr pUser);
-        void deleteSession(const QString &sessionToken);
         void deleteUser(ParseUserPtr pUser);
 
     private:
@@ -49,16 +48,14 @@ namespace cg
         void privateBecomeFinished();
         void privateRequestPasswordResetFinished();
         void privateSignUpUserFinished();
-        void privateDeleteSessionFinished();
         void privateDeleteUserFinished();
 
     signals:
-        void loginFinished(ParseUserReply userReply);
+        void loginFinished(ParseUserResult userReply);
         void logoutFinished(int status);
-        void becomeFinished(ParseUserReply userReply);
+        void becomeFinished(ParseUserResult userReply);
         void requestPasswordResetFinished(int status);
-        void signUpUserFinished(ParseUserReply userReply);
-        void deleteSessionFinished(int status);
+        void signUpUserFinished(ParseUserResult userReply);
         void deleteUserFinished(int status);
 
     private:

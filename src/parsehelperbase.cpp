@@ -43,9 +43,12 @@ namespace cg
             error = errorCode(data);
             message = errorMessage(data);
             rtn = true;
+
+            if (error != 0)
+                qWarning() << QString("Parse Error: %1 %2").arg(error).arg(message);
         }
 
-        if (ParseClient::instance()->isLoggingEnabled())
+        if (ParseClient::get()->isLoggingEnabled())
         {
             QJsonDocument doc = QJsonDocument::fromJson(data);
             QByteArray formatedContent = doc.toJson(QJsonDocument::Indented);

@@ -17,7 +17,7 @@
 #define CGPARSE_PARSEACL_H
 #pragma once
 
-#include "cgparse.h"
+#include "parse.h"
 #include "parsetypes.h"
 #include <QVariant>
 
@@ -26,13 +26,17 @@ namespace cg
     class CGPARSE_API ParseACL
     {
     public:
+        static ParseACLPtr create();
+        static ParseACLPtr create(ParseUserPtr pUser);
+
+        static ParseACL defaultACL();
+        static void setDefaultACL(const ParseACL &acl, bool withAccessForCurrentUser);
+
+    public:
         ParseACL();
         ParseACL(ParseUserPtr pUser);
         ParseACL(const ParseACL &acl);
         ~ParseACL();
-
-        static ParseACL defaultACL();
-        static void setDefaultACL(const ParseACL &acl, bool withAccessForCurrentUser);
 
         bool publicReadAccess() const;
         bool publicWriteAccess() const;

@@ -13,10 +13,10 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "parsefilehelper.h"
-#include "parseobject.h"
-#include "parsefile.h"
+#include "parsesessionhelper.h"
 #include "parserequest.h"
+#include "parseerror.h"
+#include "parsesession.h"
 
 #include <QNetworkReply>
 #include <QJsonDocument>
@@ -24,74 +24,29 @@
 
 namespace cg
 {
-    ParseFileHelper::ParseFileHelper()
+    ParseSessionHelper::ParseSessionHelper()
     {
     }
 
-    ParseFileHelper::~ParseFileHelper()
+    ParseSessionHelper::~ParseSessionHelper()
     {
     }
 
-    void ParseFileHelper::saveFile(ParseFilePtr pFile)
+    void ParseSessionHelper::deleteSession(const QString &sessionToken)
     {
-        if (!pFile)
+        if (sessionToken.isEmpty())
         {
-            emit saveFileFinished(ParseFileResult());
+            emit deleteSessionFinished(ParseError::UnknownError);
             return;
         }
 
-        _pFile = pFile;
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/files/" + pFile->name(), pFile->data(), pFile->contentType());
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/logout");
+        request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
         QNetworkReply *pReply = request.sendRequest();
-        connect(pReply, &QNetworkReply::finished, this, &ParseFileHelper::privateSaveFileFinished);
+        connect(pReply, &QNetworkReply::finished, this, &ParseSessionHelper::privateDeleteSessionFinished);
     }
 
-    void ParseFileHelper::privateSaveFileFinished()
-    {
-        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
-        if (!pReply)
-            return;
-
-        ParseFilePtr pFile = _pFile.lock();
-        ParseFileResult fileReply;
-        int status;
-        QByteArray data;
-
-        if (!isError(pReply, status, data) && pFile)
-        {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            if (doc.isObject() && status == 201)  // 201 = Created
-            {
-                QJsonObject obj = doc.object();
-                pFile->setUrl(obj.value("url").toString());
-                pFile->setName(obj.value("name").toString());
-                fileReply.setFile(pFile);
-            }
-        }
-
-        fileReply.setStatusCode(status);
-        emit saveFileFinished(fileReply);
-
-        pReply->deleteLater();
-    }
-
-    void ParseFileHelper::deleteFile(const QString & urlStr, const QString & masterKey)
-    {
-        if (urlStr.isEmpty() || masterKey.isEmpty())
-        {
-            emit deleteFileFinished(ParseError::UnknownError);
-            return;
-        }
-
-        ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/files/" + urlStr);
-        request.removeHeader("X-Parse-REST-API-Key");
-        request.setHeader("X-Parse-Master-Key", masterKey.toUtf8());
-
-        QNetworkReply *pReply = request.sendRequest();
-        connect(pReply, &QNetworkReply::finished, this, &ParseFileHelper::privateDeleteFileFinished);
-    }
-
-    void ParseFileHelper::privateDeleteFileFinished()
+    void ParseSessionHelper::privateDeleteSessionFinished()
     {
         QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
         if (!pReply)
@@ -100,7 +55,49 @@ namespace cg
         int status;
         QByteArray data;
         isError(pReply, status, data);
-        emit deleteFileFinished(status);
+        emit deleteSessionFinished(status);
+        pReply->deleteLater();
+    }
+
+    void ParseSessionHelper::currentSession(const QString &sessionToken)
+    {
+        if (sessionToken.isEmpty())
+        {
+            emit currentSessionFinished(ParseSessionResult());
+            return;
+        }
+
+        ParseRequest request(ParseRequest::GetHttpMethod, "parse/sessions/me");
+        request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
+        QNetworkReply *pReply = request.sendRequest();
+        connect(pReply, &QNetworkReply::finished, this, &ParseSessionHelper::privateCurrentSessionFinished);
+    }
+
+    void ParseSessionHelper::privateCurrentSessionFinished()
+    {
+        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        if (!pReply)
+            return;
+
+        ParseSessionResult sessionResult;
+
+        int status;
+        QByteArray data;
+
+        if (!isError(pReply, status, data))
+        {
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            if (doc.isObject())
+            {
+                ParseSessionPtr pSession = QSharedPointer<ParseSession>::create();
+                pSession->setValues(doc.object());
+                pSession->clearDirtyState();
+                sessionResult.setSession(pSession);
+            }
+        }
+
+        sessionResult.setStatusCode(status);
+        emit currentSessionFinished(sessionResult);
         pReply->deleteLater();
     }
 }

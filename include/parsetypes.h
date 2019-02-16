@@ -13,43 +13,26 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEQUERYHELPER_H
-#define CGPARSE_PARSEQUERYHELPER_H
 #pragma once
-
-#include "parse.h"
-#include "parsehelperbase.h"
-#include "parsetypes.h"
-#include "parseresult.h"
-
-#include <QObject>
-
-class QUrlQuery;
+#include <QSharedPointer>
 
 namespace cg
 {
-    class CGPARSE_API ParseQueryHelper : public QObject, public ParseHelperBase
-    {
-        Q_OBJECT
-    public:
-        ParseQueryHelper();
-        ~ParseQueryHelper();
+    class ParseObject;
+    typedef QSharedPointer<ParseObject> ParseObjectPtr;
 
-    public slots:
-        void getObject(const QString &className, const QString &objectId);
-        void findObjects(const QString &className, const QUrlQuery &urlQuery);
-        void countObjects(const QString &className, const QUrlQuery &urlQuery);
+    class ParseFile;
+    typedef QSharedPointer<ParseFile> ParseFilePtr;
 
-    private slots:
-        void privateGetObjectFinished();
-        void privateFindObjectsFinished();
-        void privateCountObjectsFinished();
+    class ParseUser;
+    typedef QSharedPointer<ParseUser> ParseUserPtr;
 
-    signals:
-        void getObjectFinished(ParseObjectsResult reply);
-        void findObjectsFinished(ParseObjectsResult reply);
-        void countObjectsFinished(ParseCountResult reply);
-    };
+    class ParseACL;
+    typedef QSharedPointer<ParseACL> ParseACLPtr;
+
+    class ParseRole;
+    typedef QSharedPointer<ParseRole> ParseRolePtr;
+
+    class ParseSession;
+    typedef QSharedPointer<ParseSession> ParseSessionPtr;
 }
-
-#endif // CGPARSE_PARSEQUERYHELPER_H

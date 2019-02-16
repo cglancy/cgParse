@@ -233,7 +233,7 @@ namespace cg
 
         const QList<QSharedPointer<T>> & results() const { return _results; }
 
-        QFuture<ParseCountReply> count()
+        QFuture<ParseCountResult> count()
         {
             int origCount = _count, origLimit = _limit;
             _count = 1;
@@ -245,16 +245,16 @@ namespace cg
             return future;
         }
 
-        QFuture<ParseJsonArrayReply> get(const QString &objectId)
+        QFuture<ParseObjectsResult> get(const QString &objectId)
         {
             _pHelper->getObject(_className, objectId);
-            QFuture<ParseJsonArrayReply> future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::getObjectFinished).future();
+            QFuture<ParseObjectsResult> future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::getObjectFinished).future();
 #ifdef CGPARSE_NO_EVENT_LOOP
             await(future);
 #else
             future.waitForFinished();
 #endif
-            ParseJsonArrayReply arrayReply = future.result();
+            ParseObjectsResult arrayReply = future.result();
             QJsonArray jsonArray = arrayReply.jsonArray();
             _results.clear();
             for (auto &jsonValue : jsonArray)
@@ -278,16 +278,16 @@ namespace cg
             return future;
         }
 
-        QFuture<ParseJsonArrayReply> find()
+        QFuture<ParseObjectsResult> find()
         {
             _pHelper->findObjects(_className, urlQuery());
-            QFuture<ParseJsonArrayReply> future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::findObjectsFinished).future();
+            QFuture<ParseObjectsResult> future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::findObjectsFinished).future();
 #ifdef CGPARSE_NO_EVENT_LOOP
             await(future);
 #else
             future.waitForFinished();
 #endif
-            ParseJsonArrayReply arrayReply = future.result();
+            ParseObjectsResult arrayReply = future.result();
             QJsonArray jsonArray = arrayReply.jsonArray();
             _results.clear();
             for (auto &jsonValue : jsonArray)

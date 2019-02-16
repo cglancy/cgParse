@@ -66,8 +66,8 @@ namespace cg
     void ParseRequest::init()
     {
         _headers.insert("User-Agent", userAgent());
-        _headers.insert("X-Parse-Application-Id", ParseClient::instance()->applicationId());
-        _headers.insert("X-Parse-REST-API-Key", ParseClient::instance()->clientKey());
+        _headers.insert("X-Parse-Application-Id", ParseClient::get()->applicationId());
+        _headers.insert("X-Parse-REST-API-Key", ParseClient::get()->clientKey());
     }
 
     QByteArray ParseRequest::userAgent()
@@ -138,7 +138,7 @@ namespace cg
 
     QString ParseRequest::fullUrl() const
     {
-        QString fullUrlStr = "https://" + ParseClient::instance()->apiHost();
+        QString fullUrlStr = "https://" + ParseClient::get()->apiHost();
         if (_apiRoute.startsWith("/"))
             fullUrlStr += _apiRoute;
         else
@@ -167,7 +167,7 @@ namespace cg
     {
         QNetworkReply *pReply = nullptr;
 
-        if (ParseClient::instance()->isLoggingEnabled())
+        if (ParseClient::get()->isLoggingEnabled())
             logRequest();
 
         switch (httpMethod())

@@ -17,7 +17,7 @@
 #define CGPARSE_PARSEREQUEST_H
 #pragma once
 
-#include "parsereply.h"
+#include "parseresult.h"
 #include "parsetypes.h"
 
 #include <QVariant>

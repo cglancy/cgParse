@@ -11,7 +11,7 @@ SOURCES += parsetest.cpp
 HEADERS += parsetest.h \
 	parsesecret.h
 
-INCLUDEPATH += ../src
+INCLUDEPATH += ../include ../src
 
 CONFIG(debug, debug|release) {
     LIBS += -L../src/debug -lcgParse0

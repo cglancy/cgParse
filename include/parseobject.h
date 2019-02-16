@@ -17,7 +17,7 @@
 #define CGPARSE_PARSEOBJECT_H
 #pragma once
 
-#include "cgparse.h"
+#include "parse.h"
 #include "parsetypes.h"
 #include "parserelation.h"
 #include "parseerror.h"
@@ -37,10 +37,6 @@ namespace cg
     class CGPARSE_API ParseObject : public QEnableSharedFromThis<ParseObject>
     {
     public:
-        ParseObject();
-        ParseObject(const QString &className);
-        virtual ~ParseObject();
-
         static ParseObjectPtr create(const QString &className);
         static ParseObjectPtr createWithoutData(const QString &className, const QString &objectId);
 
@@ -60,6 +56,17 @@ namespace cg
         static QFuture<int> createAll(const QList<ParseObjectPtr> &objects);
         static QFuture<int> updateAll(const QList<ParseObjectPtr> &objects);
         static QFuture<int> deleteAll(const QList<ParseObjectPtr> &objects);
+
+        template <class T>
+        static QSharedPointer<ParseQuery<T>> query()
+        {
+            return QSharedPointer<ParseQuery<T>>::create();
+        }
+
+    public:
+        ParseObject();
+        ParseObject(const QString &className);
+        virtual ~ParseObject();
 
         QString className() const;
         QString objectId() const;

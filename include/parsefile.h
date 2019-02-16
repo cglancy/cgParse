@@ -17,8 +17,9 @@
 #define CGPARSE_PARSEFILE_H
 #pragma once
 
-#include "cgparse.h"
-#include "parsereply.h"
+#include "parse.h"
+#include "parseresult.h"
+#include "parsequery.h"
 #include <QEnableSharedFromThis>
 #include <QString>
 #include <QByteArray>
@@ -27,6 +28,7 @@
 #include <QVariant>
 #include <QFuture>
 #include <QScopedPointer>
+#include <QSharedPointer>
 
 class QFile;
 
@@ -37,12 +39,22 @@ namespace cg
     class CGPARSE_API ParseFile : public QEnableSharedFromThis<ParseFile>
     {
     public:
+        static ParseFilePtr create();
+        static ParseFilePtr create(const QString &localPath);
+        static ParseFilePtr create(const QString &name, const QByteArray &data, const QString &contentType);
+
+        static QFuture<int> deleteFile(const QString &url, const QString &masterKey);
+
+        static QSharedPointer<ParseQuery<ParseFile>> query();
+
+        static bool isFile(const QVariant &variant);
+        static bool isFile(const QJsonValue &jsonValue);
+
+    public:
         ParseFile();
         ParseFile(const QString &localPath);
         ParseFile(const QString &name, const QByteArray &data, const QString &contentType);
         ~ParseFile();
-
-        static QFuture<int> deleteFile(const QString &url, const QString &masterKey);
 
         bool isDirty() const;
 
@@ -61,10 +73,7 @@ namespace cg
         void setValues(const QJsonObject &jsonObject);
         void setValues(const QVariantMap &map);
 
-        QFuture<ParseFileReply> save();
-
-        static bool isFile(const QVariant &variant);
-        static bool isFile(const QJsonValue &jsonValue);
+        QFuture<ParseFileResult> save();
 
     private:
         static ParseFileHelper * staticHelper();

@@ -13,25 +13,48 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "cgparse.h"
+#include "parserole.h"
+#include "parseuser.h"
 
 namespace cg
 {
-    namespace Parse
+    ParseRolePtr ParseRole::create()
     {
-        CGPARSE_API const QString ClassNameKey = QStringLiteral("className");
-        CGPARSE_API const QString ObjectIdKey = QStringLiteral("objectId");
-        CGPARSE_API const QString CreatedAtKey = QStringLiteral("createdAt");
-        CGPARSE_API const QString UpdatedAtKey = QStringLiteral("updatedAt");
-        CGPARSE_API const QString TypeKey = QStringLiteral("__type");
-        CGPARSE_API const QString ACLKey = QStringLiteral("ACL");
-        CGPARSE_API const QString PublicAccessKey = QStringLiteral("*");
-        CGPARSE_API const QString ReadKey = QStringLiteral("read");
-        CGPARSE_API const QString WriteKey = QStringLiteral("write");
-
-        CGPARSE_API const QString PointerValue = QStringLiteral("Pointer");
-        CGPARSE_API const QString ObjectValue = QStringLiteral("Object");
-        CGPARSE_API const QString FileValue = QStringLiteral("File");
-        CGPARSE_API const QString DateValue = QStringLiteral("Date");
+        return QSharedPointer<ParseRole>::create();
     }
+
+    QSharedPointer<ParseQuery<ParseRole>> ParseRole::query()
+    {
+        return QSharedPointer<ParseQuery<ParseRole>>::create();
+    }
+
+    ParseRole::ParseRole()
+        : ParseObject("_Role")
+    {
+    }
+
+    ParseRole::~ParseRole()
+    {
+    }
+
+    QString ParseRole::name() const
+    {
+        return value("name").toString();
+    }
+
+    void ParseRole::setName(const QString &name)
+    {
+        setValue("name", name);
+    }
+
+    QSharedPointer<ParseRelation<ParseRole>> ParseRole::roles()
+    {
+        return QSharedPointer<ParseRelation<ParseRole>>::create(className(), objectId(), "roles");
+    }
+
+    QSharedPointer<ParseRelation<ParseUser>> ParseRole::users()
+    {
+        return QSharedPointer<ParseRelation<ParseUser>>::create(className(), objectId(), "users");
+    }
+
 }

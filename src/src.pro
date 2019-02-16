@@ -6,28 +6,33 @@ CONFIG += dll
 TEMPLATE = lib
 VERSION	= 0.1.1
 
+INCLUDEPATH += ../include
 
-HEADERS += cgparse.h \
+HEADERS +=  \
+	../include/parse.h \
+	../include/parseacl.h \
+	../include/parseclient.h \
+	../include/parseerror.h \
+	../include/parsefile.h \
+ 	../include/parsetypes.h \
+	../include/parseobject.h \
+	../include/parsequery.h \
+	../include/parseresult.h \
+	../include/parserole.h \
+	../include/parsesession.h \
+	../include/parseuser.h \
+	../include/parserelation.h \
 	asyncfuture.h \
-	parseacl.h \
-	parseclient.h \
-	parseerror.h \
-	parsefile.h \
 	parsefilehelper.h \
 	parsehelperbase.h \
-    parseobject.h \
 	parseobjecthelper.h \
 	parseobjectpointer.h \
-	parsequery.h \
 	parsequeryhelper.h \
-	parserelation.h \
-	parsereply.h \
 	parserequest.h \
-	parsetypes.h \
-	parseuser.h \
+	parsesessionhelper.h \
 	parseuserhelper.h
 	
-SOURCES += cgparse.cpp \
+SOURCES += parse.cpp \
 	parseacl.cpp \
 	parseclient.cpp \
 	parsefile.cpp \
@@ -37,8 +42,11 @@ SOURCES += cgparse.cpp \
 	parseobjecthelper.cpp \
 	parseobjectpointer.cpp \
 	parsequeryhelper.cpp \
-	parsereply.cpp \
+	parseresult.cpp \
 	parserequest.cpp \
+	parserole.cpp \
+	parsesession.cpp \
+	parsesessionhelper.cpp \
 	parseuser.cpp \
 	parseuserhelper.cpp
 

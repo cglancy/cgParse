@@ -14,7 +14,7 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parseclient.h"
-#include "parsereply.h"
+#include "parseresult.h"
 
 #include <QMetaType>
 
@@ -25,18 +25,19 @@ namespace cg {
     ParseClient::ParseClient()
         : _loggingEnabled(false)
     {
-        qRegisterMetaType<ParseReply>();
-        qRegisterMetaType<ParseUserReply>();
-        qRegisterMetaType<ParseFileReply>();
-        qRegisterMetaType<ParseJsonArrayReply>();
-        qRegisterMetaType<ParseCountReply>();
+        qRegisterMetaType<ParseResult>();
+        qRegisterMetaType<ParseUserResult>();
+        qRegisterMetaType<ParseFileResult>();
+        qRegisterMetaType<ParseObjectsResult>();
+        qRegisterMetaType<ParseCountResult>();
+        qRegisterMetaType<ParseSessionResult>();
     }
 
     ParseClient::~ParseClient()
     {
     }
 
-    ParseClient * ParseClient::instance()
+    ParseClient * ParseClient::get()
     {
         if (!_pInstance)
             _pInstance = new ParseClient();

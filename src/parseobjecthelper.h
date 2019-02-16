@@ -17,10 +17,10 @@
 #define CGPARSE_PARSEOBJECTHELPER_H
 #pragma once
 
-#include "cgparse.h"
+#include "parse.h"
 #include "parsehelperbase.h"
 #include "parsetypes.h"
-#include "parsereply.h"
+#include "parseresult.h"
 
 #include <QObject>
 #include <QWeakPointer>

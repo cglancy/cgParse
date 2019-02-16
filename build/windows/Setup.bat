@@ -11,3 +11,5 @@ call "%VSDIR%\VC\vcvarsall.bat" x64
 set PATH=%PATH%;%QTDIR%\bin;%~dp0\src\debug
 
 devenv cgParse.sln
+
+pause

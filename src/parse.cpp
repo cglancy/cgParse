@@ -13,34 +13,25 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSECLIENT_H
-#define CGPARSE_PARSECLIENT_H
-#pragma once
-
-#include "cgparse.h"
-#include <QByteArray>
+#include "parse.h"
 
 namespace cg
 {
-    class CGPARSE_API ParseClient
+    namespace Parse
     {
-    public:
-        static ParseClient * instance();
+        CGPARSE_API const QString ClassNameKey = QStringLiteral("className");
+        CGPARSE_API const QString ObjectIdKey = QStringLiteral("objectId");
+        CGPARSE_API const QString CreatedAtKey = QStringLiteral("createdAt");
+        CGPARSE_API const QString UpdatedAtKey = QStringLiteral("updatedAt");
+        CGPARSE_API const QString TypeKey = QStringLiteral("__type");
+        CGPARSE_API const QString ACLKey = QStringLiteral("ACL");
+        CGPARSE_API const QString PublicAccessKey = QStringLiteral("*");
+        CGPARSE_API const QString ReadKey = QStringLiteral("read");
+        CGPARSE_API const QString WriteKey = QStringLiteral("write");
 
-        void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost);
-        QByteArray applicationId() const;
-        QByteArray clientKey() const;
-        QByteArray apiHost() const;
-        bool isLoggingEnabled() const;
-        void setLoggingEnabled(bool enabled);
-
-    private:
-        ParseClient();
-        ~ParseClient();
-        static ParseClient *_pInstance;
-        QByteArray _appId, _clientKey, _apiHost;
-        bool _loggingEnabled;
-    };
+        CGPARSE_API const QString PointerValue = QStringLiteral("Pointer");
+        CGPARSE_API const QString ObjectValue = QStringLiteral("Object");
+        CGPARSE_API const QString FileValue = QStringLiteral("File");
+        CGPARSE_API const QString DateValue = QStringLiteral("Date");
+    }
 }
-
-#endif // CGPARSE_PARSECLIENT_H

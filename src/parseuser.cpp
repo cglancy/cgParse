@@ -34,6 +34,16 @@ namespace cg
         return _pStaticHelper;
     }
 
+    ParseUserPtr ParseUser::create()
+    {
+        return QSharedPointer<ParseUser>::create();
+    }
+
+    QSharedPointer<ParseQuery<ParseUser>> ParseUser::query()
+    {
+        return QSharedPointer<ParseQuery<ParseUser>>::create();
+    }
+
     ParseUser::ParseUser()
         : ParseObject("_User"),
         _pHelper(new ParseUserHelper())
@@ -49,7 +59,7 @@ namespace cg
         return _pCurrentUser;
     }
 
-    QFuture<ParseUserReply> ParseUser::login(const QString &username, const QString &password)
+    QFuture<ParseUserResult> ParseUser::login(const QString &username, const QString &password)
     {
         ParseUserHelper *pHelper = staticHelper();
         pHelper->login(username, password);
@@ -110,7 +120,7 @@ namespace cg
         return value("sessionToken").toString();
     }
 
-    QFuture<ParseUserReply> ParseUser::signUp()
+    QFuture<ParseUserResult> ParseUser::signUp()
     {
         _pHelper->signUpUser(sharedFromThis().staticCast<ParseUser>());
         return AsyncFuture::observe(_pHelper.data(), &ParseUserHelper::signUpUserFinished).future();

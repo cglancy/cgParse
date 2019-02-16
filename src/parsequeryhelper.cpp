@@ -37,7 +37,7 @@ namespace cg
     {
         if (className.isEmpty() || objectId.isEmpty())
         {
-            emit getObjectFinished(ParseJsonArrayReply());
+            emit getObjectFinished(ParseObjectsResult());
             return;
         }
 
@@ -60,7 +60,7 @@ namespace cg
 
         int status;
         QByteArray data;
-        ParseJsonArrayReply jsonArrayReply;
+        ParseObjectsResult jsonArrayReply;
 
         if (!isError(pReply, status, data))
         {
@@ -83,7 +83,7 @@ namespace cg
     {
         if (className.isEmpty())
         {
-            emit findObjectsFinished(ParseJsonArrayReply());
+            emit findObjectsFinished(ParseObjectsResult());
             return;
         }
 
@@ -102,7 +102,7 @@ namespace cg
 
         int status;
         QByteArray data;
-        ParseJsonArrayReply jsonArrayReply;
+        ParseObjectsResult jsonArrayReply;
 
         if (!isError(pReply, status, data))
         {
@@ -124,7 +124,7 @@ namespace cg
     {
         if (className.isEmpty())
         {
-            emit countObjectsFinished(ParseCountReply());
+            emit countObjectsFinished(ParseCountResult());
             return;
         }
 
@@ -143,7 +143,7 @@ namespace cg
 
         int status;
         QByteArray data;
-        ParseCountReply countReply;
+        ParseCountResult countReply;
 
         if (!isError(pReply, status, data))
         {

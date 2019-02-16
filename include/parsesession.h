@@ -13,17 +13,38 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+#ifndef CGPARSE_PARSESESSION_H
+#define CGPARSE_PARSESESSION_H
 #pragma once
-#include <QSharedPointer>
+
+#include "parseobject.h"
+#include "parsetypes.h"
+#include "parsequery.h"
+
+#include <QFuture>
 
 namespace cg
 {
-    class ParseObject;
-    typedef QSharedPointer<ParseObject> ParseObjectPtr;
+    class ParseSessionHelper;
 
-    class ParseFile;
-    typedef QSharedPointer<ParseFile> ParseFilePtr;
+    class CGPARSE_API ParseSession : public ParseObject
+    {
+    public:
+        static ParseSessionPtr create();
+        static QSharedPointer<ParseQuery<ParseSession>> query();
+        static QFuture<ParseSessionResult> currentSession();
+        static QFuture<int> deleteSession(const QString &sessionToken);
 
-    class ParseUser;
-    typedef QSharedPointer<ParseUser> ParseUserPtr;
+    public:
+        ParseSession();
+        ~ParseSession();
+
+        QString sessionToken() const;
+
+    private:
+        static ParseSessionHelper * staticHelper();
+        static ParseSessionHelper *_pStaticHelper;
+    };
 }
+
+#endif // CGPARSE_PARSESESSION_H

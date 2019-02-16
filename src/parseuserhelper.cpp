@@ -52,7 +52,7 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseUserReply userReply;
+        ParseUserResult userReply;
 
         int status;
         QByteArray data;
@@ -106,7 +106,7 @@ namespace cg
     {
         if (sessionToken.isEmpty())
         {
-            emit becomeFinished(ParseUserReply());
+            emit becomeFinished(ParseUserResult());
             return;
         }
 
@@ -121,7 +121,7 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseUserReply userReply;
+        ParseUserResult userReply;
         int status;
         QByteArray data;
 
@@ -180,7 +180,7 @@ namespace cg
     {
         if (!pUser)
         {
-            emit signUpUserFinished(ParseUserReply());
+            emit signUpUserFinished(ParseUserResult());
             return;
         }
 
@@ -204,7 +204,7 @@ namespace cg
         int status;
         QByteArray data;
         ParseUserPtr pUser = _pUser.lock();
-        ParseUserReply userReply;
+        ParseUserResult userReply;
 
         if (!isError(pReply, status, data) && pUser)
         {
@@ -225,33 +225,6 @@ namespace cg
 
         userReply.setStatusCode(status);
         emit signUpUserFinished(userReply);
-        pReply->deleteLater();
-    }
-
-    void ParseUserHelper::deleteSession(const QString &sessionToken)
-    {
-        if (sessionToken.isEmpty())
-        {
-            emit deleteSessionFinished(ParseError::UnknownError);
-            return;
-        }
-
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/logout");
-        request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
-        QNetworkReply *pReply = request.sendRequest();
-        connect(pReply, &QNetworkReply::finished, this, &ParseUserHelper::privateDeleteSessionFinished);
-    }
-
-    void ParseUserHelper::privateDeleteSessionFinished()
-    {
-        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
-        if (!pReply)
-            return;
-
-        int status;
-        QByteArray data;
-        isError(pReply, status, data);
-        emit deleteSessionFinished(status);
         pReply->deleteLater();
     }
 

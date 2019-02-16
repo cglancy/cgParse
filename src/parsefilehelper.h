@@ -17,10 +17,10 @@
 #define CGPARSE_PARSEFILEHELPER_H
 #pragma once
 
-#include "cgparse.h"
+#include "parse.h"
 #include "parsehelperbase.h"
 #include "parsetypes.h"
-#include "parsereply.h"
+#include "parseresult.h"
 
 #include <QObject>
 #include <QWeakPointer>
@@ -43,7 +43,7 @@ namespace cg
         void privateDeleteFileFinished();
 
     signals:
-        void saveFileFinished(ParseFileReply fileReply);
+        void saveFileFinished(ParseFileResult fileReply);
         void deleteFileFinished(int status);
 
     private:

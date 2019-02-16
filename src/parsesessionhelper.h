@@ -13,54 +13,37 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEUSER_H
-#define CGPARSE_PARSEUSER_H
+#ifndef CGPARSE_PARSESESSIONHELPER_H
+#define CGPARSE_PARSESESSIONHELPER_H
 #pragma once
 
-#include "cgparse.h"
-#include "parseobject.h"
-#include "parsereply.h"
+#include "parse.h"
+#include "parsehelperbase.h"
+#include "parseresult.h"
+
+#include <QObject>
 
 namespace cg
 {
-    class ParseUserHelper;
-
-    class CGPARSE_API ParseUser : public ParseObject
+    class CGPARSE_API ParseSessionHelper : public QObject, public ParseHelperBase
     {
+        Q_OBJECT
     public:
-        ParseUser();
-        ~ParseUser();
+        ParseSessionHelper();
+        ~ParseSessionHelper();
 
-        static QFuture<ParseUserReply> login(const QString &username, const QString &password);
-        static QFuture<int> logout();
-        static ParseUserPtr currentUser();
-        static QFuture<int> requestPasswordReset(const QString &email);
-
-        bool isAuthenticated() const;
-
-        QString username() const;
-        void setUsername(const QString &username);
-
-        QString password() const;
-        void setPassword(const QString &password);
-
-        QString email() const;
-        void setEmail(const QString &email);
-
-        QString sessionToken() const;
-
-        QFuture<ParseUserReply> signUp();
-        QFuture<int> deleteUser();
+    public slots:
+        void currentSession(const QString &sessionToken);
+        void deleteSession(const QString &sessionToken);
 
     private:
-        static ParseUserHelper * staticHelper();
+        void privateCurrentSessionFinished();
+        void privateDeleteSessionFinished();
 
-    private:
-        friend class ParseUserHelper;
-        static ParseUserPtr _pCurrentUser;
-        QScopedPointer<ParseUserHelper> _pHelper;
-        static ParseUserHelper *_pStaticHelper;
+    signals:
+        void currentSessionFinished(ParseSessionResult result);
+        void deleteSessionFinished(int status);
     };
 }
 
-#endif // CGPARSE_PARSEUSER_H
+#endif // CGPARSE_PARSESESSIONHELPER_H

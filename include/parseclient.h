@@ -13,43 +13,34 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEQUERYHELPER_H
-#define CGPARSE_PARSEQUERYHELPER_H
+#ifndef CGPARSE_PARSECLIENT_H
+#define CGPARSE_PARSECLIENT_H
 #pragma once
 
 #include "parse.h"
-#include "parsehelperbase.h"
-#include "parsetypes.h"
-#include "parseresult.h"
-
-#include <QObject>
-
-class QUrlQuery;
+#include <QByteArray>
 
 namespace cg
 {
-    class CGPARSE_API ParseQueryHelper : public QObject, public ParseHelperBase
+    class CGPARSE_API ParseClient
     {
-        Q_OBJECT
     public:
-        ParseQueryHelper();
-        ~ParseQueryHelper();
+        static ParseClient * get();
 
-    public slots:
-        void getObject(const QString &className, const QString &objectId);
-        void findObjects(const QString &className, const QUrlQuery &urlQuery);
-        void countObjects(const QString &className, const QUrlQuery &urlQuery);
+        void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost);
+        QByteArray applicationId() const;
+        QByteArray clientKey() const;
+        QByteArray apiHost() const;
+        bool isLoggingEnabled() const;
+        void setLoggingEnabled(bool enabled);
 
-    private slots:
-        void privateGetObjectFinished();
-        void privateFindObjectsFinished();
-        void privateCountObjectsFinished();
-
-    signals:
-        void getObjectFinished(ParseObjectsResult reply);
-        void findObjectsFinished(ParseObjectsResult reply);
-        void countObjectsFinished(ParseCountResult reply);
+    private:
+        ParseClient();
+        ~ParseClient();
+        static ParseClient *_pInstance;
+        QByteArray _appId, _clientKey, _apiHost;
+        bool _loggingEnabled;
     };
 }
 
-#endif // CGPARSE_PARSEQUERYHELPER_H
+#endif // CGPARSE_PARSECLIENT_H

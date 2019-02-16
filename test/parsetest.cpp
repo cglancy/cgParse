@@ -22,7 +22,7 @@
 #include "parsequery.h"
 #include "parsefile.h"
 #include "parserelation.h"
-#include "parseuserhelper.h"
+#include "parsesession.h"
 
 #include <QTimer>
 #include <QFile>
@@ -198,7 +198,7 @@ void ParseTest::initTestCase()
     QCoreApplication::setApplicationName("ParseTest");
     QCoreApplication::setApplicationVersion("0.1");
 
-    ParseClient::instance()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
+    ParseClient::get()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
 
     QByteArray testDir = qgetenv("CGPARSE_TEST_DIR");
     QVERIFY(!testDir.isEmpty());
@@ -208,7 +208,7 @@ void ParseTest::initTestCase()
     logFileName = qgetenv("CGPARSE_TEST_LOG");
     if (!logFileName.isEmpty())
     {
-        ParseClient::instance()->setLoggingEnabled(true);
+        ParseClient::get()->setLoggingEnabled(true);
         QFile::remove(logFileName);
     }
 
@@ -386,11 +386,11 @@ void ParseTest::testUserLogin()
     await(signupFuture);
 #endif
 
-    QFuture<ParseUserReply> loginFuture = ParseUser::login("TestLogin", "Parse123");
+    QFuture<ParseUserResult> loginFuture = ParseUser::login("TestLogin", "Parse123");
     await(loginFuture);
 
-    ParseUserReply reply = loginFuture.result();
-    ParseUserPtr pUser = reply.user();
+    ParseUserResult result = loginFuture.result();
+    ParseUserPtr pUser = result.user();
     QVERIFY(pUser != nullptr);
     QVERIFY(pUser->isAuthenticated());
     QVERIFY(pUser == ParseUser::currentUser());
@@ -419,7 +419,7 @@ void ParseTest::testUserSignUp()
     QVERIFY(testUser->sessionToken().isEmpty());
     QVERIFY(testUser->isAuthenticated() == false);
 
-    QFuture<ParseUserReply> signUpFuture = testUser->signUp();
+    QFuture<ParseUserResult> signUpFuture = testUser->signUp();
     await(signUpFuture);
 
     QVERIFY(!testUser->sessionToken().isEmpty());
@@ -428,10 +428,8 @@ void ParseTest::testUserSignUp()
     QFuture<int> deleteFuture = testUser->deleteUser();
     await(deleteFuture);
 
-    QScopedPointer<ParseUserHelper> pUserHelper(new ParseUserHelper());
-    pUserHelper->deleteSession(sessionToken);
-    QSignalSpy sessionSpy(pUserHelper.data(), &ParseUserHelper::deleteSessionFinished);
-    QVERIFY(sessionSpy.wait(10000));
+    auto deleteSessionFuture = ParseSession::deleteSession(sessionToken);
+    await(deleteSessionFuture);
 }
 
 void ParseTest::testObject()
@@ -555,8 +553,8 @@ void ParseTest::testFindAllQuery()
     auto findFuture = pQuery->find();
     await(findFuture);
 
-    ParseJsonArrayReply jsonArrayReply = findFuture.result();
-    QCOMPARE(jsonArrayReply.jsonArray().size(), 20);
+    ParseObjectsResult objectsResult = findFuture.result();
+    QCOMPARE(objectsResult.jsonArray().size(), 20);
 }
 
 void ParseTest::testCountQuery()
@@ -565,8 +563,8 @@ void ParseTest::testCountQuery()
     auto countFuture = pQuery->count();
     await(countFuture);
 
-    ParseCountReply countReply = countFuture.result();
-    QCOMPARE(countReply.count(), 32);
+    ParseCountResult countResult = countFuture.result();
+    QCOMPARE(countResult.count(), 32);
 }
 
 void ParseTest::testOrderQuery()

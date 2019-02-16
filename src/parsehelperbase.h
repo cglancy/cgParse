@@ -17,7 +17,7 @@
 #define CGPARSE_PARSEHELPERBASE_H
 #pragma once
 
-#include "cgparse.h"
+#include "parse.h"
 #include <QString>
 
 class QNetworkReply;
