@@ -9,25 +9,25 @@ VERSION	= 0.1.1
 INCLUDEPATH += ../include
 
 HEADERS +=  \
+	../include/asyncfuture.h \
 	../include/parse.h \
 	../include/parseacl.h \
 	../include/parseclient.h \
 	../include/parseerror.h \
 	../include/parsefile.h \
- 	../include/parsetypes.h \
+	../include/parsehelperbase.h \
 	../include/parseobject.h \
+	../include/parseobjectpointer.h \
 	../include/parsequery.h \
+	../include/parsequeryhelper.h \
+	../include/parserelation.h \
 	../include/parseresult.h \
 	../include/parserole.h \
 	../include/parsesession.h \
+ 	../include/parsetypes.h \
 	../include/parseuser.h \
-	../include/parserelation.h \
-	asyncfuture.h \
 	parsefilehelper.h \
-	parsehelperbase.h \
 	parseobjecthelper.h \
-	parseobjectpointer.h \
-	parsequeryhelper.h \
 	parserequest.h \
 	parsesessionhelper.h \
 	parseuserhelper.h
