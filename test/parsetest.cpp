@@ -23,6 +23,7 @@
 #include "parsefile.h"
 #include "parserelation.h"
 #include "parsesession.h"
+#include "parseawait.h"
 
 #include <QTimer>
 #include <QFile>
@@ -40,25 +41,6 @@
 #include <QFileInfo>
 #include <QSequentialIterable>
 #include <QScopedPointer>
-
-template <typename T>
-inline void await(QFuture<T> future, int timeout = -1) {
-    if (future.isFinished()) {
-        return;
-    }
-
-    QEventLoop loop;
-    QFutureWatcher<T> watcher;
-    QObject::connect(&watcher, SIGNAL(finished()), &loop, SLOT(quit()));
-
-    watcher.setFuture(future);
-
-    if (timeout > 0) {
-        QTimer::singleShot(timeout, &loop, &QEventLoop::quit);
-    }
-
-    loop.exec();
-}
 
 using namespace cg;
 
