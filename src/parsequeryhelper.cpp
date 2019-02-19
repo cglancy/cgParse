@@ -58,24 +58,19 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
-        ParseObjectsResult jsonArrayReply;
+        ParseObjectsResult objectsResult(replyResult(pReply));
 
-        if (!isError(pReply, status, data))
+        if (!objectsResult.isError())
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonDocument doc = QJsonDocument::fromJson(objectsResult.data());
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
                 jsonArray = obj.value("results").toArray();
-                jsonArrayReply.setJsonArray(jsonArray);
             }
         }
 
-        jsonArrayReply.setStatusCode(status);
-        emit getObjectFinished(jsonArrayReply);
-
+        emit getObjectFinished(objectsResult);
         pReply->deleteLater();
     }
 
@@ -100,23 +95,19 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
-        ParseObjectsResult jsonArrayReply;
+        ParseObjectsResult objectsResult(replyResult(pReply));
 
-        if (!isError(pReply, status, data))
+        if (!objectsResult.isError())
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonDocument doc = QJsonDocument::fromJson(objectsResult.data());
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
                 jsonArray = obj.value("results").toArray();
-                jsonArrayReply.setJsonArray(jsonArray);
             }
         }
 
-        jsonArrayReply.setStatusCode(status);
-        emit findObjectsFinished(jsonArrayReply);
+        emit findObjectsFinished(objectsResult);
         pReply->deleteLater();
     }
 
@@ -141,24 +132,8 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
-        ParseCountResult countReply;
-
-        if (!isError(pReply, status, data))
-        {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            if (doc.isObject())
-            {
-                QJsonObject obj = doc.object();
-                int count = obj.value("count").toInt();
-                countReply.setCount(count);
-            }
-        }
-
-        countReply.setStatusCode(status);
-        emit countObjectsFinished(countReply);
-
+        ParseCountResult countResult(replyResult(pReply));
+        emit countObjectsFinished(countResult);
         pReply->deleteLater();
     }
 }

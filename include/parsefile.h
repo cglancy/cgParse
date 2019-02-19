@@ -73,7 +73,7 @@ namespace cg
         void setValues(const QJsonObject &jsonObject);
         void setValues(const QVariantMap &map);
 
-        QFuture<ParseFileResult> save();
+        QFuture<int> save();
 
     private:
         static ParseFileHelper * staticHelper();

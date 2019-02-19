@@ -59,13 +59,12 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
         ParseObjectPtr pObject = _pObject.lock();
+        ParseResult result = replyResult(pReply);
 
-        if (!isError(pReply, status, data) && pObject)
+        if (!result.isError() && pObject)
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonDocument doc = QJsonDocument::fromJson(result.data());
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
@@ -74,7 +73,7 @@ namespace cg
             }
         }
 
-        emit createObjectFinished(status);
+        emit createObjectFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -98,13 +97,12 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
         ParseObjectPtr pObject = _pObject.lock();
+        ParseResult result = replyResult(pReply);
 
-        if (!isError(pReply, status, data) && pObject)
+        if (!result.isError() && pObject)
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonDocument doc = QJsonDocument::fromJson(result.data());
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
@@ -113,7 +111,7 @@ namespace cg
             }
         }
 
-        emit fetchObjectFinished(status);
+        emit fetchObjectFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -141,13 +139,12 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
         ParseObjectPtr pObject = _pObject.lock();
+        ParseResult result = replyResult(pReply);
 
-        if (!isError(pReply, status, data) && pObject)
+        if (!result.isError() && pObject)
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonDocument doc = QJsonDocument::fromJson(result.data());
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
@@ -156,7 +153,7 @@ namespace cg
             }
         }
 
-        emit updateObjectFinished(status);
+        emit updateObjectFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -180,10 +177,8 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
-        isError(pReply, status, data);
-        emit deleteObjectFinished(status);
+        ParseResult result = replyResult(pReply);
+        emit deleteObjectFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -227,13 +222,12 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
         QList<ParseObjectPtr> objects = _replyObjectListMap.take(pReply);
+        ParseResult result = replyResult(pReply);
 
-        if (!isError(pReply, status, data))
+        if (!result.isError())
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonDocument doc = QJsonDocument::fromJson(result.data());
             if (doc.isArray())
             {
                 QJsonArray resultsArray = doc.array();
@@ -251,7 +245,7 @@ namespace cg
             }
         }
 
-        emit createAllFinished(status);
+        emit createAllFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -294,12 +288,11 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
+        ParseResult result = replyResult(pReply);
 
-        if (!isError(pReply, status, data))
+        if (!result.isError())
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonDocument doc = QJsonDocument::fromJson(result.data());
             if (doc.isArray())
             {
                 QJsonArray resultsArray = doc.array();
@@ -313,7 +306,7 @@ namespace cg
             }
         }
 
-        emit updateAllFinished(status);
+        emit updateAllFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -353,12 +346,11 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
+        ParseResult result = replyResult(pReply);
 
-        if (!isError(pReply, status, data))
+        if (!result.isError())
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonDocument doc = QJsonDocument::fromJson(result.data());
             if (doc.isArray())
             {
                 QJsonArray resultsArray = doc.array();
@@ -372,7 +364,7 @@ namespace cg
             }
         }
 
-        emit deleteAllFinished(status);
+        emit deleteAllFinished(result.errorCode());
         pReply->deleteLater();
     }
 }

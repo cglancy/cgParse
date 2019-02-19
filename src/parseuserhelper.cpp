@@ -52,26 +52,13 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseUserResult userReply;
+        ParseUserResult userReply(replyResult(pReply));
 
-        int status;
-        QByteArray data;
-
-        if (!isError(pReply, status, data) && status == 200)
+        if (!userReply.isError() && userReply.statusCode() == 200)
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            if (doc.isObject())
-            {
-                ParseUserPtr pUser = QSharedPointer<ParseUser>::create();
-                pUser->setValues(doc.object());
-                pUser->clearDirtyState();
-                userReply.setUser(pUser);
-
-                ParseUser::_pCurrentUser = pUser;
-            }
+            ParseUser::_pCurrentUser = userReply.user();
         }
 
-        userReply.setStatusCode(status);
         emit loginFinished(userReply);
         pReply->deleteLater();
     }
@@ -90,15 +77,14 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
+        ParseResult result = replyResult(pReply);
 
-        if (!isError(pReply, status, data))
+        if (!result.isError())
         {
             ParseUser::_pCurrentUser = nullptr;
         }
 
-        emit logoutFinished(status);
+        emit logoutFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -121,25 +107,13 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseUserResult userReply;
-        int status;
-        QByteArray data;
+        ParseUserResult userReply(replyResult(pReply));
 
-        if (!isError(pReply, status, data))
+        if (!userReply.isError())
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            if (doc.isObject())
-            {
-                ParseUserPtr pUser = QSharedPointer<ParseUser>::create();
-                pUser->setValues(doc.object());
-                pUser->clearDirtyState();
-                userReply.setUser(pUser);
-
-                ParseUser::_pCurrentUser = pUser;
-            }
+            ParseUser::_pCurrentUser = userReply.user();
         }
 
-        userReply.setStatusCode(status);
         emit becomeFinished(userReply);
         pReply->deleteLater();
     }
@@ -169,10 +143,8 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
-        isError(pReply, status, data);
-        emit requestPasswordResetFinished(status);
+        ParseResult result = replyResult(pReply);
+        emit requestPasswordResetFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -180,7 +152,7 @@ namespace cg
     {
         if (!pUser)
         {
-            emit signUpUserFinished(ParseUserResult());
+            emit signUpUserFinished(ParseError::UnknownError);
             return;
         }
 
@@ -201,30 +173,26 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
         ParseUserPtr pUser = _pUser.lock();
-        ParseUserResult userReply;
+        ParseResult result = replyResult(pReply);
 
-        if (!isError(pReply, status, data) && pUser)
+        if (!result.isError() && pUser)
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonDocument doc = QJsonDocument::fromJson(result.data());
             if (doc.isObject())
             {
-                if (status == 201) // Created
+                if (result.statusCode() == 201) // Created
                 {
                     QJsonObject obj = doc.object();
                     pUser->setValues(obj);
                     pUser->clearDirtyState();
 
-                    userReply.setUser(pUser);
                     ParseUser::_pCurrentUser = pUser;
                 }
             }
         }
 
-        userReply.setStatusCode(status);
-        emit signUpUserFinished(userReply);
+        emit signUpUserFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -250,17 +218,16 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
         ParseUserPtr pUser = _pUser.lock();
+        ParseResult result = replyResult(pReply);
 
-        if (!isError(pReply, status, data) && pUser)
+        if (!result.isError() && pUser)
         {
             if (pUser == ParseUser::_pCurrentUser)
                 ParseUser::_pCurrentUser = nullptr;
         }
 
-        emit deleteUserFinished(status);
+        emit deleteUserFinished(result.errorCode());
         pReply->deleteLater();
     }
 }

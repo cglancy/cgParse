@@ -51,12 +51,12 @@ namespace cg
         void privateDeleteUserFinished();
 
     signals:
-        void loginFinished(ParseUserResult userReply);
-        void logoutFinished(int status);
-        void becomeFinished(ParseUserResult userReply);
-        void requestPasswordResetFinished(int status);
-        void signUpUserFinished(ParseUserResult userReply);
-        void deleteUserFinished(int status);
+        void loginFinished(ParseUserResult userResult);
+        void logoutFinished(int error);
+        void becomeFinished(ParseUserResult userResult);
+        void requestPasswordResetFinished(int error);
+        void signUpUserFinished(int error);
+        void deleteUserFinished(int error);
 
     private:
         QWeakPointer<ParseUser> _pUser;

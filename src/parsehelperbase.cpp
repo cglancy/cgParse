@@ -25,26 +25,23 @@
 
 namespace cg
 {
-    bool ParseHelperBase::isError(QNetworkReply *pReply, int &status, QByteArray &data)
+    ParseResult ParseHelperBase::replyResult(QNetworkReply *pReply)
     {
-        bool rtn = false;
-
         if (!pReply)
-            return true;
+            return ParseResult(ParseError::UnknownError);
         
         int error = 0;
         QString message;
 
-        status = statusCode(pReply);
-        data = pReply->readAll();
+        int status = statusCode(pReply);
+        QByteArray data = pReply->readAll();
 
         if (isError(status))
         {
             error = errorCode(data);
             message = errorMessage(data);
-            rtn = true;
 
-            if (error != 0)
+            if (error != ParseError::NoError)
                 qWarning() << QString("Parse Error: %1 %2").arg(error).arg(message);
         }
 
@@ -58,8 +55,7 @@ namespace cg
             qDebug();
         }
 
-        status = error == 0 ? status : error;
-        return rtn;
+        return ParseResult(status, data, error, message);
     }
 
     bool ParseHelperBase::isError(int status)

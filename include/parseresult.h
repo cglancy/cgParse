@@ -19,7 +19,10 @@
 
 #include "parse.h"
 #include "parsetypes.h"
+#include "parseerror.h"
 
+#include <QString>
+#include <QByteArray>
 #include <QSharedPointer>
 #include <QJsonArray>
 
@@ -32,14 +35,22 @@ namespace cg
 	{
 	public:
         ParseResult();
+        ParseResult(int error);
+        ParseResult(int status, const QByteArray &data, int error, const QString &errorMessage);
         ParseResult(const ParseResult &result);
         virtual ~ParseResult();
 
+        bool isError() const { return _errorCode != ParseError::NoError; }
         int statusCode() const { return _statusCode; }
-        void setStatusCode(int statusCode) { _statusCode = statusCode; }
+        QByteArray data() const { return _data; }
+        const QByteArray & constData() const { return _data; }
+        int errorCode() const { return _errorCode; }
+        QString errorMessage() const { return _errorMessage; }
 
     private:
-        int _statusCode;
+        int _statusCode, _errorCode;
+        QByteArray _data;
+        QString _errorMessage;
     };
 
     Q_DECLARE_METATYPE(ParseResult);
@@ -51,36 +62,15 @@ namespace cg
     {
     public:
         ParseUserResult();
+        ParseUserResult(int error);
+        ParseUserResult(const ParseResult &result);
         ParseUserResult(const ParseUserResult &result);
         ~ParseUserResult();
 
-        ParseUserPtr user() const { return _pUser; }
-        void setUser(ParseUserPtr pUser) { _pUser = pUser; }
-
-    private:
-        ParseUserPtr _pUser;
+        ParseUserPtr user() const;
     };
 
     Q_DECLARE_METATYPE(ParseUserResult);
-
-    //
-    // ParseFileResult
-    //
-    class CGPARSE_API ParseFileResult: public ParseResult
-    {
-    public:
-        ParseFileResult();
-        ParseFileResult(const ParseFileResult &result);
-        ~ParseFileResult();
-
-        ParseFilePtr file() const { return _pFile; }
-        void setFile(ParseFilePtr pFile) { _pFile = pFile; }
-
-    private:
-        ParseFilePtr _pFile;
-    };
-
-    Q_DECLARE_METATYPE(ParseFileResult);
 
     //
     // ParseObjectsResult
@@ -89,6 +79,8 @@ namespace cg
     {
     public:
         ParseObjectsResult();
+        ParseObjectsResult(int error);
+        ParseObjectsResult(const ParseResult &result);
         ParseObjectsResult(const ParseObjectsResult &result);
         ~ParseObjectsResult();
 
@@ -96,20 +88,28 @@ namespace cg
         QList<QSharedPointer<T>> objects() const
         {
             QList<QSharedPointer<T>> list;
-            for (auto &jsonValue : _jsonArray)
+
+            QJsonDocument doc = QJsonDocument::fromJson(constData());
+            if (doc.isObject())
             {
-                if (jsonValue.isObject())
+                QJsonObject obj = doc.object();
+                QJsonArray jsonArray = obj.value("results").toArray();
+
+                for (auto &jsonValue : jsonArray)
                 {
-                    QJsonObject jsonObject = jsonValue.toObject();
-                    QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
-                    if (!objectId.isEmpty())
+                    if (jsonValue.isObject())
                     {
-                        QSharedPointer<T> pObject = QSharedPointer<T>::create();
-                        if (pObject)
+                        QJsonObject jsonObject = jsonValue.toObject();
+                        QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
+                        if (!objectId.isEmpty())
                         {
-                            pObject->setValues(jsonObject);
-                            pObject->clearDirtyState();
-                            list.append(pObject);
+                            QSharedPointer<T> pObject = QSharedPointer<T>::create();
+                            if (pObject)
+                            {
+                                pObject->setValues(jsonObject);
+                                pObject->clearDirtyState();
+                                list.append(pObject);
+                            }
                         }
                     }
                 }
@@ -117,12 +117,6 @@ namespace cg
 
             return list;
         }
-
-        QJsonArray jsonArray() const { return _jsonArray; }
-        void setJsonArray(const QJsonArray &jsonArray) { _jsonArray = jsonArray; }
-
-    private:
-        QJsonArray _jsonArray;
     };
 
     Q_DECLARE_METATYPE(ParseObjectsResult);
@@ -134,14 +128,12 @@ namespace cg
     {
     public:
         ParseCountResult();
+        ParseCountResult(int error);
+        ParseCountResult(const ParseResult &result);
         ParseCountResult(const ParseCountResult &result);
         ~ParseCountResult();
 
-        int count() const { return _count; }
-        void setCount(int count) { _count = count; }
-
-    private:
-        int _count;
+        int count() const;
     };
 
     Q_DECLARE_METATYPE(ParseCountResult);
@@ -153,14 +145,12 @@ namespace cg
     {
     public:
         ParseSessionResult();
+        ParseSessionResult(int error);
+        ParseSessionResult(const ParseResult &result);
         ParseSessionResult(const ParseSessionResult &result);
         ~ParseSessionResult();
 
-        ParseSessionPtr session() const { return _pSession; }
-        void setSession(ParseSessionPtr pSession) { _pSession = pSession; }
-
-    private:
-        ParseSessionPtr _pSession;
+        ParseSessionPtr session() const;
     };
 
     Q_DECLARE_METATYPE(ParseSessionResult);

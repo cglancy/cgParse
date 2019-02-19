@@ -42,7 +42,7 @@ namespace cg
 
     signals:
         void currentSessionFinished(ParseSessionResult result);
-        void deleteSessionFinished(int status);
+        void deleteSessionFinished(int error);
     };
 }
 

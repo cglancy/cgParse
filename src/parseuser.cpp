@@ -120,7 +120,7 @@ namespace cg
         return value("sessionToken").toString();
     }
 
-    QFuture<ParseUserResult> ParseUser::signUp()
+    QFuture<int> ParseUser::signUp()
     {
         _pHelper->signUpUser(sharedFromThis().staticCast<ParseUser>());
         return AsyncFuture::observe(_pHelper.data(), &ParseUserHelper::signUpUserFinished).future();

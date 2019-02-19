@@ -375,12 +375,12 @@ void ParseTest::testUserLogin()
     ParseUserPtr pUser = result.user();
     QVERIFY(pUser != nullptr);
     QVERIFY(pUser->isAuthenticated());
-    QVERIFY(pUser == ParseUser::currentUser());
+    QVERIFY(pUser->hasSameId(ParseUser::currentUser()));
 
     QFuture<int> logoutFuture = ParseUser::logout();
     await(logoutFuture);
 
-    QVERIFY(logoutFuture.result() == 200);
+    QVERIFY(logoutFuture.result() == ParseError::NoError);
     QVERIFY(nullptr == ParseUser::currentUser());
 }
 
@@ -401,7 +401,7 @@ void ParseTest::testUserSignUp()
     QVERIFY(testUser->sessionToken().isEmpty());
     QVERIFY(testUser->isAuthenticated() == false);
 
-    QFuture<ParseUserResult> signUpFuture = testUser->signUp();
+    QFuture<int> signUpFuture = testUser->signUp();
     await(signUpFuture);
 
     QVERIFY(!testUser->sessionToken().isEmpty());
@@ -536,7 +536,8 @@ void ParseTest::testFindAllQuery()
     await(findFuture);
 
     ParseObjectsResult objectsResult = findFuture.result();
-    QCOMPARE(objectsResult.jsonArray().size(), 20);
+    QList<TestCharacterPtr> objects = objectsResult.objects<TestCharacter>();
+    QCOMPARE(objects.size(), 20);
 }
 
 void ParseTest::testCountQuery()

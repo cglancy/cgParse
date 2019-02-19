@@ -43,8 +43,8 @@ namespace cg
         void privateDeleteFileFinished();
 
     signals:
-        void saveFileFinished(ParseFileResult fileReply);
-        void deleteFileFinished(int status);
+        void saveFileFinished(int error);
+        void deleteFileFinished(int error);
 
     private:
         QWeakPointer<ParseFile> _pFile;

@@ -36,7 +36,7 @@ namespace cg
     {
         if (!pFile)
         {
-            emit saveFileFinished(ParseFileResult());
+            emit saveFileFinished(ParseError::UnknownError);
             return;
         }
 
@@ -53,25 +53,20 @@ namespace cg
             return;
 
         ParseFilePtr pFile = _pFile.lock();
-        ParseFileResult fileReply;
-        int status;
-        QByteArray data;
+        ParseResult result = replyResult(pReply);
 
-        if (!isError(pReply, status, data) && pFile)
+        if (!result.isError() && pFile)
         {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            if (doc.isObject() && status == 201)  // 201 = Created
+            QJsonDocument doc = QJsonDocument::fromJson(result.data());
+            if (doc.isObject() && result.statusCode() == 201)  // 201 = Created
             {
                 QJsonObject obj = doc.object();
                 pFile->setUrl(obj.value("url").toString());
                 pFile->setName(obj.value("name").toString());
-                fileReply.setFile(pFile);
             }
         }
 
-        fileReply.setStatusCode(status);
-        emit saveFileFinished(fileReply);
-
+        emit saveFileFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -97,10 +92,8 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
-        isError(pReply, status, data);
-        emit deleteFileFinished(status);
+        ParseResult result = replyResult(pReply);
+        emit deleteFileFinished(result.errorCode());
         pReply->deleteLater();
     }
 }

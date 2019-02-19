@@ -27,7 +27,6 @@ namespace cg {
     {
         qRegisterMetaType<ParseResult>();
         qRegisterMetaType<ParseUserResult>();
-        qRegisterMetaType<ParseFileResult>();
         qRegisterMetaType<ParseObjectsResult>();
         qRegisterMetaType<ParseCountResult>();
         qRegisterMetaType<ParseSessionResult>();

@@ -202,7 +202,7 @@ namespace cg
             _url = map.value("url").toString();
     }
 
-    QFuture<ParseFileResult> ParseFile::save()
+    QFuture<int> ParseFile::save()
     {
         _pHelper->saveFile(sharedFromThis());
         return AsyncFuture::observe(_pHelper.data(), &ParseFileHelper::saveFileFinished).future();

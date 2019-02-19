@@ -53,7 +53,7 @@ namespace cg
 
         QString sessionToken() const;
 
-        QFuture<ParseUserResult> signUp();
+        QFuture<int> signUp();
         QFuture<int> deleteUser();
 
     private:

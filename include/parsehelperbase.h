@@ -18,6 +18,7 @@
 #pragma once
 
 #include "parse.h"
+#include "parseresult.h"
 #include <QString>
 
 class QNetworkReply;
@@ -28,7 +29,7 @@ namespace cg
     class ParseHelperBase
     {
     protected:
-        static bool isError(QNetworkReply *pReply, int &status, QByteArray &data);
+        static ParseResult replyResult(QNetworkReply *pReply);
 
     private:
         static int statusCode(QNetworkReply *pReply);

@@ -58,14 +58,14 @@ namespace cg
         void privateDeleteAllFinished();
 
     signals:
-        void createObjectFinished(int status);
-        void fetchObjectFinished(int status);
-        void updateObjectFinished(int status);
-        void deleteObjectFinished(int status);
+        void createObjectFinished(int error);
+        void fetchObjectFinished(int error);
+        void updateObjectFinished(int error);
+        void deleteObjectFinished(int error);
 
-        void createAllFinished(int status);
-        void updateAllFinished(int status);
-        void deleteAllFinished(int status);
+        void createAllFinished(int error);
+        void updateAllFinished(int error);
+        void deleteAllFinished(int error);
 
     private:
         QWeakPointer<ParseObject> _pObject;

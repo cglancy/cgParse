@@ -52,10 +52,8 @@ namespace cg
         if (!pReply)
             return;
 
-        int status;
-        QByteArray data;
-        isError(pReply, status, data);
-        emit deleteSessionFinished(status);
+        ParseResult result = replyResult(pReply);
+        emit deleteSessionFinished(result.errorCode());
         pReply->deleteLater();
     }
 
@@ -79,24 +77,7 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseSessionResult sessionResult;
-
-        int status;
-        QByteArray data;
-
-        if (!isError(pReply, status, data))
-        {
-            QJsonDocument doc = QJsonDocument::fromJson(data);
-            if (doc.isObject())
-            {
-                ParseSessionPtr pSession = QSharedPointer<ParseSession>::create();
-                pSession->setValues(doc.object());
-                pSession->clearDirtyState();
-                sessionResult.setSession(pSession);
-            }
-        }
-
-        sessionResult.setStatusCode(status);
+        ParseSessionResult sessionResult(replyResult(pReply));
         emit currentSessionFinished(sessionResult);
         pReply->deleteLater();
     }
