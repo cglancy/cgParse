@@ -74,8 +74,18 @@ namespace cg
             return QSharedPointer<ParseQuery<T>>::create();
         }
 
-        ~ParseQuery() { clearResults(); }
-        void clearResults() { _results.clear(); }
+        ~ParseQuery() 
+        { 
+            clearResults(); 
+        }
+
+        void clearResults() 
+        { 
+            while (_pHelper->jsonArray.count())
+                _pHelper->jsonArray.pop_back();
+
+            _results.clear();
+        }
 
         QString className() const { return _className; }
 
@@ -223,19 +233,26 @@ namespace cg
             return urlQuery;
         }
 
-        QSharedPointer<T> first() const
+        QSharedPointer<T> first()
         {
+            createResults();
+
             if (_results.size() > 0)
                 return _results.first();
 
             return QSharedPointer<T>();
         }
 
-        const QList<QSharedPointer<T>> & results() const { return _results; }
+        const QList<QSharedPointer<T>> & results()
+        {
+            createResults();
+            return _results;
+        }
 
         QFuture<ParseCountResult> count()
         {
             int origCount = _count, origLimit = _limit;
+            clearResults();
             _count = 1;
             _limit = 0;
             _pHelper->countObjects(_className, urlQuery());
@@ -247,71 +264,44 @@ namespace cg
 
         QFuture<ParseObjectsResult> get(const QString &objectId)
         {
+            clearResults();
             _pHelper->getObject(_className, objectId);
-            QFuture<ParseObjectsResult> future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::getObjectFinished).future();
-#ifdef CGPARSE_NO_EVENT_LOOP
-            await(future);
-#else
-            future.waitForFinished();
-#endif
-            ParseObjectsResult arrayReply = future.result();
-            QJsonArray jsonArray = arrayReply.jsonArray();
-            _results.clear();
-            for (auto &jsonValue : jsonArray)
-            {
-                if (jsonValue.isObject())
-                {
-                    QJsonObject jsonObject = jsonValue.toObject();
-                    QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
-                    if (!objectId.isEmpty())
-                    {
-                        QSharedPointer<T> pObject = QSharedPointer<T>::create();
-                        if (pObject)
-                        {
-                            pObject->setValues(jsonObject);
-                            pObject->clearDirtyState();
-                            _results.append(pObject);
-                        }
-                    }
-                }
-            }            
-            return future;
+            return AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::getObjectFinished).future();
         }
 
         QFuture<ParseObjectsResult> find()
         {
+            clearResults();
             _pHelper->findObjects(_className, urlQuery());
-            QFuture<ParseObjectsResult> future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::findObjectsFinished).future();
-#ifdef CGPARSE_NO_EVENT_LOOP
-            await(future);
-#else
-            future.waitForFinished();
-#endif
-            ParseObjectsResult arrayReply = future.result();
-            QJsonArray jsonArray = arrayReply.jsonArray();
-            _results.clear();
-            for (auto &jsonValue : jsonArray)
+            return AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::findObjectsFinished).future();
+        }
+
+    private:
+        void createResults()
+        {
+            if (_pHelper->jsonArray.size() > 0 && _results.isEmpty())
             {
-                if (jsonValue.isObject())
+                for (auto &jsonValue : _pHelper->jsonArray)
                 {
-                    QJsonObject jsonObject = jsonValue.toObject();
-                    QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
-                    if (!objectId.isEmpty())
+                    if (jsonValue.isObject())
                     {
-                        QSharedPointer<T> pObject = QSharedPointer<T>::create();
-                        if (pObject)
+                        QJsonObject jsonObject = jsonValue.toObject();
+                        QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
+                        if (!objectId.isEmpty())
                         {
-                            pObject->setValues(jsonObject);
-                            pObject->clearDirtyState();
-                            _results.append(pObject);
+                            QSharedPointer<T> pObject = QSharedPointer<T>::create();
+                            if (pObject)
+                            {
+                                pObject->setValues(jsonObject);
+                                pObject->clearDirtyState();
+                                _results.append(pObject);
+                            }
                         }
                     }
                 }
             }
-            return future;
         }
 
-    private:
         void addConstraint(const QString &key, const QString &constraintKey, const QVariant &value)
         {
             if (_whereObject.contains(key))

@@ -23,6 +23,7 @@
 #include "parseresult.h"
 
 #include <QObject>
+#include <QJsonArray>
 
 class QUrlQuery;
 
@@ -35,6 +36,8 @@ namespace cg
         ParseQueryHelper();
         ~ParseQueryHelper();
 
+        QJsonArray jsonArray;
+
     public slots:
         void getObject(const QString &className, const QString &objectId);
         void findObjects(const QString &className, const QUrlQuery &urlQuery);
@@ -46,9 +49,9 @@ namespace cg
         void privateCountObjectsFinished();
 
     signals:
-        void getObjectFinished(ParseObjectsResult reply);
-        void findObjectsFinished(ParseObjectsResult reply);
-        void countObjectsFinished(ParseCountResult reply);
+        void getObjectFinished(ParseObjectsResult result);
+        void findObjectsFinished(ParseObjectsResult result);
+        void countObjectsFinished(ParseCountResult result);
     };
 }
 

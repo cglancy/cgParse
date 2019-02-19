@@ -68,8 +68,8 @@ namespace cg
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
-                QJsonArray resultsArray = obj.value("results").toArray();
-                jsonArrayReply.setJsonArray(resultsArray);
+                jsonArray = obj.value("results").toArray();
+                jsonArrayReply.setJsonArray(jsonArray);
             }
         }
 
@@ -110,8 +110,8 @@ namespace cg
             if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
-                QJsonArray resultsArray = obj.value("results").toArray();
-                jsonArrayReply.setJsonArray(resultsArray);
+                jsonArray = obj.value("results").toArray();
+                jsonArrayReply.setJsonArray(jsonArray);
             }
         }
 
