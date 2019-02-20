@@ -75,10 +75,8 @@ namespace cg
         void logRequest() const;
         QString fullUrl() const;
         QNetworkRequest networkRequest() const;
-        static QNetworkAccessManager* networkAccessManager();
 
     private:
-        static QNetworkAccessManager *_pNam;
         HttpMethod _method;
         QString _apiRoute, _contentType;
         QByteArray _content;

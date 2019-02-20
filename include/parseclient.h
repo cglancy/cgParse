@@ -20,13 +20,17 @@
 #include "parse.h"
 #include <QByteArray>
 
+class QNetworkAccessManager;
+
 namespace cg
 {
     class CGPARSE_API ParseClient
     {
     public:
         static ParseClient * get();
+        static QNetworkAccessManager* networkAccessManager();
 
+    public:
         void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost);
         QByteArray applicationId() const;
         QByteArray clientKey() const;
@@ -37,7 +41,9 @@ namespace cg
     private:
         ParseClient();
         ~ParseClient();
+
         static ParseClient *_pInstance;
+        static QNetworkAccessManager *_pNetworkAccessManager;
         QByteArray _appId, _clientKey, _apiHost;
         bool _loggingEnabled;
     };

@@ -25,17 +25,7 @@
 
 namespace cg
 {
-    QNetworkAccessManager * ParseRequest::_pNam = nullptr;
     const QString ParseRequest::JsonContentType = QStringLiteral("application/json");
-
-    // static
-    QNetworkAccessManager * ParseRequest::networkAccessManager()
-    {
-        if (_pNam == nullptr)
-            _pNam = new QNetworkAccessManager();
-
-        return _pNam;
-    }
 
     ParseRequest::ParseRequest(HttpMethod method, const QString & apiRoute)
         : _method(method),
@@ -173,17 +163,17 @@ namespace cg
         switch (httpMethod())
         {
         case ParseRequest::PutHttpMethod:
-            pReply = networkAccessManager()->put(networkRequest(),content());
+            pReply = ParseClient::networkAccessManager()->put(networkRequest(),content());
             break;
         case ParseRequest::PostHttpMethod:
-            pReply = networkAccessManager()->post(networkRequest(), content());
+            pReply = ParseClient::networkAccessManager()->post(networkRequest(), content());
             break;
         case ParseRequest::DeleteHttpMethod:
-            pReply = networkAccessManager()->deleteResource(networkRequest());
+            pReply = ParseClient::networkAccessManager()->deleteResource(networkRequest());
             break;
         default:
         case ParseRequest::GetHttpMethod:
-            pReply = networkAccessManager()->get(networkRequest());
+            pReply = ParseClient::networkAccessManager()->get(networkRequest());
             break;
         }
 

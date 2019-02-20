@@ -17,10 +17,11 @@
 #include "parseresult.h"
 
 #include <QMetaType>
-
+#include <QNetworkAccessManager>
 
 namespace cg {
     ParseClient * ParseClient::_pInstance = nullptr;
+    QNetworkAccessManager * ParseClient::_pNetworkAccessManager = nullptr;
 
     ParseClient::ParseClient()
         : _loggingEnabled(false)
@@ -42,6 +43,14 @@ namespace cg {
             _pInstance = new ParseClient();
 
         return _pInstance;
+    }
+
+    QNetworkAccessManager * ParseClient::networkAccessManager()
+    {
+        if (!_pNetworkAccessManager)
+            _pNetworkAccessManager = new QNetworkAccessManager();
+
+        return _pNetworkAccessManager;
     }
 
     void ParseClient::initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost)
