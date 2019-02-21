@@ -40,6 +40,24 @@ namespace cg
     class ParseQuery : public QEnableSharedFromThis<ParseQuery<T>>
     {
     public:
+        static QSharedPointer<ParseQuery<T>> create()
+        {
+            return QSharedPointer<ParseQuery<T>>::create();
+        }
+
+        static QSharedPointer<ParseQuery<T>> or(const QList<QSharedPointer<ParseQuery<T>>> &queries)
+        {
+            QSharedPointer<ParseQuery<T>> pQuery = create();
+            QJsonArray jsonArray;
+
+            for (auto & pSubQuery : queries)
+                jsonArray.append(pSubQuery->_whereObject);
+
+            pQuery->_whereObject.insert("$or", jsonArray);
+            return pQuery;
+        }
+
+    public:
         ParseQuery()
             : _pHelper(new ParseQueryHelper()),
             _limit(-1),
@@ -67,11 +85,6 @@ namespace cg
             relatedToObject.insert("key", relationKey);
 
             _whereObject.insert("$relatedTo", relatedToObject);
-        }
-
-        static QSharedPointer<ParseQuery<T>> create()
-        {
-            return QSharedPointer<ParseQuery<T>>::create();
         }
 
         ~ParseQuery() 

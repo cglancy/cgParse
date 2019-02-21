@@ -120,6 +120,7 @@ private slots:
     void testOrderQuery();
     void testComparisonQuery();
     void testFullTextQuery();
+    void testOrQuery();
 
 private:
     TestMoviePtr episode1, episode2, episode3, episode4, episode5, episode6, episode7, episode8, rogue1;

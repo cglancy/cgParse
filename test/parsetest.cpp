@@ -620,3 +620,23 @@ void ParseTest::testFullTextQuery()
             QVERIFY(objectIds.contains(pCharacter->objectId()));
     }
 }
+
+void ParseTest::testOrQuery()
+{
+    QList<QSharedPointer<ParseQuery<TestQuote>>> list;
+
+    auto pAnakinQuery = ParseQuery<TestQuote>::create();
+    pAnakinQuery->whereEqualTo("character", anakin->toPointer().toMap());
+    list.append(pAnakinQuery);
+
+    auto pVaderQuery = ParseQuery<TestQuote>::create();
+    pVaderQuery->whereEqualTo("character", vader->toPointer().toMap());
+    list.append(pVaderQuery);
+
+    auto pQuery = ParseQuery<TestQuote>::or(list);
+    auto future = pQuery->find();
+    await(future);
+
+    QList<TestQuotePtr> quotes = pQuery->results();
+    QCOMPARE(quotes.size(), 3);
+}
