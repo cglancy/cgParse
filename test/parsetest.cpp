@@ -24,6 +24,7 @@
 #include "parserelation.h"
 #include "parsesession.h"
 #include "parseawait.h"
+#include "parsedatetime.h"
 
 #include <QTimer>
 #include <QFile>
@@ -355,6 +356,18 @@ void ParseTest::testAsyncFuture()
     QVERIFY(future.isFinished());
 }
 
+void ParseTest::testDateTime()
+{
+    ParseDateTime dt;
+    QVERIFY(dt.isNull());
+
+    // never forget
+    QDateTime qdt(QDate(2001, 9, 11), QTime(8, 46));
+    ParseDateTime dt2(qdt);
+    QDateTime qdt2 = dt2.toDateTime();
+    QCOMPARE(qdt, qdt2);
+}
+
 void ParseTest::testUserLogin()
 {
 #if 0
@@ -416,9 +429,14 @@ void ParseTest::testUserSignUp()
 
 void ParseTest::testObject()
 {
+    QDateTime dateTime(QDate(2019, 2, 24), QTime(10, 30));
+    ParseDateTime pdt(dateTime);
+
     ParseObjectPtr gameScore = ParseObject::create("TestGameScore");
     gameScore->setValue("score", 1337);
     gameScore->setValue("playerName", "Sean Plott");
+    gameScore->setValue("date", dateTime);
+    gameScore->setValue("pdt", pdt);
 
     QVERIFY(gameScore->objectId().isEmpty());
     QCOMPARE(gameScore->isDirty(), true);
@@ -430,6 +448,11 @@ void ParseTest::testObject()
     QVERIFY(!gameScore->objectId().isEmpty());
     QCOMPARE(gameScore->isDirty(), false);
     QString objectId = gameScore->objectId();
+
+    QCOMPARE(gameScore->value("score").toInt(), 1337);
+    QCOMPARE(gameScore->value("playerName").toString(), QString("Sean Plott"));
+    QCOMPARE(gameScore->value("date").toDateTime(), dateTime);
+    QCOMPARE(gameScore->value("pdt").toMap(), QVariantMap(pdt));
 
     gameScore->setValue("score", 1338);
     QCOMPARE(gameScore->isDirty(), true);

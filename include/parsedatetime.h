@@ -13,48 +13,36 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_H
-#define CGPARSE_H
+#ifndef CGPARSE_PARSEDATETIME_H
+#define CGPARSE_PARSEDATETIME_H
 #pragma once
 
-#include <QtGlobal>
-
-#ifdef Q_OS_WIN32
-
-#ifdef CGPARSE_EXPORTS
-#define CGPARSE_API __declspec(dllexport)
-#else
-#define CGPARSE_API __declspec(dllimport)
-#endif
-
-#else
-
-#define CGPARSE_API __attribute__((visibility("default")))
-
-#endif
-
-#include <QString>
+#include "parse.h"
+#include <QVariant>
+#include <QJsonObject>
+#include <QDateTime>
 
 namespace cg
 {
-    namespace Parse
+    class CGPARSE_API ParseDateTime : public QVariantMap
     {
-        CGPARSE_API extern const QString ClassNameKey;
-        CGPARSE_API extern const QString ObjectIdKey;
-        CGPARSE_API extern const QString CreatedAtKey;
-        CGPARSE_API extern const QString UpdatedAtKey;
-        CGPARSE_API extern const QString TypeKey;
-        CGPARSE_API extern const QString ACLKey;
-        CGPARSE_API extern const QString PublicAccessKey;
-        CGPARSE_API extern const QString ReadKey;
-        CGPARSE_API extern const QString WriteKey;
-        CGPARSE_API extern const QString IsoDateKey;
+    public:
+        ParseDateTime();
+        ParseDateTime(const ParseDateTime &dateTime);
+        ParseDateTime(const QDateTime &dateTime);
 
-        CGPARSE_API extern const QString PointerValue;
-        CGPARSE_API extern const QString ObjectValue;
-        CGPARSE_API extern const QString FileValue;
-        CGPARSE_API extern const QString DateValue;
-    }
+        bool isNull() const;
+
+        ParseDateTime & operator=(const ParseDateTime &dateTime);
+        bool operator==(const ParseDateTime &dateTime) const;
+        bool operator<(const ParseDateTime &dateTime) const;
+
+        QDateTime toDateTime() const;
+
+        static bool isDateTime(const QVariant &variant);
+        static bool isDateTime(const QJsonValue &jsonValue);
+    };
 }
 
-#endif // CGPARSE_H
+
+#endif // CGPARSE_PARSEDATETIME_H

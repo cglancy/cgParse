@@ -105,6 +105,8 @@ private slots:
     void cleanupTestCase();
 
     void testAsyncFuture();
+    void testDateTime();
+
     void testUserLogin();
     void testUserSignUp();
     void testResetPassword();

@@ -13,6 +13,7 @@ HEADERS +=  \
 	../include/parse.h \
 	../include/parseacl.h \
 	../include/parseclient.h \
+	../include/parsedatetime.h \
 	../include/parseerror.h \
 	../include/parsefile.h \
 	../include/parsehelperbase.h \
@@ -35,6 +36,7 @@ HEADERS +=  \
 SOURCES += parse.cpp \
 	parseacl.cpp \
 	parseclient.cpp \
+	parsedatetime.cpp \
 	parsefile.cpp \
 	parsefilehelper.cpp \
 	parsehelperbase.cpp \
