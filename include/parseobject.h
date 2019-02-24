@@ -121,6 +121,9 @@ namespace cg
         ParseUserPtr user(const QString &key) const;
         void setUser(const QString &key, ParseUserPtr pUser);
 
+        QDateTime dateTime(const QString &key) const;
+        void setDateTime(const QString &key, const QDateTime &dateTime);
+
         template <class T>
         QSharedPointer<ParseRelation<T>> relation(const QString &key)
         {

@@ -17,6 +17,20 @@
 
 namespace cg
 {
+    // static
+    QDateTime ParseDateTime::toDateTime(const QVariant & variant)
+    {
+        QDateTime dateTime;
+
+        if (variant.canConvert<QVariantMap>() && isDateTime(variant))
+        {
+            QVariantMap map = variant.toMap();
+            dateTime = QDateTime::fromString(map.value(Parse::IsoDateKey).toString(), Qt::ISODateWithMs);
+        }
+
+        return dateTime;
+    }
+
     ParseDateTime::ParseDateTime()
     {
     }

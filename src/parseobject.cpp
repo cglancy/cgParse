@@ -19,6 +19,7 @@
 #include "parseuser.h"
 #include "parserelation.h"
 #include "parseobjecthelper.h"
+#include "parsedatetime.h"
 #include <asyncfuture.h>
 
 #include <QJsonObject>
@@ -230,6 +231,16 @@ namespace cg {
     void ParseObject::setUser(const QString & key, ParseUserPtr pUser)
     {
         setValue(key, pUser->toPointer().toMap());
+    }
+
+    QDateTime ParseObject::dateTime(const QString & key) const
+    {
+        return ParseDateTime::toDateTime(value(key));
+    }
+
+    void ParseObject::setDateTime(const QString & key, const QDateTime & dateTime)
+    {
+        setValue(key, ParseDateTime(dateTime));
     }
 
     bool ParseObject::contains(const QString &key) const

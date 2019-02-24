@@ -27,6 +27,9 @@ namespace cg
     class CGPARSE_API ParseDateTime : public QVariantMap
     {
     public:
+        static QDateTime toDateTime(const QVariant &variant);
+
+    public:
         ParseDateTime();
         ParseDateTime(const ParseDateTime &dateTime);
         ParseDateTime(const QDateTime &dateTime);

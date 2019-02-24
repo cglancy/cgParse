@@ -435,8 +435,7 @@ void ParseTest::testObject()
     ParseObjectPtr gameScore = ParseObject::create("TestGameScore");
     gameScore->setValue("score", 1337);
     gameScore->setValue("playerName", "Sean Plott");
-    gameScore->setValue("date", dateTime);
-    gameScore->setValue("pdt", pdt);
+    gameScore->setDateTime("date", dateTime);
 
     QVERIFY(gameScore->objectId().isEmpty());
     QCOMPARE(gameScore->isDirty(), true);
@@ -451,8 +450,7 @@ void ParseTest::testObject()
 
     QCOMPARE(gameScore->value("score").toInt(), 1337);
     QCOMPARE(gameScore->value("playerName").toString(), QString("Sean Plott"));
-    QCOMPARE(gameScore->value("date").toDateTime(), dateTime);
-    QCOMPARE(gameScore->value("pdt").toMap(), QVariantMap(pdt));
+    QCOMPARE(gameScore->dateTime("date"), dateTime);
 
     gameScore->setValue("score", 1338);
     QCOMPARE(gameScore->isDirty(), true);
