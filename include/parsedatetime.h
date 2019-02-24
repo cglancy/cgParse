@@ -28,11 +28,13 @@ namespace cg
     {
     public:
         static QDateTime toDateTime(const QVariant &variant);
+        static QDate toDate(const QVariant &variant);
 
     public:
         ParseDateTime();
         ParseDateTime(const ParseDateTime &dateTime);
         ParseDateTime(const QDateTime &dateTime);
+        ParseDateTime(const QDate &date);
 
         bool isNull() const;
 
@@ -41,6 +43,7 @@ namespace cg
         bool operator<(const ParseDateTime &dateTime) const;
 
         QDateTime toDateTime() const;
+        QDate toDate() const;
 
         static bool isDateTime(const QVariant &variant);
         static bool isDateTime(const QJsonValue &jsonValue);

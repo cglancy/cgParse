@@ -243,6 +243,16 @@ namespace cg {
         setValue(key, ParseDateTime(dateTime));
     }
 
+    QDate ParseObject::date(const QString & key) const
+    {
+        return ParseDateTime::toDate(value(key));
+    }
+
+    void ParseObject::setDate(const QString & key, const QDate & date)
+    {
+        setValue(key, ParseDateTime(date));
+    }
+
     bool ParseObject::contains(const QString &key) const
     {
         QStringList list = keys();

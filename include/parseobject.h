@@ -89,6 +89,18 @@ namespace cg
         void addAllUnique(const QString &key, const QVariantList &valueList);
         void removeAll(const QString &key, const QVariantList &valueList);
 
+        ParseFilePtr file(const QString &key) const;
+        void setFile(const QString &key, ParseFilePtr pFile);
+
+        ParseUserPtr user(const QString &key) const;
+        void setUser(const QString &key, ParseUserPtr pUser);
+
+        QDateTime dateTime(const QString &key) const;
+        void setDateTime(const QString &key, const QDateTime &dateTime);
+
+        QDate date(const QString &key) const;
+        void setDate(const QString &key, const QDate &date);
+
         template <class T>
         QSharedPointer<T> object(const QString &key) const
         {
@@ -109,20 +121,12 @@ namespace cg
 
             return pObject;
         }
+
         template <class T>
         void setObject(const QString &key, QSharedPointer<T> pObject)
         {
             setValue(key, pObject->toPointer().toMap());
         }
-
-        ParseFilePtr file(const QString &key) const;
-        void setFile(const QString &key, ParseFilePtr pFile);
-
-        ParseUserPtr user(const QString &key) const;
-        void setUser(const QString &key, ParseUserPtr pUser);
-
-        QDateTime dateTime(const QString &key) const;
-        void setDateTime(const QString &key, const QDateTime &dateTime);
 
         template <class T>
         QSharedPointer<ParseRelation<T>> relation(const QString &key)
@@ -141,6 +145,104 @@ namespace cg
         void setRelation(const QString &key, QSharedPointer<ParseRelation<T>> pRelation)
         {
             setValue(key, pRelation->toMap());
+        }
+
+        template <class T>
+        void addAll(const QString &key, const QList<T> &list)
+        {
+            QVariantList variantList;
+            for (auto & value : list)
+                variantList.append(value);
+            addAll(key, variantList);
+        }
+
+        template <class T>
+        void addAllUnique(const QString &key, const QList<T> &list)
+        {
+            QVariantList variantList;
+            for (auto & value : list)
+                variantList.append(value);
+            addAllUnique(key, variantList);
+        }
+
+        template <class T>
+        void removeAll(const QString &key, const QList<T> &list)
+        {
+            QVariantList variantList;
+            for (auto & value : list)
+                variantList.append(value);
+            removeAll(key, variantList);
+        }
+
+        template <class T>
+        QList<T> list(const QString &key) const
+        {
+            QList<T> list;
+            QVariantList variantList = value(key).toList();
+            for (auto & variant : variantList)
+            {
+                if (variant.canConvert<T>())
+                    list.append(variant.value<T>());
+            }
+
+            return list;
+        }
+
+        template <class T>
+        void addObject(const QString &key, QSharedPointer<T> pObject)
+        {
+            add(key, pObject->toPointer().toMap());
+        }
+
+        template <class T>
+        void addUniqueObject(const QString &key, QSharedPointer<T> pObject)
+        {
+            addUnique(key, pObject->toPointer().toMap());
+        }
+
+        template <class T>
+        void addAllObjects(const QString &key, const QList<QSharedPointer<T>> &objectList)
+        {
+            QVariantList variantList;
+            for (auto & pObject : objectList)
+                variantList.append(pObject->toPointer().toMap());
+            addAll(key, variantList);
+        }
+
+        template <class T>
+        void addAllUniqueObjects(const QString &key, const QList<QSharedPointer<T>> &objectList)
+        {
+            QVariantList variantList;
+            for (auto & pObject : objectList)
+                variantList.append(pObject->toPointer().toMap());
+            addAllUnique(key, variantList);
+        }
+
+        template <class T>
+        void removeAllObjects(const QString &key, const QList<QSharedPointer<T>> &objectList)
+        {
+            QVariantList variantList;
+            for (auto & pObject : objectList)
+                variantList.append(pObject->toPointer().toMap());
+            removeAll(key, variantList);
+        }
+
+        template <class T>
+        QList<QSharedPointer<T>> objects(const QString &key) const
+        {
+            QList<QSharedPointer<T>> objectList;
+            QVariantList variantList = value(key).toList();
+            for (auto & variant : variantList)
+            {
+                if (ParseObjectPointer::isPointer(variant))
+                {
+                    ParseObjectPointer pointer(variant);
+                    QSharedPointer<T> pObject = ParseObject::createWithoutData<T>(pointer.objectId());
+                    objectList.append(pObject);
+                }
+            }
+
+            return objectList;
         }
 
         bool contains(const QString &key) const;

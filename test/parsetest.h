@@ -109,7 +109,7 @@ private slots:
 
     void testUserLogin();
     void testUserSignUp();
-    void testResetPassword();
+    void testUserResetPassword();
 
     void testObject();
     void testObjectRevert();
@@ -117,13 +117,13 @@ private slots:
     void testObjectRelation();
     void testObjectPointerHash();
 
-    void testGetQuery();
-    void testFindAllQuery();
-    void testCountQuery();
-    void testOrderQuery();
-    void testComparisonQuery();
-    void testFullTextQuery();
-    void testOrQuery();
+    void testQueryGet();
+    void testQueryFindAll();
+    void testQueryCount();
+    void testQueryOrder();
+    void testQueryComparison();
+    void testQueryFullText();
+    void testQueryOr();
 
 private:
     TestMoviePtr episode1, episode2, episode3, episode4, episode5, episode6, episode7, episode8, rogue1;

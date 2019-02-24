@@ -31,6 +31,20 @@ namespace cg
         return dateTime;
     }
 
+    // static
+    QDate ParseDateTime::toDate(const QVariant & variant)
+    {
+        QDate date;
+
+        if (variant.canConvert<QVariantMap>() && isDateTime(variant))
+        {
+            QVariantMap map = variant.toMap();
+            date = QDate::fromString(map.value(Parse::IsoDateKey).toString(), Qt::ISODateWithMs);
+        }
+
+        return date;
+    }
+
     ParseDateTime::ParseDateTime()
     {
     }
@@ -39,6 +53,12 @@ namespace cg
     {
         insert(Parse::TypeKey, Parse::DateValue);
         insert(Parse::IsoDateKey, dateTime.toString(Qt::ISODateWithMs));
+    }
+
+    ParseDateTime::ParseDateTime(const QDate & date)
+    {
+        insert(Parse::TypeKey, Parse::DateValue);
+        insert(Parse::IsoDateKey, date.toString(Qt::ISODateWithMs));
     }
 
     ParseDateTime::ParseDateTime(const ParseDateTime & dateTime)
@@ -73,6 +93,11 @@ namespace cg
     QDateTime ParseDateTime::toDateTime() const
     {
         return QDateTime::fromString(value(Parse::IsoDateKey).toString(), Qt::ISODateWithMs);
+    }
+
+    QDate ParseDateTime::toDate() const
+    {
+        return QDate::fromString(value(Parse::IsoDateKey).toString(), Qt::ISODateWithMs);
     }
 
     bool ParseDateTime::isDateTime(const QVariant & variant)

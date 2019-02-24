@@ -397,7 +397,7 @@ void ParseTest::testUserLogin()
     QVERIFY(nullptr == ParseUser::currentUser());
 }
 
-void ParseTest::testResetPassword()
+void ParseTest::testUserResetPassword()
 {
 #if 0
     auto future = ParseUser::requestPasswordReset(PARSE_TEST_EMAIL);
@@ -486,7 +486,7 @@ void ParseTest::testObjectArray()
     gameScore->setValue("score", 1337);
     gameScore->setValue("playerName", "Sean Plott");
 
-    QVariantList previousScores;
+    QList<int> previousScores;
     previousScores << 124;
     previousScores << 1330;
     previousScores << 1;
@@ -498,7 +498,7 @@ void ParseTest::testObjectArray()
     QFuture<int> fetchFuture = gameScore->fetch();
     await(fetchFuture);
 
-    QVariantList scores = gameScore->value("previousScores").toList();
+    QList<int> scores = gameScore->list<int>("previousScores");
     QCOMPARE(scores.size(), 3);
     QVERIFY(scores.contains(1));
     QVERIFY(scores.contains(1330));
@@ -544,7 +544,7 @@ void ParseTest::testObjectPointerHash()
     QVERIFY(episode4->hasSameId(pMovie));
 }
 
-void ParseTest::testGetQuery()
+void ParseTest::testQueryGet()
 {
     auto pQuote = QSharedPointer<TestQuote>::create(episode1, luke, 1, "I have a very bad feeling about this.");
     auto saveFuture1 = pQuote->save();
@@ -564,7 +564,7 @@ void ParseTest::testGetQuery()
     await(deleteFuture);
 }
 
-void ParseTest::testFindAllQuery()
+void ParseTest::testQueryFindAll()
 {
     auto pQuery = QSharedPointer<ParseQuery<TestCharacter>>::create();
     auto findFuture = pQuery->find();
@@ -575,7 +575,7 @@ void ParseTest::testFindAllQuery()
     QCOMPARE(objects.size(), 20);
 }
 
-void ParseTest::testCountQuery()
+void ParseTest::testQueryCount()
 {
     auto pQuery = QSharedPointer<ParseQuery<TestQuote>>::create();
     auto countFuture = pQuery->count();
@@ -585,7 +585,7 @@ void ParseTest::testCountQuery()
     QCOMPARE(countResult.count(), 32);
 }
 
-void ParseTest::testOrderQuery()
+void ParseTest::testQueryOrder()
 {
     auto pAscendingQuery = ParseQuery<TestQuote>::create();
     pAscendingQuery->orderByAscending("rank");
@@ -618,7 +618,7 @@ void ParseTest::testOrderQuery()
     }
 }
 
-void ParseTest::testComparisonQuery()
+void ParseTest::testQueryComparison()
 {
     {
         auto pEqualToQuery = ParseQuery<TestCharacter>::create();
@@ -631,7 +631,7 @@ void ParseTest::testComparisonQuery()
     }
 }
 
-void ParseTest::testFullTextQuery()
+void ParseTest::testQueryFullText()
 {
     auto pFullTextQuery = ParseQuery<TestQuote>::create();
     pFullTextQuery->whereFullText("quote", "force");
@@ -656,7 +656,7 @@ void ParseTest::testFullTextQuery()
     }
 }
 
-void ParseTest::testOrQuery()
+void ParseTest::testQueryOr()
 {
     QList<QSharedPointer<ParseQuery<TestQuote>>> list;
 
