@@ -113,6 +113,7 @@ private slots:
     void testObjectRevert();
     void testObjectArray();
     void testObjectRelation();
+    void testObjectPointerHash();
 
     void testGetQuery();
     void testFindAllQuery();

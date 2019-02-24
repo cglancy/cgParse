@@ -54,15 +54,11 @@ namespace cg
         QString _className, _objectId;
     };
 
-    inline bool operator==(const ParseObjectPointer &p1, const ParseObjectPointer &p2)
-    {
-        return p1.className() == p2.className() && p1.objectId() == p2.objectId();
-    }
-
     inline uint qHash(const ParseObjectPointer &p, uint seed)
     {
         return qHash(p.className() + p.objectId(), seed);
     }
 }
+
 
 #endif // CGPARSE_PARSEOBJECTPOINTER_H

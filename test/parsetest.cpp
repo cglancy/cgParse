@@ -509,6 +509,20 @@ void ParseTest::testObjectRelation()
     QCOMPARE(characters.size(), 6);
 }
 
+void ParseTest::testObjectPointerHash()
+{
+    QHash<ParseObjectPointer, TestMoviePtr> hash;
+    hash.insert(episode1->toPointer(), episode1);
+    hash.insert(episode2->toPointer(), episode2);
+    hash.insert(episode3->toPointer(), episode3);
+    hash.insert(episode4->toPointer(), episode4);
+    hash.insert(episode5->toPointer(), episode5);
+    hash.insert(episode6->toPointer(), episode6);
+
+    TestMoviePtr pMovie = hash.value(episode4->toPointer());
+    QVERIFY(episode4->hasSameId(pMovie));
+}
+
 void ParseTest::testGetQuery()
 {
     auto pQuote = QSharedPointer<TestQuote>::create(episode1, luke, 1, "I have a very bad feeling about this.");
