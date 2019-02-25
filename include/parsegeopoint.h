@@ -13,41 +13,45 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEDATETIME_H
-#define CGPARSE_PARSEDATETIME_H
+#ifndef CGPARSE_PARSEGEOPOINT_H
+#define CGPARSE_PARSEGEOPOINT_H
 #pragma once
 
 #include "parse.h"
 #include <QVariant>
 #include <QJsonValue>
-#include <QDateTime>
 
 namespace cg
 {
-    class CGPARSE_API ParseDateTime : public QVariantMap
+    class CGPARSE_API ParseGeoPoint : public QVariantMap
     {
     public:
-        static QDateTime toDateTime(const QVariant &variant);
-        static QDate toDate(const QVariant &variant);
-        static bool isDateTime(const QVariant &variant);
-        static bool isDateTime(const QJsonValue &jsonValue);
+        static bool isGeoPoint(const QVariant &variant);
+        static bool isGeoPoint(const QJsonValue &jsonValue);
 
     public:
-        ParseDateTime();
-        ParseDateTime(const ParseDateTime &dateTime);
-        ParseDateTime(const QDateTime &dateTime);
-        ParseDateTime(const QDate &date);
+        ParseGeoPoint();
+        ParseGeoPoint(double latitude, double longitude);
+        ParseGeoPoint(const ParseGeoPoint &geoPoint);
+        ParseGeoPoint(const QVariant &variant);
 
-        ParseDateTime & operator=(const ParseDateTime &dateTime);
-        bool operator==(const ParseDateTime &dateTime) const;
-        bool operator<(const ParseDateTime &dateTime) const;
+        ParseGeoPoint & operator=(const ParseGeoPoint &geoPoint);
+        bool operator==(const ParseGeoPoint &geoPoint) const;
+        bool operator<(const ParseGeoPoint &geoPoint) const;
 
         bool isNull() const;
 
-        QDateTime toDateTime() const;
-        QDate toDate() const;
+        double latitude() const;
+        void setLatitude(double latitude);
+
+        double longitude() const;
+        void setLongitude(double longitude);
+
+        double distanceInKilometersTo(const ParseGeoPoint &geoPoint) const;
+        double distanceInMilesTo(const ParseGeoPoint &geoPoint) const;
+        double distanceInRadiansTo(const ParseGeoPoint &geoPoint) const;
     };
 }
 
 
-#endif // CGPARSE_PARSEDATETIME_H
+#endif // CGPARSE_PARSEGEOPOINT_H

@@ -22,6 +22,7 @@
 #include "parserelation.h"
 #include "parseerror.h"
 #include "parseobjectpointer.h"
+#include "parsegeopoint.h"
 
 #include <QEnableSharedFromThis>
 #include <QString>
@@ -100,6 +101,9 @@ namespace cg
 
         QDate date(const QString &key) const;
         void setDate(const QString &key, const QDate &date);
+
+        ParseGeoPoint geoPoint(const QString &key);
+        void setGeoPoint(const QString &key, const ParseGeoPoint &geoPoint);
 
         template <class T>
         QSharedPointer<T> object(const QString &key) const

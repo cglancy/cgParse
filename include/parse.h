@@ -49,11 +49,14 @@ namespace cg
         CGPARSE_API extern const QString ReadKey;
         CGPARSE_API extern const QString WriteKey;
         CGPARSE_API extern const QString IsoDateKey;
+        CGPARSE_API extern const QString LatitudeKey;
+        CGPARSE_API extern const QString LongitudeKey;
 
         CGPARSE_API extern const QString PointerValue;
         CGPARSE_API extern const QString ObjectValue;
         CGPARSE_API extern const QString FileValue;
         CGPARSE_API extern const QString DateValue;
+        CGPARSE_API extern const QString GeoPointValue;
     }
 }
 

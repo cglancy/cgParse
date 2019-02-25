@@ -25,6 +25,7 @@
 #include "parsesession.h"
 #include "parseawait.h"
 #include "parsedatetime.h"
+#include "parsepolygon.h"
 
 #include <QTimer>
 #include <QFile>
@@ -368,6 +369,31 @@ void ParseTest::testDateTime()
     QCOMPARE(qdt, qdt2);
 }
 
+void ParseTest::testGeoPoint()
+{
+    ParseGeoPoint seattle(47.6062, -122.3321);
+    ParseGeoPoint portland(45.5122, -122.6587);
+
+    // a long way on a bicycle
+    double distance = seattle.distanceInMilesTo(portland);
+    QVERIFY(std::abs(distance - 145.52) < 1.e-2);
+}
+
+void ParseTest::testPolygon()
+{
+    ParseGeoPoint sanJuan(18.4655, -66.1057);
+    ParseGeoPoint bermuda(32.3078, -64.7505);
+    ParseGeoPoint miami(25.7617, -80.1918);
+    ParseGeoPoint bermudaTriangle(25.0000, -71.0000);
+
+    ParsePolygon polygon;
+    polygon << sanJuan;
+    polygon << bermuda;
+    polygon << miami;
+
+    QVERIFY(polygon.containsPoint(bermudaTriangle));
+}
+
 void ParseTest::testUserLogin()
 {
 #if 0
@@ -431,11 +457,13 @@ void ParseTest::testObject()
 {
     QDateTime dateTime(QDate(2019, 2, 24), QTime(10, 30));
     ParseDateTime pdt(dateTime);
+    ParseGeoPoint portland(45.5122, -122.6587);
 
     ParseObjectPtr gameScore = ParseObject::create("TestGameScore");
     gameScore->setValue("score", 1337);
     gameScore->setValue("playerName", "Sean Plott");
     gameScore->setDateTime("date", dateTime);
+    gameScore->setGeoPoint("location", portland);
 
     QVERIFY(gameScore->objectId().isEmpty());
     QCOMPARE(gameScore->isDirty(), true);
@@ -451,6 +479,9 @@ void ParseTest::testObject()
     QCOMPARE(gameScore->value("score").toInt(), 1337);
     QCOMPARE(gameScore->value("playerName").toString(), QString("Sean Plott"));
     QCOMPARE(gameScore->dateTime("date"), dateTime);
+
+    ParseGeoPoint location = gameScore->geoPoint("location");
+    QVERIFY(portland.distanceInMilesTo(location) < 1.e-6);
 
     gameScore->setValue("score", 1338);
     QCOMPARE(gameScore->isDirty(), true);

@@ -106,6 +106,8 @@ private slots:
 
     void testAsyncFuture();
     void testDateTime();
+    void testGeoPoint();
+    void testPolygon();
 
     void testUserLogin();
     void testUserSignUp();
