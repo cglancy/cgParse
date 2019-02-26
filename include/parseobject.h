@@ -102,7 +102,7 @@ namespace cg
         QDate date(const QString &key) const;
         void setDate(const QString &key, const QDate &date);
 
-        ParseGeoPoint geoPoint(const QString &key);
+        ParseGeoPoint geoPoint(const QString &key) const;
         void setGeoPoint(const QString &key, const ParseGeoPoint &geoPoint);
 
         template <class T>

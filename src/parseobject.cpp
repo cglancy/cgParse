@@ -253,7 +253,7 @@ namespace cg {
         setValue(key, ParseDateTime(date));
     }
 
-    ParseGeoPoint ParseObject::geoPoint(const QString & key)
+    ParseGeoPoint ParseObject::geoPoint(const QString & key) const
     {
         return ParseGeoPoint(value(key));
     }
