@@ -26,6 +26,7 @@
 #include "parseawait.h"
 #include "parsedatetime.h"
 #include "parsepolygon.h"
+#include "parsereply.h"
 
 #include <QTimer>
 #include <QFile>
@@ -407,20 +408,25 @@ void ParseTest::testUserLogin()
     await(signupFuture);
 #endif
 
-    QFuture<ParseUserResult> loginFuture = ParseUser::login("TestLogin", "Parse123");
-    await(loginFuture);
+    ParseReply *pLoginReply = ParseUser::login("TestLogin", "Parse123");
+    QSignalSpy loginSpy(pLoginReply, &ParseReply::finished);
+    QVERIFY(loginSpy.wait(10000));
 
-    ParseUserResult result = loginFuture.result();
-    ParseUserPtr pUser = result.user();
-    QVERIFY(pUser != nullptr);
-    QVERIFY(pUser->isAuthenticated());
-    QVERIFY(pUser->hasSameId(ParseUser::currentUser()));
+    QVERIFY(!pLoginReply->isError());
+    pLoginReply->deleteLater();
 
-    QFuture<int> logoutFuture = ParseUser::logout();
-    await(logoutFuture);
+    ParseUserPtr pCurrentUser = ParseUser::currentUser();
+    QVERIFY(!pCurrentUser.isNull());
+    QVERIFY(pCurrentUser->isAuthenticated());
 
-    QVERIFY(logoutFuture.result() == ParseError::NoError);
-    QVERIFY(nullptr == ParseUser::currentUser());
+    ParseReply *pLogoutReply = ParseUser::logout();
+    QSignalSpy logoutSpy(pLogoutReply, &ParseReply::finished);
+    QVERIFY(logoutSpy.wait(10000));
+
+    QVERIFY(!pLogoutReply->isError());
+    pLogoutReply->deleteLater();
+
+    QVERIFY(ParseUser::currentUser().isNull());
 }
 
 void ParseTest::testUserResetPassword()
@@ -440,14 +446,16 @@ void ParseTest::testUserSignUp()
     QVERIFY(testUser->sessionToken().isEmpty());
     QVERIFY(testUser->isAuthenticated() == false);
 
-    QFuture<int> signUpFuture = testUser->signUp();
-    await(signUpFuture);
+    ParseReply *pSignUpReply = testUser->signUp();
+    QSignalSpy signUpSpy(pSignUpReply, &ParseReply::finished);
+    QVERIFY(signUpSpy.wait(10000));
 
     QVERIFY(!testUser->sessionToken().isEmpty());
     QString sessionToken = testUser->sessionToken();
 
-    QFuture<int> deleteFuture = testUser->deleteUser();
-    await(deleteFuture);
+    ParseReply *pDeleteReply = testUser->deleteUser();
+    QSignalSpy deleteSpy(pDeleteReply, &ParseReply::finished);
+    QVERIFY(deleteSpy.wait(10000));
 
     auto deleteSessionFuture = ParseSession::deleteSession(sessionToken);
     await(deleteSessionFuture);

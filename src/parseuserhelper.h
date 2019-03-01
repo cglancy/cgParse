@@ -18,7 +18,6 @@
 #pragma once
 
 #include "parse.h"
-#include "parsehelperbase.h"
 #include "parsetypes.h"
 #include "parseresult.h"
 
@@ -27,7 +26,7 @@
 
 namespace cg
 {
-    class CGPARSE_API ParseUserHelper : public QObject, public ParseHelperBase
+    class CGPARSE_API ParseUserHelper : public QObject
     {
         Q_OBJECT
     public:
@@ -35,30 +34,13 @@ namespace cg
         ~ParseUserHelper();
 
     public slots:
-        void login(const QString &username, const QString &password);
-        void logout(ParseUserPtr pUser);
-        void become(const QString &sessionToken);
-        void requestPasswordReset(const QString &email);
-        void signUpUser(ParseUserPtr pUser);
-        void deleteUser(ParseUserPtr pUser);
+        void loginFinished();
+        void logoutFinished();
+        void signUpFinished();
+        void deleteUserFinished();
+        void becomeFinished();
 
-    private:
-        void privateLoginFinished();
-        void privateLogoutFinished();
-        void privateBecomeFinished();
-        void privateRequestPasswordResetFinished();
-        void privateSignUpUserFinished();
-        void privateDeleteUserFinished();
-
-    signals:
-        void loginFinished(ParseUserResult userResult);
-        void logoutFinished(int error);
-        void becomeFinished(ParseUserResult userResult);
-        void requestPasswordResetFinished(int error);
-        void signUpUserFinished(int error);
-        void deleteUserFinished(int error);
-
-    private:
+    public:
         QWeakPointer<ParseUser> _pUser;
     };
 }

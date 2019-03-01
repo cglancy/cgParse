@@ -20,9 +20,9 @@
 #include "parse.h"
 #include "parseresult.h"
 #include <QString>
+#include <QByteArray>
 
 class QNetworkReply;
-class QByteArray;
 
 namespace cg
 {

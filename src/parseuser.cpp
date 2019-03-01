@@ -17,6 +17,7 @@
 #include "parseclient.h"
 #include "parserequest.h"
 #include "parseuserhelper.h"
+#include "parsereply.h"
 #include <asyncfuture.h>
 
 #include <QNetworkReply>
@@ -54,30 +55,66 @@ namespace cg
     {
     }
 
+    // static
     ParseUserPtr ParseUser::currentUser()
     {
         return _pCurrentUser;
     }
 
-    QFuture<ParseUserResult> ParseUser::login(const QString &username, const QString &password)
+    // static 
+    ParseReply * ParseUser::login(const QString & username, const QString & password)
     {
-        ParseUserHelper *pHelper = staticHelper();
-        pHelper->login(username, password);
-        return AsyncFuture::observe(pHelper, &ParseUserHelper::loginFinished).future();
+        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/login");
+        request.setHeader("X-Parse-Revocable-Session", "1");
+
+        QUrlQuery query;
+        query.addQueryItem("username", username);
+        query.addQueryItem("password", password);
+        request.setUrlQuery(query);
+
+        ParseReply *pParseReply = new ParseReply(request.sendRequest());
+        QObject::connect(pParseReply, &ParseReply::preFinished, staticHelper(), &ParseUserHelper::loginFinished);
+        return pParseReply;
     }
 
-    QFuture<int> ParseUser::logout()
+    // static 
+    ParseReply * ParseUser::logout()
     {
-        ParseUserHelper *pHelper = staticHelper();
-        pHelper->logout(_pCurrentUser);
-        return AsyncFuture::observe(pHelper, &ParseUserHelper::logoutFinished).future();
+        QString sessionToken;
+        ParseUserPtr pUser = currentUser();
+        if (!pUser.isNull())
+            sessionToken = pUser->sessionToken();
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/logout");
+        request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
+
+        ParseReply *pParseReply = new ParseReply(request.sendRequest());
+        QObject::connect(pParseReply, &ParseReply::preFinished, staticHelper(), &ParseUserHelper::logoutFinished);
+        return pParseReply;
     }
 
-    QFuture<int> ParseUser::requestPasswordReset(const QString &email)
+    // static 
+    ParseReply * ParseUser::requestPasswordReset(const QString & email)
     {
-        ParseUserHelper *pHelper = staticHelper();
-        pHelper->requestPasswordReset(email);
-        return AsyncFuture::observe(pHelper, &ParseUserHelper::requestPasswordResetFinished).future();
+        QByteArray content;
+        QJsonObject jsonObject;
+        jsonObject.insert("email", email);
+        QJsonDocument doc(jsonObject);
+        content = doc.toJson(QJsonDocument::Compact);
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/requestPasswordReset", content);
+        return new ParseReply(request.sendRequest());
+    }
+
+    // static
+    ParseReply * ParseUser::become(const QString & sessionToken)
+    {
+        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/users/me");
+        request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
+
+        ParseReply *pParseReply = new ParseReply(request.sendRequest());
+        QObject::connect(pParseReply, &ParseReply::preFinished, staticHelper(), &ParseUserHelper::becomeFinished);
+        return pParseReply;
     }
 
     bool ParseUser::isAuthenticated() const
@@ -120,15 +157,31 @@ namespace cg
         return value("sessionToken").toString();
     }
 
-    QFuture<int> ParseUser::signUp()
+    ParseReply * ParseUser::signUp()
     {
-        _pHelper->signUpUser(sharedFromThis().staticCast<ParseUser>());
-        return AsyncFuture::observe(_pHelper.data(), &ParseUserHelper::signUpUserFinished).future();
+        _pHelper->_pUser = sharedFromThis().staticCast<ParseUser>();
+
+        QJsonObject object = toJsonObject();
+        QJsonDocument doc(object);
+        QByteArray content = doc.toJson(QJsonDocument::Compact);
+
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/users", content);
+        request.setHeader("X-Parse-Revocable-Session", "1");
+
+        ParseReply *pParseReply = new ParseReply(request.sendRequest());
+        QObject::connect(pParseReply, &ParseReply::preFinished, _pHelper.data(), &ParseUserHelper::signUpFinished);
+        return pParseReply;
     }
 
-    QFuture<int> ParseUser::deleteUser()
+    ParseReply * ParseUser::deleteUser()
     {
-        _pHelper->deleteUser(sharedFromThis().staticCast<ParseUser>());
-        return AsyncFuture::observe(_pHelper.data(), &ParseUserHelper::deleteUserFinished).future();
+        _pHelper->_pUser = sharedFromThis().staticCast<ParseUser>();
+
+        ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/users/" + objectId());
+        request.setHeader("X-Parse-Session-Token", sessionToken().toUtf8());
+
+        ParseReply *pParseReply = new ParseReply(request.sendRequest());
+        QObject::connect(pParseReply, &ParseReply::preFinished, _pHelper.data(), &ParseUserHelper::deleteUserFinished);
+        return pParseReply;
     }
 }

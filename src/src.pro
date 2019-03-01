@@ -24,6 +24,7 @@ HEADERS +=  \
 	../include/parsequery.h \
 	../include/parsequeryhelper.h \
 	../include/parserelation.h \
+	../include/parsereply.h \
 	../include/parseresult.h \
 	../include/parserole.h \
 	../include/parsesession.h \
@@ -47,6 +48,7 @@ SOURCES += parse.cpp \
 	parseobjecthelper.cpp \
 	parseobjectpointer.cpp \
 	parsequeryhelper.cpp \
+	parsereply.cpp \
 	parseresult.cpp \
 	parserequest.cpp \
 	parserole.cpp \
