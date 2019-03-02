@@ -18,7 +18,7 @@
 #include "parserequest.h"
 #include "parsefilehelper.h"
 #include "parseobject.h"
-#include <asyncfuture.h>
+#include "parsereply.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -92,10 +92,12 @@ namespace cg
     {
     }
 
-    QFuture<int> ParseFile::deleteFile(const QString &url, const QString &masterKey)
+    ParseReply* ParseFile::deleteFile(const QString &urlStr, const QString &masterKey)
     {
-        staticHelper()->deleteFile(url, masterKey);
-        return AsyncFuture::observe(staticHelper(), &ParseFileHelper::deleteFileFinished).future();
+        ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/files/" + urlStr);
+        request.removeHeader("X-Parse-REST-API-Key");
+        request.setHeader("X-Parse-Master-Key", masterKey.toUtf8());
+        return new ParseReply(request.sendRequest());
     }
 
     bool ParseFile::isDirty() const
@@ -202,9 +204,12 @@ namespace cg
             _url = map.value("url").toString();
     }
 
-    QFuture<int> ParseFile::save()
+    ParseReply* ParseFile::save()
     {
-        _pHelper->saveFile(sharedFromThis());
-        return AsyncFuture::observe(_pHelper.data(), &ParseFileHelper::saveFileFinished).future();
+        _pHelper->_pFile = sharedFromThis();
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/files/" + name(), data(), contentType());
+        ParseReply *pReply = new ParseReply(request.sendRequest());
+        QObject::connect(pReply, &ParseReply::preFinished, _pHelper.data(), &ParseFileHelper::saveFileFinished);
+        return pReply;
     }
 }

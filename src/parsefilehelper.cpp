@@ -17,8 +17,8 @@
 #include "parseobject.h"
 #include "parsefile.h"
 #include "parserequest.h"
+#include "parsereply.h"
 
-#include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -32,68 +32,23 @@ namespace cg
     {
     }
 
-    void ParseFileHelper::saveFile(ParseFilePtr pFile)
+    void ParseFileHelper::saveFileFinished()
     {
-        if (!pFile)
-        {
-            emit saveFileFinished(ParseError::UnknownError);
-            return;
-        }
-
-        _pFile = pFile;
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/files/" + pFile->name(), pFile->data(), pFile->contentType());
-        QNetworkReply *pReply = request.sendRequest();
-        connect(pReply, &QNetworkReply::finished, this, &ParseFileHelper::privateSaveFileFinished);
-    }
-
-    void ParseFileHelper::privateSaveFileFinished()
-    {
-        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
+        ParseReply *pReply = qobject_cast<ParseReply*>(sender());
         if (!pReply)
             return;
 
         ParseFilePtr pFile = _pFile.lock();
-        ParseResult result = replyResult(pReply);
 
-        if (!result.isError() && pFile)
+        if (!pReply->isError() && pReply->statusCode() == 201 && pFile)
         {
-            QJsonDocument doc = QJsonDocument::fromJson(result.data());
-            if (doc.isObject() && result.statusCode() == 201)  // 201 = Created
+            QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
+            if (doc.isObject())
             {
                 QJsonObject obj = doc.object();
                 pFile->setUrl(obj.value("url").toString());
                 pFile->setName(obj.value("name").toString());
             }
         }
-
-        emit saveFileFinished(result.errorCode());
-        pReply->deleteLater();
-    }
-
-    void ParseFileHelper::deleteFile(const QString & urlStr, const QString & masterKey)
-    {
-        if (urlStr.isEmpty() || masterKey.isEmpty())
-        {
-            emit deleteFileFinished(ParseError::UnknownError);
-            return;
-        }
-
-        ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/files/" + urlStr);
-        request.removeHeader("X-Parse-REST-API-Key");
-        request.setHeader("X-Parse-Master-Key", masterKey.toUtf8());
-
-        QNetworkReply *pReply = request.sendRequest();
-        connect(pReply, &QNetworkReply::finished, this, &ParseFileHelper::privateDeleteFileFinished);
-    }
-
-    void ParseFileHelper::privateDeleteFileFinished()
-    {
-        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
-        if (!pReply)
-            return;
-
-        ParseResult result = replyResult(pReply);
-        emit deleteFileFinished(result.errorCode());
-        pReply->deleteLater();
     }
 }

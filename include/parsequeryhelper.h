@@ -18,9 +18,7 @@
 #pragma once
 
 #include "parse.h"
-#include "parsehelperbase.h"
 #include "parsetypes.h"
-#include "parseresult.h"
 
 #include <QObject>
 #include <QJsonArray>
@@ -29,7 +27,9 @@ class QUrlQuery;
 
 namespace cg
 {
-    class CGPARSE_API ParseQueryHelper : public QObject, public ParseHelperBase
+    class ParseReply;
+
+    class CGPARSE_API ParseQueryHelper : public QObject
     {
         Q_OBJECT
     public:
@@ -38,20 +38,13 @@ namespace cg
 
         QJsonArray jsonArray;
 
-    public slots:
-        void getObject(const QString &className, const QString &objectId);
-        void findObjects(const QString &className, const QUrlQuery &urlQuery);
-        void countObjects(const QString &className, const QUrlQuery &urlQuery);
+        ParseReply* getObject(const QString &className, const QString &objectId);
+        ParseReply* findObjects(const QString &className, const QUrlQuery &urlQuery);
+        ParseReply* countObjects(const QString &className, const QUrlQuery &urlQuery);
 
     private slots:
-        void privateGetObjectFinished();
-        void privateFindObjectsFinished();
-        void privateCountObjectsFinished();
-
-    signals:
-        void getObjectFinished(ParseObjectsResult result);
-        void findObjectsFinished(ParseObjectsResult result);
-        void countObjectsFinished(ParseCountResult result);
+        void getObjectFinished();
+        void findObjectsFinished();
     };
 }
 

@@ -21,19 +21,19 @@
 #include "parsetypes.h"
 #include "parsequery.h"
 
-#include <QFuture>
-
 namespace cg
 {
     class ParseSessionHelper;
+    class ParseReply;
 
     class CGPARSE_API ParseSession : public ParseObject
     {
     public:
         static ParseSessionPtr create();
         static QSharedPointer<ParseQuery<ParseSession>> query();
-        static QFuture<ParseSessionResult> currentSession();
-        static QFuture<int> deleteSession(const QString &sessionToken);
+
+        static ParseReply* currentSession();
+        static ParseReply* deleteSession(const QString &sessionToken);
 
     public:
         ParseSession();

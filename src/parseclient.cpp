@@ -14,9 +14,7 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parseclient.h"
-#include "parseresult.h"
 
-#include <QMetaType>
 #include <QNetworkAccessManager>
 
 namespace cg {
@@ -26,11 +24,6 @@ namespace cg {
     ParseClient::ParseClient()
         : _loggingEnabled(false)
     {
-        qRegisterMetaType<ParseResult>();
-        qRegisterMetaType<ParseUserResult>();
-        qRegisterMetaType<ParseObjectsResult>();
-        qRegisterMetaType<ParseCountResult>();
-        qRegisterMetaType<ParseSessionResult>();
     }
 
     ParseClient::~ParseClient()

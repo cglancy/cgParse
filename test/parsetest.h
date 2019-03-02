@@ -104,7 +104,6 @@ private slots:
     void initTestCase();
     void cleanupTestCase();
 
-    void testAsyncFuture();
     void testDateTime();
     void testGeoPoint();
     void testPolygon();

@@ -18,31 +18,16 @@
 #pragma once
 
 #include "parse.h"
-#include "parsehelperbase.h"
-#include "parseresult.h"
-
 #include <QObject>
 
 namespace cg
 {
-    class CGPARSE_API ParseSessionHelper : public QObject, public ParseHelperBase
+    class CGPARSE_API ParseSessionHelper : public QObject
     {
         Q_OBJECT
     public:
         ParseSessionHelper();
         ~ParseSessionHelper();
-
-    public slots:
-        void currentSession(const QString &sessionToken);
-        void deleteSession(const QString &sessionToken);
-
-    private:
-        void privateCurrentSessionFinished();
-        void privateDeleteSessionFinished();
-
-    signals:
-        void currentSessionFinished(ParseSessionResult result);
-        void deleteSessionFinished(int error);
     };
 }
 

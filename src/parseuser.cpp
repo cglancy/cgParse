@@ -18,9 +18,6 @@
 #include "parserequest.h"
 #include "parseuserhelper.h"
 #include "parsereply.h"
-#include <asyncfuture.h>
-
-#include <QNetworkReply>
 
 namespace cg
 {

@@ -28,7 +28,6 @@
 #include <QString>
 #include <QDateTime>
 #include <QVariant>
-#include <QFuture>
 #include <QScopedPointer>
 
 namespace cg
@@ -54,9 +53,9 @@ namespace cg
             return pObject;
         }
 
-        static QFuture<int> createAll(const QList<ParseObjectPtr> &objects);
-        static QFuture<int> updateAll(const QList<ParseObjectPtr> &objects);
-        static QFuture<int> deleteAll(const QList<ParseObjectPtr> &objects);
+        static ParseReply* createAll(const QList<ParseObjectPtr> &objects);
+        static ParseReply* updateAll(const QList<ParseObjectPtr> &objects);
+        static ParseReply* deleteAll(const QList<ParseObjectPtr> &objects);
 
         template <class T>
         static QSharedPointer<ParseQuery<T>> query()
@@ -257,9 +256,9 @@ namespace cg
         QVariantMap toMap(bool onlyUserValues = true) const;
         ParseObjectPointer toPointer() const;
 
-        QFuture<int> save();
-        QFuture<int> fetch();
-        QFuture<int> deleteObject();
+        ParseReply* save();
+        ParseReply* fetch();
+        ParseReply* deleteObject();
 
     private:
         QStringList keys(bool onlyUserValues = true) const;

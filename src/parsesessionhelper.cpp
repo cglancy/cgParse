@@ -17,8 +17,8 @@
 #include "parserequest.h"
 #include "parseerror.h"
 #include "parsesession.h"
+#include "parsereply.h"
 
-#include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -30,55 +30,5 @@ namespace cg
 
     ParseSessionHelper::~ParseSessionHelper()
     {
-    }
-
-    void ParseSessionHelper::deleteSession(const QString &sessionToken)
-    {
-        if (sessionToken.isEmpty())
-        {
-            emit deleteSessionFinished(ParseError::UnknownError);
-            return;
-        }
-
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/logout");
-        request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
-        QNetworkReply *pReply = request.sendRequest();
-        connect(pReply, &QNetworkReply::finished, this, &ParseSessionHelper::privateDeleteSessionFinished);
-    }
-
-    void ParseSessionHelper::privateDeleteSessionFinished()
-    {
-        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
-        if (!pReply)
-            return;
-
-        ParseResult result = replyResult(pReply);
-        emit deleteSessionFinished(result.errorCode());
-        pReply->deleteLater();
-    }
-
-    void ParseSessionHelper::currentSession(const QString &sessionToken)
-    {
-        if (sessionToken.isEmpty())
-        {
-            emit currentSessionFinished(ParseSessionResult());
-            return;
-        }
-
-        ParseRequest request(ParseRequest::GetHttpMethod, "parse/sessions/me");
-        request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
-        QNetworkReply *pReply = request.sendRequest();
-        connect(pReply, &QNetworkReply::finished, this, &ParseSessionHelper::privateCurrentSessionFinished);
-    }
-
-    void ParseSessionHelper::privateCurrentSessionFinished()
-    {
-        QNetworkReply *pReply = qobject_cast<QNetworkReply*>(sender());
-        if (!pReply)
-            return;
-
-        ParseSessionResult sessionResult(replyResult(pReply));
-        emit currentSessionFinished(sessionResult);
-        pReply->deleteLater();
     }
 }

@@ -28,14 +28,14 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QScopedPointer>
-#include <QFuture>
-#include <asyncfuture.h>
 #include <typeinfo>
 
 #define CLASSNAME_FROM_TYPE(T) QString(typeid(T).name()).mid(6)
 
 namespace cg
 {
+    class ParseReply;
+
     template <class T>
     class ParseQuery : public QEnableSharedFromThis<ParseQuery<T>>
     {
@@ -262,31 +262,28 @@ namespace cg
             return _results;
         }
 
-        QFuture<ParseCountResult> count()
+        ParseReply* count()
         {
             int origCount = _count, origLimit = _limit;
             clearResults();
             _count = 1;
             _limit = 0;
-            _pHelper->countObjects(_className, urlQuery());
-            auto future = AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::countObjectsFinished).future();
+            ParseReply * pReply = _pHelper->countObjects(_className, urlQuery());
             _count = origCount;
             _limit = origLimit;
-            return future;
+            return pReply;
         }
 
-        QFuture<ParseObjectsResult> get(const QString &objectId)
+        ParseReply* get(const QString &objectId)
         {
             clearResults();
-            _pHelper->getObject(_className, objectId);
-            return AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::getObjectFinished).future();
+            return _pHelper->getObject(_className, objectId);
         }
 
-        QFuture<ParseObjectsResult> find()
+        ParseReply* find()
         {
             clearResults();
-            _pHelper->findObjects(_className, urlQuery());
-            return AsyncFuture::observe(_pHelper.data(), &ParseQueryHelper::findObjectsFinished).future();
+            return _pHelper->findObjects(_className, urlQuery());
         }
 
     private:

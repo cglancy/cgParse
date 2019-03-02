@@ -18,9 +18,7 @@
 #pragma once
 
 #include "parse.h"
-#include "parsehelperbase.h"
 #include "parsetypes.h"
-#include "parseresult.h"
 
 #include <QObject>
 #include <QWeakPointer>
@@ -30,46 +28,33 @@ class QNetworkReply;
 
 namespace cg
 {
-    class CGPARSE_API ParseObjectHelper : public QObject, public ParseHelperBase
+    class ParseReply;
+
+    class CGPARSE_API ParseObjectHelper : public QObject
     {
         Q_OBJECT
     public:
         ParseObjectHelper();
         ~ParseObjectHelper();
 
-    public slots:
-        void createObject(ParseObjectPtr pObject);
-        void fetchObject(ParseObjectPtr pObject);
-        void updateObject(ParseObjectPtr pObject);
-        void deleteObject(ParseObjectPtr pObject);
+        ParseReply* createObject(ParseObjectPtr pObject);
+        ParseReply* fetchObject(ParseObjectPtr pObject);
+        ParseReply* updateObject(ParseObjectPtr pObject);
+        ParseReply* deleteObject(ParseObjectPtr pObject);
 
-        void createAll(const QList<ParseObjectPtr> &objects);
-        void updateAll(const QList<ParseObjectPtr> &objects);
-        void deleteAll(const QList<ParseObjectPtr> &objects);
+        ParseReply* createAll(const QList<ParseObjectPtr> &objects);
+        ParseReply* updateAll(const QList<ParseObjectPtr> &objects);
+        ParseReply* deleteAll(const QList<ParseObjectPtr> &objects);
 
-    private:
+    private slots:
         void privateCreateObjectFinished();
         void privateFetchObjectFinished();
         void privateUpdateObjectFinished();
-        void privateDeleteObjectFinished();
-
         void privateCreateAllFinished();
-        void privateUpdateAllFinished();
-        void privateDeleteAllFinished();
-
-    signals:
-        void createObjectFinished(int error);
-        void fetchObjectFinished(int error);
-        void updateObjectFinished(int error);
-        void deleteObjectFinished(int error);
-
-        void createAllFinished(int error);
-        void updateAllFinished(int error);
-        void deleteAllFinished(int error);
 
     private:
         QWeakPointer<ParseObject> _pObject;
-        QMap<QNetworkReply*, QList<ParseObjectPtr>> _replyObjectListMap;
+        QMap<ParseReply*, QList<ParseObjectPtr>> _replyObjectListMap;
     };
 }
 

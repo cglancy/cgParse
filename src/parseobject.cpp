@@ -20,7 +20,6 @@
 #include "parserelation.h"
 #include "parseobjecthelper.h"
 #include "parsedatetime.h"
-#include <asyncfuture.h>
 
 #include <QJsonObject>
 #include <QJsonArray>
@@ -332,50 +331,44 @@ namespace cg {
             _valueMap.insert(key, variantMap.value(key));
     }
 
-    QFuture<int> ParseObject::save()
+    ParseReply* ParseObject::save()
     {
-        QFuture<int> future;
+        ParseReply *pReply = nullptr;
+
         if (createdAt().isNull())
         {
-            _pHelper->createObject(sharedFromThis());
-            future = AsyncFuture::observe(_pHelper.data(), &ParseObjectHelper::createObjectFinished).future();
+            pReply = _pHelper->createObject(sharedFromThis());
         }
         else
         {
-            _pHelper->updateObject(sharedFromThis());
-            future = AsyncFuture::observe(_pHelper.data(), &ParseObjectHelper::updateObjectFinished).future();
+            pReply = _pHelper->updateObject(sharedFromThis());
         }
         
-        return future;
+        return pReply;
     }
 
-    QFuture<int> ParseObject::fetch()
+    ParseReply* ParseObject::fetch()
     {
-        _pHelper->fetchObject(sharedFromThis());
-        return AsyncFuture::observe(_pHelper.data(), &ParseObjectHelper::fetchObjectFinished).future();
+        return _pHelper->fetchObject(sharedFromThis());
     }
 
-    QFuture<int> ParseObject::deleteObject()
+    ParseReply* ParseObject::deleteObject()
     {
-        _pHelper->deleteObject(sharedFromThis());
-        return AsyncFuture::observe(_pHelper.data(), &ParseObjectHelper::deleteObjectFinished).future();
+        return _pHelper->deleteObject(sharedFromThis());
     }
 
-    QFuture<int> ParseObject::createAll(const QList<ParseObjectPtr>& objects)
+    ParseReply* ParseObject::createAll(const QList<ParseObjectPtr>& objects)
     {
-        staticHelper()->createAll(objects);
-        return AsyncFuture::observe(staticHelper(), &ParseObjectHelper::createAllFinished).future();
+        return staticHelper()->createAll(objects);
     }
 
-    QFuture<int> ParseObject::updateAll(const QList<ParseObjectPtr>& objects)
+    ParseReply* ParseObject::updateAll(const QList<ParseObjectPtr>& objects)
     {
-        staticHelper()->updateAll(objects);
-        return AsyncFuture::observe(staticHelper(), &ParseObjectHelper::updateAllFinished).future();
+        return staticHelper()->updateAll(objects);
     }
 
-    QFuture<int> ParseObject::deleteAll(const QList<ParseObjectPtr>& objects)
+    ParseReply* ParseObject::deleteAll(const QList<ParseObjectPtr>& objects)
     {
-        staticHelper()->deleteAll(objects);
-        return AsyncFuture::observe(staticHelper(), &ParseObjectHelper::deleteAllFinished).future();
+        return staticHelper()->deleteAll(objects);
     }
 }

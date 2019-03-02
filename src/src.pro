@@ -9,7 +9,6 @@ VERSION	= 0.1.1
 INCLUDEPATH += ../include
 
 HEADERS +=  \
-	../include/asyncfuture.h \
 	../include/parse.h \
 	../include/parseacl.h \
 	../include/parseclient.h \
@@ -17,7 +16,6 @@ HEADERS +=  \
 	../include/parseerror.h \
 	../include/parsefile.h \
 	../include/parsegeopoint.h \
-	../include/parsehelperbase.h \
 	../include/parseobject.h \
 	../include/parseobjectpointer.h \
 	../include/parsepolygon.h \
@@ -25,7 +23,6 @@ HEADERS +=  \
 	../include/parsequeryhelper.h \
 	../include/parserelation.h \
 	../include/parsereply.h \
-	../include/parseresult.h \
 	../include/parserole.h \
 	../include/parsesession.h \
  	../include/parsetypes.h \
@@ -43,13 +40,11 @@ SOURCES += parse.cpp \
 	parsefile.cpp \
 	parsefilehelper.cpp \
 	parsegeopoint.cpp \
-	parsehelperbase.cpp \
 	parseobject.cpp \
 	parseobjecthelper.cpp \
 	parseobjectpointer.cpp \
 	parsequeryhelper.cpp \
 	parsereply.cpp \
-	parseresult.cpp \
 	parserequest.cpp \
 	parserole.cpp \
 	parsesession.cpp \

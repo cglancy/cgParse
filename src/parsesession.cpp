@@ -15,12 +15,15 @@
 */
 #include "parsesession.h"
 #include "parsesessionhelper.h"
+#include "parserequest.h"
 #include "parseuser.h"
+#include "parsereply.h"
 
 namespace cg
 {
     ParseSessionHelper * ParseSession::_pStaticHelper = nullptr;
 
+    // static
     ParseSessionHelper * ParseSession::staticHelper()
     {
         if (!_pStaticHelper)
@@ -29,30 +32,36 @@ namespace cg
         return _pStaticHelper;
     }
 
+    // static
     ParseSessionPtr ParseSession::create()
     {
         return QSharedPointer<ParseSession>::create();
     }
 
+    // static
     QSharedPointer<ParseQuery<ParseSession>> ParseSession::query()
     {
         return QSharedPointer<ParseQuery<ParseSession>>::create();
     }
 
-    QFuture<int> ParseSession::deleteSession(const QString &sessionToken)
+    // static
+    ParseReply* ParseSession::deleteSession(const QString &sessionToken)
     {
-        staticHelper()->deleteSession(sessionToken);
-        return AsyncFuture::observe(staticHelper(), &ParseSessionHelper::deleteSessionFinished).future();
+        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/logout");
+        request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
+        return new ParseReply(request.sendRequest());
     }
 
-    QFuture<ParseSessionResult> ParseSession::currentSession()
+    // static
+    ParseReply* ParseSession::currentSession()
     {
         ParseUserPtr pCurrentUser = ParseUser::currentUser();
-        if (!pCurrentUser)
-            return QFuture<ParseSessionResult>();
+        if (pCurrentUser.isNull())
+            return new ParseReply(ParseError::UnknownError);
 
-        staticHelper()->currentSession(pCurrentUser->sessionToken());
-        return AsyncFuture::observe(staticHelper(), &ParseSessionHelper::currentSessionFinished).future();
+        ParseRequest request(ParseRequest::GetHttpMethod, "parse/sessions/me");
+        request.setHeader("X-Parse-Session-Token", pCurrentUser->sessionToken().toUtf8());
+        return new ParseReply(request.sendRequest());
     }
 
     ParseSession::ParseSession()

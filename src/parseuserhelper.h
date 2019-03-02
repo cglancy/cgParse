@@ -19,7 +19,6 @@
 
 #include "parse.h"
 #include "parsetypes.h"
-#include "parseresult.h"
 
 #include <QObject>
 #include <QWeakPointer>

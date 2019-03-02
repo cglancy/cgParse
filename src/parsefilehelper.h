@@ -18,16 +18,14 @@
 #pragma once
 
 #include "parse.h"
-#include "parsehelperbase.h"
 #include "parsetypes.h"
-#include "parseresult.h"
 
 #include <QObject>
 #include <QWeakPointer>
 
 namespace cg
 {
-    class CGPARSE_API ParseFileHelper : public QObject, public ParseHelperBase
+    class CGPARSE_API ParseFileHelper : public QObject
     {
         Q_OBJECT
     public:
@@ -35,18 +33,9 @@ namespace cg
         ~ParseFileHelper();
 
     public slots:
-        void saveFile(ParseFilePtr pFile);
-        void deleteFile(const QString &url, const QString &masterKey);
+        void saveFileFinished();
 
-    private:
-        void privateSaveFileFinished();
-        void privateDeleteFileFinished();
-
-    signals:
-        void saveFileFinished(int error);
-        void deleteFileFinished(int error);
-
-    private:
+    public:
         QWeakPointer<ParseFile> _pFile;
     };
 }
