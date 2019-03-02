@@ -23,6 +23,8 @@
 
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QMetaType>
+#include <QDebug>
 
 namespace cg {
     ParseObjectHelper * ParseObject::_pStaticHelper = nullptr;
@@ -41,6 +43,13 @@ namespace cg {
     {
     }
 
+    ParseObject::ParseObject(const ParseObject & object)
+    {
+        _className = object._className;
+        _valueMap = object._valueMap; 
+        _savedValueMap = object._savedValueMap;
+    }
+
     ParseObject::ParseObject(const QString &className)
         : _className(className),
         _pHelper(new ParseObjectHelper())
@@ -53,7 +62,21 @@ namespace cg {
 
     ParseObjectPtr ParseObject::create(const QString &className)
     {
-        return QSharedPointer<ParseObject>::create(className);
+        ParseObjectPtr pObject;
+
+        int id = QMetaType::type(className.toLocal8Bit());
+        if (id != QMetaType::UnknownType)
+        {
+            void *newObject = QMetaType::create(id);
+            ParseObject *pParseObject = static_cast<ParseObject*>(newObject);
+            pObject = QSharedPointer<ParseObject>(pParseObject);
+        }
+        else
+        {
+            pObject = QSharedPointer<ParseObject>::create(className);
+        }
+
+        return pObject;
     }
 
     ParseObjectPtr ParseObject::createWithoutData(const QString &className, const QString &objectId)
@@ -198,20 +221,12 @@ namespace cg {
 
     ParseFilePtr ParseObject::file(const QString &key) const
     {
-        ParseFilePtr pFile;
-        if (_valueMap.contains(key) && ParseFile::isFile(_valueMap.value(key)))
-        {
-            QVariantMap map = value(key).toMap();
-            pFile = QSharedPointer<ParseFile>::create();
-            pFile->setValues(map);
-        }
-
-        return pFile;
+        return _valueMap.value(key).value<ParseFilePtr>();
     }
 
     void ParseObject::setFile(const QString &key, ParseFilePtr pFile)
     {
-        setValue(key, pFile->toMap());
+        setValue(key, QVariant::fromValue(pFile));
     }
 
     ParseUserPtr ParseObject::user(const QString & key) const
@@ -294,16 +309,58 @@ namespace cg {
 
     QJsonObject ParseObject::toJsonObject(bool onlyUserValues) const
     {
-        QJsonObject jsonObject = QJsonObject::fromVariantMap(_valueMap);
-
-        if (onlyUserValues)
+        QVariantMap map = toMap(onlyUserValues);
+        for (auto & key : map.keys())
         {
-            jsonObject.remove(Parse::ObjectIdKey);
-            jsonObject.remove(Parse::CreatedAtKey);
-            jsonObject.remove(Parse::UpdatedAtKey);
+            QVariant variant = map.value(key);
+            if (variant.canConvert<ParseObjectPtr>())
+            {
+                ParseObjectPtr pObject = variant.value<ParseObjectPtr>();
+                map.insert(key, pObject->toPointer().toMap());
+            }
+            else if (variant.canConvert<ParseFilePtr>())
+            {
+                ParseFilePtr pFile = variant.value<ParseFilePtr>();
+                map.insert(key, pFile->toMap());
+            }
         }
 
-        return jsonObject;
+        return QJsonObject::fromVariantMap(map);
+    }
+
+    void ParseObject::setValues(const QJsonObject &jsonObject)
+    {
+        QVariantMap map = jsonObject.toVariantMap();
+        for (auto & key : map.keys())
+        {
+            QVariant variant = map.value(key);
+            if (variant.canConvert<QVariantMap>())
+            {
+                QVariantMap childMap = variant.toMap();
+                if (childMap.contains(Parse::TypeKey) && childMap.value(Parse::TypeKey).toString() == Parse::PointerValue)
+                {
+                    QString className = childMap.value(Parse::ClassNameKey).toString();
+                    QString objectId = childMap.value(Parse::ObjectIdKey).toString();
+                    ParseObjectPtr pObject = ParseObject::createWithoutData(className, objectId);
+                    map.insert(key, QVariant::fromValue(pObject));
+                }
+                else if (childMap.contains(Parse::TypeKey) && childMap.value(Parse::TypeKey).toString() == Parse::ObjectValue)
+                {
+                    QString className = childMap.value(Parse::ClassNameKey).toString();
+                    ParseObjectPtr pObject = ParseObject::create(className);
+                    pObject->setValues(childMap);
+                    map.insert(key, QVariant::fromValue(pObject));
+                }
+                else if (childMap.contains(Parse::TypeKey) && childMap.value(Parse::TypeKey).toString() == Parse::FileValue)
+                {
+                    ParseFilePtr pFile = ParseFile::create();
+                    pFile->setValues(childMap);
+                    map.insert(key, QVariant::fromValue(pFile));
+                }
+            }
+        }
+
+        setValues(map);
     }
 
     QVariantMap ParseObject::toMap(bool onlyUserValues) const
@@ -317,12 +374,6 @@ namespace cg {
         }
 
         return map;
-    }
-
-    void ParseObject::setValues(const QJsonObject &jsonObject)
-    {
-        QVariantMap variantMap = jsonObject.toVariantMap();
-        setValues(variantMap);
     }
 
     void ParseObject::setValues(const QVariantMap &variantMap)

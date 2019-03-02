@@ -38,6 +38,7 @@ class TestMovie : public cg::ParseObject
 {
 public:
     TestMovie();
+    TestMovie(const TestMovie &movie);
     TestMovie(const QString &title);
     ~TestMovie() {}
 
@@ -47,6 +48,8 @@ private:
     void setTitle(const QString &title) { setValue("title", title); }
 };
 
+Q_DECLARE_METATYPE(TestMovie);
+
 //
 // TestCharacter
 //
@@ -54,6 +57,7 @@ class TestCharacter : public cg::ParseObject
 {
 public:
     TestCharacter();
+    TestCharacter(const TestCharacter &character);
     TestCharacter(const QString &name);
     ~TestCharacter() {}
 
@@ -65,6 +69,8 @@ private:
     void setName(const QString &name) { setValue("name", name); }
 };
 
+Q_DECLARE_METATYPE(TestCharacter);
+
 //
 // TestQuote
 //
@@ -72,6 +78,7 @@ class TestQuote : public cg::ParseObject
 {
 public:
     TestQuote();
+    TestQuote(const TestQuote &quote);
     TestQuote(TestMoviePtr movie, TestCharacterPtr character, int rank, const QString &quote);
     ~TestQuote() {}
 
@@ -87,6 +94,7 @@ private:
     void setCharacter(TestCharacterPtr pCharacter) { setObject<TestCharacter>("character", pCharacter); }
 };
 
+Q_DECLARE_METATYPE(TestQuote);
 //
 // ParseTest
 //
@@ -104,6 +112,7 @@ private slots:
     void initTestCase();
     void cleanupTestCase();
 
+    void testVariant();
     void testDateTime();
     void testGeoPoint();
     void testPolygon();
@@ -117,6 +126,7 @@ private slots:
     void testObjectArray();
     void testObjectRelation();
     void testObjectPointerHash();
+    void testObjectChildLevel1();
 
     void testQueryGet();
     void testQueryFindAll();

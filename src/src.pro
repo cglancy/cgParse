@@ -1,4 +1,4 @@
-QT += core network
+QT += core network testlib
 QT -= gui
 
 TARGET = cgParse

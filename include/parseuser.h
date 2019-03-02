@@ -40,6 +40,7 @@ namespace cg
 
     public:
         ParseUser();
+        ParseUser(const ParseUser &user);
         ~ParseUser();
 
         bool isAuthenticated() const;
@@ -67,6 +68,8 @@ namespace cg
         QScopedPointer<ParseUserHelper> _pHelper;
         static ParseUserHelper *_pStaticHelper;
     };
+
+    Q_DECLARE_METATYPE(ParseUser);
 }
 
 #endif // CGPARSE_PARSEUSER_H

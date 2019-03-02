@@ -52,6 +52,10 @@ namespace cg
         void privateSaveAllFinished();
 
     private:
+        void saveChildrenIfNeeded(ParseObjectPtr pObject);
+        bool collectDirtyChildren(ParseObjectPtr pObject, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects);
+
+    private:
         QWeakPointer<ParseObject> _pObject;
         QMap<ParseReply*, QList<ParseObjectPtr>> _replyObjectListMap;
     };

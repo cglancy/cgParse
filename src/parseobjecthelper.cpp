@@ -18,10 +18,12 @@
 #include "parseuser.h"
 #include "parserequest.h"
 #include "parsereply.h"
+#include "parsefile.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QSignalSpy>
 
 namespace cg
 {
@@ -33,8 +35,53 @@ namespace cg
     {
     }
 
+    bool ParseObjectHelper::collectDirtyChildren(ParseObjectPtr pObject, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects)
+    {
+        // first level search for now
+        for (auto & key : pObject->keys())
+        {
+            if (pObject->isDirty(key))
+            {
+                QVariant variant = pObject->value(key);
+                if (variant.canConvert<ParseObjectPtr>())
+                {
+                    objects.append(variant.value<ParseObjectPtr>());
+                }
+                else if (variant.canConvert<ParseFilePtr>())
+                {
+                    files.append(variant.value<ParseFilePtr>());
+                }
+            }
+        }
+
+        return files.size() > 0;
+    }
+
+    void ParseObjectHelper::saveChildrenIfNeeded(ParseObjectPtr pObject)
+    {
+        QList<ParseFilePtr> files;
+        QList<ParseObjectPtr> objects;
+        collectDirtyChildren(pObject, files, objects);
+
+        for (auto & pFile : files)
+        {
+            ParseReply *pFileReply = pFile->save();
+            QSignalSpy fileSpy(pFileReply, &ParseReply::finished);
+            fileSpy.wait(200000);
+        }
+
+        for (auto & pObject : objects)
+        {
+            ParseReply *pObjectReply = pObject->save();
+            QSignalSpy objectSpy(pObjectReply, &ParseReply::finished);
+            objectSpy.wait(10000);
+        }
+    }
+
     ParseReply* ParseObjectHelper::createObject(ParseObjectPtr pObject)
     {
+        saveChildrenIfNeeded(pObject);
+
         _pObject = pObject;
         QJsonObject object = pObject->toJsonObject();
         QJsonDocument doc(object);
@@ -60,8 +107,7 @@ namespace cg
             QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
             if (doc.isObject())
             {
-                QJsonObject obj = doc.object();
-                pObject->setValues(obj);
+                pObject->setValues(doc.object());
                 pObject->clearDirtyState();
             }
         }
@@ -102,6 +148,8 @@ namespace cg
         {
             return new ParseReply(ParseError::UnknownError);
         }
+
+        saveChildrenIfNeeded(pObject);
 
         _pObject = pObject;
         QJsonObject object = pObject->toJsonObject();
@@ -158,6 +206,8 @@ namespace cg
 
         for (auto & pObject : objects)
         {
+            saveChildrenIfNeeded(pObject);
+
             QJsonObject requestObject;
 
             if (pObject->objectId().isEmpty())

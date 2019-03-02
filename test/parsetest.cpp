@@ -58,6 +58,11 @@ TestMovie::TestMovie()
 {
 }
 
+TestMovie::TestMovie(const TestMovie &movie)
+    : ParseObject(movie)
+{
+}
+
 TestMovie::TestMovie(const QString &title)
     : ParseObject("TestMovie")
 {
@@ -76,7 +81,12 @@ TestMoviePtr ParseTest::createMovie(const QString &title)
 //
 
 TestCharacter::TestCharacter()
-    : cg::ParseObject("TestCharacter")
+    : ParseObject("TestCharacter")
+{
+}
+
+TestCharacter::TestCharacter(const TestCharacter &character)
+    : ParseObject(character)
 {
 }
 
@@ -97,10 +107,10 @@ TestCharacterPtr ParseTest::createCharacter(const QString &name, const QString &
         if (fi.exists())
         {
             pFile = QSharedPointer<ParseFile>::create(imagePath);
-            ParseReply *pReply = pFile->save();
-            QSignalSpy saveSpy(pReply, &ParseReply::finished);
-            saveSpy.wait(SPY_WAIT);
-            pReply->deleteLater();
+            //ParseReply *pReply = pFile->save();
+            //QSignalSpy saveSpy(pReply, &ParseReply::finished);
+            //saveSpy.wait(SPY_WAIT);
+            //pReply->deleteLater();
         }
         else
         {
@@ -121,7 +131,12 @@ TestCharacterPtr ParseTest::createCharacter(const QString &name, const QString &
 //
 
 TestQuote::TestQuote()
-    : cg::ParseObject("TestQuote")
+    : ParseObject("TestQuote")
+{
+}
+
+TestQuote::TestQuote(const TestQuote &quote)
+    : ParseObject(quote)
 {
 }
 
@@ -362,6 +377,17 @@ void ParseTest::deleteTestObjects()
         QVERIFY(delete4Spy.wait(SPY_WAIT));
         pDelete4Reply->deleteLater();
     }
+}
+
+void ParseTest::testVariant()
+{
+    ParseObjectPtr pObject = ParseObject::create("TestObject");
+    pObject->setValue("name", "testObject1");
+
+    QVariant variant = QVariant::fromValue(pObject);
+    ParseObjectPtr pObject2 = variant.value<QSharedPointer<ParseObject>>();
+    QVERIFY(pObject == pObject2);
+    QCOMPARE(pObject2->value("name").toString(), QString("testObject1"));
 }
 
 void ParseTest::testDateTime()
@@ -607,6 +633,33 @@ void ParseTest::testObjectPointerHash()
 
     TestMoviePtr pMovie = hash.value(episode4->toPointer());
     QVERIFY(episode4->hasSameId(pMovie));
+}
+
+void ParseTest::testObjectChildLevel1()
+{
+    TestMoviePtr pSoloMovie = createMovie("Solo: A Star Wars Story");
+    TestCharacterPtr pQira = createCharacter("Qi'ra");
+    TestQuotePtr pQuote = createQuote(pSoloMovie, pQira, 33, "You look good. A little rough around the edges, but good.");
+
+    ParseReply *pSaveReply = pQuote->save();
+    QSignalSpy saveSpy(pSaveReply, &ParseReply::finished);
+    QVERIFY(saveSpy.wait(SPY_WAIT));
+
+    QVERIFY(!pQuote->objectId().isEmpty());
+    QVERIFY(!pQira->objectId().isEmpty());
+    QVERIFY(!pSoloMovie->objectId().isEmpty());
+
+    ParseReply *pDelete1Reply = pQuote->deleteObject();
+    QSignalSpy delete1Spy(pDelete1Reply, &ParseReply::finished);
+    QVERIFY(delete1Spy.wait(SPY_WAIT));
+
+    ParseReply *pDelete2Reply = pQira->deleteObject();
+    QSignalSpy delete2Spy(pDelete2Reply, &ParseReply::finished);
+    QVERIFY(delete2Spy.wait(SPY_WAIT));
+
+    ParseReply *pDelete3Reply = pSoloMovie->deleteObject();
+    QSignalSpy delete3Spy(pDelete3Reply, &ParseReply::finished);
+    QVERIFY(delete3Spy.wait(SPY_WAIT));
 }
 
 void ParseTest::testQueryGet()

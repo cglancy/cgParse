@@ -81,6 +81,8 @@ namespace cg
         QScopedPointer<ParseFileHelper> _pHelper;
         static ParseFileHelper *_pStaticHelper;
     };
+
+    Q_DECLARE_METATYPE(QSharedPointer<ParseFile>);
 }
 
 #endif // CGPARSE_PARSEFILE_H

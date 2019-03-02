@@ -64,6 +64,7 @@ namespace cg
 
     public:
         ParseObject();
+        ParseObject(const ParseObject &object);
         ParseObject(const QString &className);
         virtual ~ParseObject();
 
@@ -106,28 +107,15 @@ namespace cg
         template <class T>
         QSharedPointer<T> object(const QString &key) const
         {
-            QSharedPointer<T> pObject;
-
-            if (_valueMap.contains(key) && ParseObjectPointer::isPointer(_valueMap.value(key)))
-            {
-                ParseObjectPointer pointer(_valueMap.value(key));
-                pObject = ParseObject::createWithoutData<T>(pointer.objectId());
-            }
-            else if (_valueMap.contains(key) && ParseObjectPointer::isObject(_valueMap.value(key)))
-            {
-                QVariantMap map = _valueMap.value(key).toMap();
-                pObject = ParseObject::create<T>();
-                map.remove(Parse::TypeKey);
-                pObject->setValues(map);
-            }
-
-            return pObject;
+            ParseObjectPtr pBaseObject = value(key).value<ParseObjectPtr>();
+            return pBaseObject.staticCast<T>();
         }
 
         template <class T>
         void setObject(const QString &key, QSharedPointer<T> pObject)
         {
-            setValue(key, pObject->toPointer().toMap());
+            ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+            setValue(key, QVariant::fromValue(pBaseObject));
         }
 
         template <class T>
@@ -193,13 +181,15 @@ namespace cg
         template <class T>
         void addObject(const QString &key, QSharedPointer<T> pObject)
         {
-            add(key, pObject->toPointer().toMap());
+            ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+            add(key, QVariant::fromValue(pBaseObject));
         }
 
         template <class T>
         void addUniqueObject(const QString &key, QSharedPointer<T> pObject)
         {
-            addUnique(key, pObject->toPointer().toMap());
+            ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+            addUnique(key, QVariant::fromValue(pBaseObject));
         }
 
         template <class T>
@@ -207,7 +197,10 @@ namespace cg
         {
             QVariantList variantList;
             for (auto & pObject : objectList)
-                variantList.append(pObject->toPointer().toMap());
+            {
+                ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+                variantList.append(QVariant::fromValue(pBaseObject));
+            }
             addAll(key, variantList);
         }
 
@@ -216,7 +209,10 @@ namespace cg
         {
             QVariantList variantList;
             for (auto & pObject : objectList)
-                variantList.append(pObject->toPointer().toMap());
+            {
+                ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+                variantList.append(QVariant::fromValue(pBaseObject));
+            }
             addAllUnique(key, variantList);
         }
 
@@ -225,7 +221,10 @@ namespace cg
         {
             QVariantList variantList;
             for (auto & pObject : objectList)
-                variantList.append(pObject->toPointer().toMap());
+            {
+                ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+                variantList.append(QVariant::fromValue(pBaseObject));
+            }
             removeAll(key, variantList);
         }
 
@@ -236,32 +235,28 @@ namespace cg
             QVariantList variantList = value(key).toList();
             for (auto & variant : variantList)
             {
-                if (ParseObjectPointer::isPointer(variant))
-                {
-                    ParseObjectPointer pointer(variant);
-                    QSharedPointer<T> pObject = ParseObject::createWithoutData<T>(pointer.objectId());
-                    objectList.append(pObject);
-                }
+                ParseObjectPtr pBaseObject = variant.value<ParseObjectPtr>();
+                objectList.append(pBaseObject.staticCast<T>());
             }
 
             return objectList;
         }
 
-        bool contains(const QString &key) const;
-        void setValues(const QJsonObject &jsonObject);
-        void setValues(const QVariantMap &variantMap);
-        void clearDirtyState();
-        QJsonObject toJsonObject(bool onlyUserValues = true) const;
-        QVariantMap toMap(bool onlyUserValues = true) const;
-        ParseObjectPointer toPointer() const;
-
         ParseReply* save();
         ParseReply* fetch();
         ParseReply* deleteObject();
 
-    private:
+        bool contains(const QString &key) const;
+        void setValues(const QVariantMap &variantMap);
+        void clearDirtyState();
+        QVariantMap toMap(bool onlyUserValues = true) const;
+        ParseObjectPointer toPointer() const;
+        QJsonObject toJsonObject(bool onlyUserValues = true) const;
+        void setValues(const QJsonObject &jsonObject);
         QStringList keys(bool onlyUserValues = true) const;
         static bool isUserValue(const QString &key);
+
+    private:
         static ParseObjectHelper * staticHelper();
 
     private:
@@ -270,6 +265,9 @@ namespace cg
         QScopedPointer<ParseObjectHelper> _pHelper;
         static ParseObjectHelper *_pStaticHelper;
     };
+
+    Q_DECLARE_METATYPE(ParseObject);
+    Q_DECLARE_METATYPE(QSharedPointer<ParseObject>);
 }
 
 #endif // CGPARSE_PARSEOBJECT_H
