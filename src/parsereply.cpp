@@ -110,6 +110,8 @@ namespace cg
 
         emit preFinished();
         emit finished();
+
+        _pReply->deleteLater();
     }
 
     int ParseReply::count() const
