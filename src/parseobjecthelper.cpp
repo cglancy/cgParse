@@ -19,6 +19,7 @@
 #include "parserequest.h"
 #include "parsereply.h"
 #include "parsefile.h"
+#include "parseconvert.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -83,7 +84,7 @@ namespace cg
         saveChildrenIfNeeded(pObject);
 
         _pObject = pObject;
-        QJsonObject object = pObject->toJsonObject();
+        QJsonObject object = ParseConvert::toJsonObject(pObject->toMap());
         QJsonDocument doc(object);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
@@ -107,7 +108,7 @@ namespace cg
             QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
             if (doc.isObject())
             {
-                pObject->setValues(doc.object());
+                pObject->setValues(ParseConvert::toVariantMap(doc.object()));
                 pObject->clearDirtyState();
             }
         }
@@ -135,8 +136,7 @@ namespace cg
             QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
             if (doc.isObject())
             {
-                QJsonObject obj = doc.object();
-                pObject->setValues(obj);
+                pObject->setValues(ParseConvert::toVariantMap(doc.object()));
                 pObject->clearDirtyState();
             }
         }
@@ -152,7 +152,7 @@ namespace cg
         saveChildrenIfNeeded(pObject);
 
         _pObject = pObject;
-        QJsonObject object = pObject->toJsonObject();
+        QJsonObject object = ParseConvert::toJsonObject(pObject->toMap());
         QJsonDocument doc(object);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
@@ -175,8 +175,7 @@ namespace cg
             QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
             if (doc.isObject())
             {
-                QJsonObject obj = doc.object();
-                pObject->setValues(obj);
+                pObject->setValues(ParseConvert::toVariantMap(doc.object()));
                 pObject->clearDirtyState();
             }
         }
@@ -223,7 +222,7 @@ namespace cg
                 requestObject.insert("path", apiPath);
             }
 
-            QJsonObject bodyObject = pObject->toJsonObject();
+            QJsonObject bodyObject = ParseConvert::toJsonObject(pObject->toMap());
             requestObject.insert("body", bodyObject);
             requestsArray.append(requestObject);
         }
@@ -261,7 +260,7 @@ namespace cg
                     {
                         QJsonObject successObject = arrayObject.value("success").toObject();
                         ParseObjectPtr pObject = objects.at(i);
-                        pObject->setValues(successObject);
+                        pObject->setValues(ParseConvert::toVariantMap(successObject));
                         pObject->clearDirtyState();
                     }
                 }

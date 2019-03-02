@@ -18,6 +18,7 @@
 #include "parserequest.h"
 #include "parseuserhelper.h"
 #include "parsereply.h"
+#include "parseconvert.h"
 
 namespace cg
 {
@@ -163,7 +164,7 @@ namespace cg
     {
         _pHelper->_pUser = sharedFromThis().staticCast<ParseUser>();
 
-        QJsonObject object = toJsonObject();
+        QJsonObject object = ParseConvert::toJsonObject(toMap());
         QJsonDocument doc(object);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 

@@ -20,6 +20,7 @@
 #include "parse.h"
 #include "parsetypes.h"
 #include "parseerror.h"
+#include "parseconvert.h"
 
 #include <QString>
 #include <QByteArray>
@@ -72,7 +73,7 @@ namespace cg
                             QSharedPointer<T> pObject = QSharedPointer<T>::create();
                             if (pObject)
                             {
-                                pObject->setValues(jsonObject);
+                                pObject->setValues(ParseConvert::toVariantMap(jsonObject));
                                 pObject->clearDirtyState();
                                 list.append(pObject);
                             }

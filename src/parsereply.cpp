@@ -17,6 +17,7 @@
 #include "parseerror.h"
 #include "parseuser.h"
 #include "parsesession.h"
+#include "parseconvert.h"
 
 #include <QNetworkReply>
 #include <QJsonDocument>
@@ -136,7 +137,7 @@ namespace cg
         if (doc.isObject())
         {
             pUser = QSharedPointer<ParseUser>::create();
-            pUser->setValues(doc.object());
+            pUser->setValues(ParseConvert::toVariantMap(doc.object()));
             pUser->clearDirtyState();
         }
 
@@ -151,7 +152,7 @@ namespace cg
         if (doc.isObject())
         {
             pSession = QSharedPointer<ParseSession>::create();
-            pSession->setValues(doc.object());
+            pSession->setValues(ParseConvert::toVariantMap(doc.object()));
             pSession->clearDirtyState();
         }
 

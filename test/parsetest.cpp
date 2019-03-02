@@ -635,7 +635,7 @@ void ParseTest::testObjectPointerHash()
     QVERIFY(episode4->hasSameId(pMovie));
 }
 
-void ParseTest::testObjectChildLevel1()
+void ParseTest::testObjectReferenceSave()
 {
     TestMoviePtr pSoloMovie = createMovie("Solo: A Star Wars Story");
     TestCharacterPtr pQira = createCharacter("Qi'ra");
@@ -660,6 +660,10 @@ void ParseTest::testObjectChildLevel1()
     ParseReply *pDelete3Reply = pSoloMovie->deleteObject();
     QSignalSpy delete3Spy(pDelete3Reply, &ParseReply::finished);
     QVERIFY(delete3Spy.wait(SPY_WAIT));
+}
+
+void ParseTest::testObjectArraySave()
+{
 }
 
 void ParseTest::testQueryGet()

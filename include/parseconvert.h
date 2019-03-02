@@ -13,47 +13,37 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEOBJECTPOINTER_H
-#define CGPARSE_PARSEOBJECTPOINTER_H
+#ifndef CGPARSE_CONVERT_H
+#define CGPARSE_CONVERT_H
 #pragma once
 
 #include "parse.h"
-#include <QString>
-#include <QJsonObject>
+#include "parsetypes.h"
 #include <QVariant>
-#include <QHash>
+#include <QJsonObject>
 
 namespace cg
 {
-    class CGPARSE_API ParseObjectPointer
+    class CGPARSE_API ParseConvert
     {
     public:
-        ParseObjectPointer();
-        ParseObjectPointer(const QString &className, const QString &objectId);
-        ParseObjectPointer(const QJsonObject &jsonObject);
-        ParseObjectPointer(const QVariant &variant);
-        ParseObjectPointer(const ParseObjectPointer &ptr);
+        static QJsonObject toJsonObject(const QVariantMap &map);
+        static QVariantMap toVariantMap(const QJsonObject &object);
 
-        bool isNull() const;
-        QString className() const;
-        QString objectId() const;
-
-        ParseObjectPointer & operator=(const ParseObjectPointer &ptr);
-        bool operator==(const ParseObjectPointer &ptr) const;
-        bool operator<(const ParseObjectPointer &ptr) const;
-
-        QJsonObject toJsonObject() const;
-        QVariantMap toMap() const;
+        static bool isPointer(const QVariant &variant);
+        static bool isObject(const QVariant &variant);
 
     private:
-        QString _className, _objectId;
-    };
+        static QVariantMap convertMap(const QVariantMap &map, bool toJson);
+        static QVariantList convertList(const QVariantList &list, bool toJson);
+        static bool canConvert(const QVariant &variant, bool toJson);
+        static QVariant convertVariant(const QVariant &variant, bool toJson);
 
-    inline uint qHash(const ParseObjectPointer &p, uint seed)
-    {
-        return qHash(p.className() + p.objectId(), seed);
-    }
+        static ParseObjectPtr objectFromVariant(const QVariant &variant);
+
+        static bool isFile(const QVariant &variant);
+        static ParseFilePtr fileFromVariant(const QVariant &variant);
+    };
 }
 
-
-#endif // CGPARSE_PARSEOBJECTPOINTER_H
+#endif // CGPARSE_CONVERT_H

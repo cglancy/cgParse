@@ -17,6 +17,7 @@
 #include "parseuser.h"
 #include "parserequest.h"
 #include "parsereply.h"
+#include "parseconvert.h"
 
 #include <QNetworkReply>
 #include <QJsonDocument>
@@ -81,8 +82,7 @@ namespace cg
             QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
             if (doc.isObject())
             {
-                QJsonObject obj = doc.object();
-                pUser->setValues(obj);
+                pUser->setValues(ParseConvert::toVariantMap(doc.object()));
                 pUser->clearDirtyState();
 
                 ParseUser::_pCurrentUser = pUser;

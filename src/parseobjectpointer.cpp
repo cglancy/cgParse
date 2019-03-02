@@ -15,6 +15,7 @@
 */
 #include "parseobjectpointer.h"
 #include "parseobject.h"
+#include "parseconvert.h"
 
 namespace cg
 {
@@ -30,7 +31,7 @@ namespace cg
 
     ParseObjectPointer::ParseObjectPointer(const QVariant &variant)
     {
-        if (variant.canConvert<QVariantMap>() && isPointer(variant))
+        if (variant.canConvert<QVariantMap>() && ParseConvert::isPointer(variant))
         {
             QVariantMap map = variant.toMap();
             _className = map.value(Parse::ClassNameKey).toString();
@@ -106,57 +107,5 @@ namespace cg
         map.insert(Parse::ClassNameKey, _className);
         map.insert(Parse::ObjectIdKey, _objectId);
         return map;
-    }
-
-    bool ParseObjectPointer::isPointer(const QVariant &variant)
-    {
-        bool pointer = false;
-        if (variant.canConvert<QVariantMap>())
-        {
-            QVariantMap map = variant.toMap();
-            pointer = map.contains(Parse::TypeKey) && 
-                map.value(Parse::TypeKey).toString() == Parse::PointerValue;
-        }
-
-        return pointer;
-    }
-
-    bool ParseObjectPointer::isPointer(const QJsonValue &jsonValue)
-    {
-        bool pointer = false;
-        if (jsonValue.isObject())
-        {
-            QJsonObject jsonObject = jsonValue.toObject();
-            pointer = jsonObject.contains(Parse::TypeKey) &&
-                jsonObject.value(Parse::TypeKey).toString() == Parse::PointerValue;
-        }
-
-        return pointer;
-    }
-
-    bool ParseObjectPointer::isObject(const QVariant &variant)
-    {
-        bool object = false;
-        if (variant.canConvert<QVariantMap>())
-        {
-            QVariantMap map = variant.toMap();
-            object = map.contains(Parse::TypeKey) &&
-                map.value(Parse::TypeKey).toString() == Parse::ObjectValue;
-        }
-
-        return object;
-    }
-
-    bool ParseObjectPointer::isObject(const QJsonValue &jsonValue)
-    {
-        bool object = false;
-        if (jsonValue.isObject())
-        {
-            QJsonObject jsonObject = jsonValue.toObject();
-            object = jsonObject.contains(Parse::TypeKey) &&
-                jsonObject.value(Parse::TypeKey).toString() == Parse::ObjectValue;
-        }
-
-        return object;
     }
 }

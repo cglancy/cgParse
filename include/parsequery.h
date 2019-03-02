@@ -19,13 +19,13 @@
 
 #include "parseclient.h"
 #include "parsequeryhelper.h"
+#include "parseconvert.h"
 #include <QEnableSharedFromThis>
 #include <QString>
 #include <QSharedPointer>
 #include <QList>
 #include <QUrlQuery>
 #include <QJsonDocument>
-#include <QJsonObject>
 #include <QJsonArray>
 #include <QScopedPointer>
 #include <typeinfo>
@@ -302,7 +302,7 @@ namespace cg
                             QSharedPointer<T> pObject = QSharedPointer<T>::create();
                             if (pObject)
                             {
-                                pObject->setValues(jsonObject);
+                                pObject->setValues(ParseConvert::toVariantMap(jsonObject));
                                 pObject->clearDirtyState();
                                 _results.append(pObject);
                             }

@@ -31,11 +31,18 @@ namespace cg
         CGPARSE_API const QString IsoDateKey = QStringLiteral("iso");
         CGPARSE_API const QString LatitudeKey = QStringLiteral("latitude");
         CGPARSE_API const QString LongitudeKey = QStringLiteral("longitude");
+        CGPARSE_API const QString OperatorKey = QStringLiteral("__op");
 
         CGPARSE_API const QString PointerValue = QStringLiteral("Pointer");
         CGPARSE_API const QString ObjectValue = QStringLiteral("Object");
         CGPARSE_API const QString FileValue = QStringLiteral("File");
         CGPARSE_API const QString DateValue = QStringLiteral("Date");
         CGPARSE_API const QString GeoPointValue = QStringLiteral("GeoPoint");
+        CGPARSE_API const QString AddValue = QStringLiteral("Add");
+        CGPARSE_API const QString AddUniqueValue = QStringLiteral("AddUnique");
+        CGPARSE_API const QString RemoveValue = QStringLiteral("Remove");
+        CGPARSE_API const QString DeleteValue = QStringLiteral("Delete");
+        CGPARSE_API const QString AddRelationValue = QStringLiteral("AddRelation");
+        CGPARSE_API const QString RemoveRelationValue = QStringLiteral("RemoveRelation");
     }
 }

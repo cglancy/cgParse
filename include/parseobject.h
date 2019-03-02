@@ -247,12 +247,10 @@ namespace cg
         ParseReply* deleteObject();
 
         bool contains(const QString &key) const;
-        void setValues(const QVariantMap &variantMap);
         void clearDirtyState();
         QVariantMap toMap(bool onlyUserValues = true) const;
         ParseObjectPointer toPointer() const;
-        QJsonObject toJsonObject(bool onlyUserValues = true) const;
-        void setValues(const QJsonObject &jsonObject);
+        void setValues(const QVariantMap &variantMap);
         QStringList keys(bool onlyUserValues = true) const;
         static bool isUserValue(const QString &key);
 

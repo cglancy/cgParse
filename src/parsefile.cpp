@@ -140,59 +140,14 @@ namespace cg
         return _data;
     }
 
-    QJsonObject ParseFile::toJsonObject() const
-    {
-        QJsonObject jsonObject;
-        jsonObject.insert(Parse::TypeKey, "File");
-        jsonObject.insert("name", _name);
-        if (_url.isEmpty())
-            jsonObject.insert("url", _url);
-        return jsonObject;
-    }
-
     QVariantMap ParseFile::toMap() const
     {
         QVariantMap map;
-        map.insert(Parse::TypeKey, "File");
+        map.insert(Parse::TypeKey, Parse::FileValue);
         map.insert("name", _name);
         if (_url.isEmpty())
             map.insert("url", _url);
         return map;
-    }
-
-    bool ParseFile::isFile(const QVariant &variant)
-    {
-        bool file = false;
-        if (variant.canConvert<QVariantMap>())
-        {
-            QVariantMap map = variant.toMap();
-            file = map.contains(Parse::TypeKey) &&
-                map.value(Parse::TypeKey).toString() == "File";
-        }
-
-        return file;
-    }
-
-    bool ParseFile::isFile(const QJsonValue &jsonValue)
-    {
-        bool file = false;
-        if (jsonValue.isObject())
-        {
-            QJsonObject jsonObject = jsonValue.toObject();
-            file = jsonObject.contains(Parse::TypeKey) &&
-                jsonObject.value(Parse::TypeKey).toString() == "File";
-        }
-
-        return file;
-    }
-
-    void ParseFile::setValues(const QJsonObject &jsonObject)
-    {
-        if (jsonObject.contains("name"))
-            _name = jsonObject.value("name").toString();
-
-        if (jsonObject.contains("url"))
-            _url = jsonObject.value("url").toString();
     }
 
     void ParseFile::setValues(const QVariantMap &map)

@@ -171,7 +171,7 @@ namespace cg {
     void ParseObject::remove(const QString & key)
     {
         QVariantMap map;
-        map.insert("__op", "Delete");
+        map.insert(Parse::OperatorKey, Parse::DeleteValue);
         setValue(key, map);
     }
 
@@ -180,7 +180,7 @@ namespace cg {
         QVariantList list;
         list.append(value);
         QVariantMap map;
-        map.insert("__op", "Add");
+        map.insert(Parse::OperatorKey, Parse::AddValue);
         map.insert("objects", list);
         setValue(key, map);
     }
@@ -190,7 +190,7 @@ namespace cg {
         QVariantList list;
         list.append(value);
         QVariantMap map;
-        map.insert("__op", "AddUnique");
+        map.insert(Parse::OperatorKey, Parse::AddUniqueValue);
         map.insert("objects", list);
         setValue(key, map);
     }
@@ -198,7 +198,7 @@ namespace cg {
     void ParseObject::addAll(const QString & key, const QVariantList & valueList)
     {
         QVariantMap map;
-        map.insert("__op", "Add");
+        map.insert(Parse::OperatorKey, Parse::AddValue);
         map.insert("objects", valueList);
         setValue(key, map);
     }
@@ -206,7 +206,7 @@ namespace cg {
     void ParseObject::addAllUnique(const QString & key, const QVariantList & valueList)
     {
         QVariantMap map;
-        map.insert("__op", "AddUnique");
+        map.insert(Parse::OperatorKey, Parse::AddUniqueValue);
         map.insert("objects", valueList);
         setValue(key, map);
     }
@@ -214,7 +214,7 @@ namespace cg {
     void ParseObject::removeAll(const QString & key, const QVariantList & valueList)
     {
         QVariantMap map;
-        map.insert("__op", "Remove");
+        map.insert(Parse::OperatorKey, Parse::RemoveValue);
         map.insert("objects", valueList);
         setValue(key, map);
     }
@@ -231,20 +231,14 @@ namespace cg {
 
     ParseUserPtr ParseObject::user(const QString & key) const
     {
-        ParseUserPtr pUser;
-
-        if (_valueMap.contains(key) && ParseObjectPointer::isPointer(_valueMap.value(key)))
-        {
-            ParseObjectPointer pointer(_valueMap.value(key));
-            pUser = ParseObject::createWithoutData<ParseUser>(pointer.objectId());
-        }
-
-        return pUser;
+        ParseObjectPtr pBaseObject = value(key).value<ParseObjectPtr>();
+        return pBaseObject.staticCast<ParseUser>();
     }
 
     void ParseObject::setUser(const QString & key, ParseUserPtr pUser)
     {
-        setValue(key, pUser->toPointer().toMap());
+        ParseObjectPtr pBaseObject = pUser.staticCast<ParseObject>();
+        setValue(key, QVariant::fromValue(pBaseObject));
     }
 
     QDateTime ParseObject::dateTime(const QString & key) const
@@ -305,62 +299,6 @@ namespace cg {
     ParseObjectPointer ParseObject::toPointer() const
     {
         return ParseObjectPointer(_className, objectId());
-    }
-
-    QJsonObject ParseObject::toJsonObject(bool onlyUserValues) const
-    {
-        QVariantMap map = toMap(onlyUserValues);
-        for (auto & key : map.keys())
-        {
-            QVariant variant = map.value(key);
-            if (variant.canConvert<ParseObjectPtr>())
-            {
-                ParseObjectPtr pObject = variant.value<ParseObjectPtr>();
-                map.insert(key, pObject->toPointer().toMap());
-            }
-            else if (variant.canConvert<ParseFilePtr>())
-            {
-                ParseFilePtr pFile = variant.value<ParseFilePtr>();
-                map.insert(key, pFile->toMap());
-            }
-        }
-
-        return QJsonObject::fromVariantMap(map);
-    }
-
-    void ParseObject::setValues(const QJsonObject &jsonObject)
-    {
-        QVariantMap map = jsonObject.toVariantMap();
-        for (auto & key : map.keys())
-        {
-            QVariant variant = map.value(key);
-            if (variant.canConvert<QVariantMap>())
-            {
-                QVariantMap childMap = variant.toMap();
-                if (childMap.contains(Parse::TypeKey) && childMap.value(Parse::TypeKey).toString() == Parse::PointerValue)
-                {
-                    QString className = childMap.value(Parse::ClassNameKey).toString();
-                    QString objectId = childMap.value(Parse::ObjectIdKey).toString();
-                    ParseObjectPtr pObject = ParseObject::createWithoutData(className, objectId);
-                    map.insert(key, QVariant::fromValue(pObject));
-                }
-                else if (childMap.contains(Parse::TypeKey) && childMap.value(Parse::TypeKey).toString() == Parse::ObjectValue)
-                {
-                    QString className = childMap.value(Parse::ClassNameKey).toString();
-                    ParseObjectPtr pObject = ParseObject::create(className);
-                    pObject->setValues(childMap);
-                    map.insert(key, QVariant::fromValue(pObject));
-                }
-                else if (childMap.contains(Parse::TypeKey) && childMap.value(Parse::TypeKey).toString() == Parse::FileValue)
-                {
-                    ParseFilePtr pFile = ParseFile::create();
-                    pFile->setValues(childMap);
-                    map.insert(key, QVariant::fromValue(pFile));
-                }
-            }
-        }
-
-        setValues(map);
     }
 
     QVariantMap ParseObject::toMap(bool onlyUserValues) const

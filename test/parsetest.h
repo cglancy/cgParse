@@ -126,7 +126,8 @@ private slots:
     void testObjectArray();
     void testObjectRelation();
     void testObjectPointerHash();
-    void testObjectChildLevel1();
+    void testObjectReferenceSave();
+    void testObjectArraySave();
 
     void testQueryGet();
     void testQueryFindAll();

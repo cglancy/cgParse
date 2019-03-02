@@ -22,7 +22,6 @@
 #include <QEnableSharedFromThis>
 #include <QString>
 #include <QByteArray>
-#include <QJsonObject>
 #include <QVariant>
 #include <QScopedPointer>
 #include <QSharedPointer>
@@ -44,9 +43,6 @@ namespace cg
 
         static ParseReply* deleteFile(const QString &url, const QString &masterKey);
 
-        static bool isFile(const QVariant &variant);
-        static bool isFile(const QJsonValue &jsonValue);
-
     public:
         ParseFile();
         ParseFile(const QString &localPath);
@@ -64,13 +60,11 @@ namespace cg
         QString contentType() const;
         void setContentType(const QString &contentType);
 
-        QByteArray data() const;
-        QJsonObject toJsonObject() const;
-        QVariantMap toMap() const;
-        void setValues(const QJsonObject &jsonObject);
-        void setValues(const QVariantMap &map);
-
         ParseReply* save();
+
+        QByteArray data() const;
+        QVariantMap toMap() const;
+        void setValues(const QVariantMap &map);
 
     private:
         static ParseFileHelper * staticHelper();

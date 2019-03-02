@@ -45,30 +45,22 @@ namespace cg
 
         void setValues(const QVariantMap &map)
         {
-            if (map.contains("__op") && map.value("__op").toString() == "AddRelation")
+            if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::AddRelationValue)
             {
                 QVariantList list = map.value("objects").toList();
                 for (auto & variant : list)
                 {
-                    if (variant.canConvert<QVariantMap>() && ParseObjectPointer::isPointer(variant))
-                    {
-                        ParseObjectPointer pointer(variant);
-                        QSharedPointer<T> pObject = ParseObject::createWithoutData<T>(pointer.objectId());
-                        _addList.append(pObject);
-                    }
+                    ParseObjectPtr pBaseObject = variant.value<ParseObjectPtr>();
+                    _addList.append(pBaseObject.staticCast<T>());
                 }
             }
-            else if (map.contains("__op") && map.value("__op").toString() == "RemoveRelation")
+            else if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::RemoveRelationValue)
             {
                 QVariantList list = map.value("objects").toList();
                 for (auto & variant : list)
                 {
-                    if (variant.canConvert<QVariantMap>() && ParseObjectPointer::isPointer(variant))
-                    {
-                        ParseObjectPointer pointer(variant);
-                        QSharedPointer<T> pObject = ParseObject::createWithoutData<T>(pointer.objectId());
-                        _removeList.append(pObject);
-                    }
+                    ParseObjectPtr pBaseObject = variant.value<ParseObjectPtr>();
+                    _removeList.append(pBaseObject.staticCast<T>());
                 }
             }
         }
@@ -81,17 +73,23 @@ namespace cg
             if (_addList.size() > 0)
             {
                 for (auto & pObject : _addList)
-                    list.append(pObject->toPointer().toMap());
+                {
+                    ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+                    list.append(QVariant::fromValue(pBaseObject));
+                }
 
-                map.insert("__op", "AddRelation");
+                map.insert(Parse::OperatorKey, Parse::AddRelationValue);
                 map.insert("objects", list);
             }
             else if (_removeList.size() > 0)
             {
                 for (auto & pObject : _removeList)
-                    list.append(pObject->toPointer().toMap());
+                {
+                    ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+                    list.append(QVariant::fromValue(pBaseObject));
+                }
 
-                map.insert("__op", "RemoveRelation");
+                map.insert(Parse::OperatorKey, Parse::RemoveRelationValue);
                 map.insert("objects", list);
             }
 
