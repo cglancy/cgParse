@@ -53,8 +53,7 @@ namespace cg
             return pObject;
         }
 
-        static ParseReply* createAll(const QList<ParseObjectPtr> &objects);
-        static ParseReply* updateAll(const QList<ParseObjectPtr> &objects);
+        static ParseReply* saveAll(const QList<ParseObjectPtr> &objects);
         static ParseReply* deleteAll(const QList<ParseObjectPtr> &objects);
 
         template <class T>

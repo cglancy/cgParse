@@ -215,10 +215,10 @@ void ParseTest::createTestObjects()
     episode8 = createMovie("Star Wars: Episode VIII The Last Jedi");
     rogue1 = createMovie("Rogue One: A Star Wars Story");
 
-    ParseReply* pCreate1Reply = cg::ParseObject::createAll(_movies);
-    QSignalSpy create1Spy(pCreate1Reply, &ParseReply::finished);
-    QVERIFY(create1Spy.wait(SPY_WAIT));
-    pCreate1Reply->deleteLater();
+    ParseReply* pSave1Reply = cg::ParseObject::saveAll(_movies);
+    QSignalSpy save1Spy(pSave1Reply, &ParseReply::finished);
+    QVERIFY(save1Spy.wait(SPY_WAIT));
+    pSave1Reply->deleteLater();
 
     luke = createCharacter("Luke Skywalker", "luke.png");
     leia = createCharacter("Leia Organa", "leia.jpg");            
@@ -241,10 +241,10 @@ void ParseTest::createTestObjects()
     cassian = createCharacter("Cassian Andor");       
     k2so = createCharacter("K-2SO"); 
 
-    ParseReply *pCreate2Reply = cg::ParseObject::createAll(_characters);
-    QSignalSpy create2Spy(pCreate2Reply, &ParseReply::finished);
-    QVERIFY(create2Spy.wait(SPY_WAIT));
-    pCreate2Reply->deleteLater();
+    ParseReply *pSave2Reply = cg::ParseObject::saveAll(_characters);
+    QSignalSpy save2Spy(pSave2Reply, &ParseReply::finished);
+    QVERIFY(save2Spy.wait(SPY_WAIT));
+    pSave2Reply->deleteLater();
 
     int rank = 1;
     QList<ParseObject*> quotes;
@@ -281,10 +281,10 @@ void ParseTest::createTestObjects()
     createQuote(rogue1, k2so, rank++, "Jyn, I'll be there for you. Cassian said I had to.");
     createQuote(rogue1, leia, rank++, "Hope.");
 
-    ParseReply *pCreate3Reply = cg::ParseObject::createAll(_quotes);
-    QSignalSpy create3Spy(pCreate3Reply, &ParseReply::finished);
-    QVERIFY(create3Spy.wait(SPY_WAIT));
-    pCreate3Reply->deleteLater();
+    ParseReply *pSave3Reply = cg::ParseObject::saveAll(_quotes);
+    QSignalSpy save3Spy(pSave3Reply, &ParseReply::finished);
+    QVERIFY(save3Spy.wait(SPY_WAIT));
+    pSave3Reply->deleteLater();
 }
 
 void ParseTest::cleanupTestCase()

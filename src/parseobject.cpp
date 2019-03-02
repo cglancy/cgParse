@@ -335,7 +335,7 @@ namespace cg {
     {
         ParseReply *pReply = nullptr;
 
-        if (createdAt().isNull())
+        if (objectId().isEmpty())
         {
             pReply = _pHelper->createObject(sharedFromThis());
         }
@@ -357,14 +357,9 @@ namespace cg {
         return _pHelper->deleteObject(sharedFromThis());
     }
 
-    ParseReply* ParseObject::createAll(const QList<ParseObjectPtr>& objects)
+    ParseReply* ParseObject::saveAll(const QList<ParseObjectPtr> &objects)
     {
-        return staticHelper()->createAll(objects);
-    }
-
-    ParseReply* ParseObject::updateAll(const QList<ParseObjectPtr>& objects)
-    {
-        return staticHelper()->updateAll(objects);
+        return staticHelper()->saveAll(objects);
     }
 
     ParseReply* ParseObject::deleteAll(const QList<ParseObjectPtr>& objects)

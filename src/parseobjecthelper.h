@@ -42,15 +42,14 @@ namespace cg
         ParseReply* updateObject(ParseObjectPtr pObject);
         ParseReply* deleteObject(ParseObjectPtr pObject);
 
-        ParseReply* createAll(const QList<ParseObjectPtr> &objects);
-        ParseReply* updateAll(const QList<ParseObjectPtr> &objects);
+        ParseReply* saveAll(const QList<ParseObjectPtr> &objects);
         ParseReply* deleteAll(const QList<ParseObjectPtr> &objects);
 
     private slots:
         void privateCreateObjectFinished();
         void privateFetchObjectFinished();
         void privateUpdateObjectFinished();
-        void privateCreateAllFinished();
+        void privateSaveAllFinished();
 
     private:
         QWeakPointer<ParseObject> _pObject;

@@ -146,7 +146,7 @@ namespace cg
         return new ParseReply(request.sendRequest());
     }
 
-    ParseReply* ParseObjectHelper::createAll(const QList<ParseObjectPtr>& objects)
+    ParseReply* ParseObjectHelper::saveAll(const QList<ParseObjectPtr>& objects)
     {
         if (objects.size() == 0)
         {
@@ -158,12 +158,22 @@ namespace cg
 
         for (auto & pObject : objects)
         {
-            QJsonObject bodyObject = pObject->toJsonObject();
-
-            QString apiPath = pathStr + pObject->className();
             QJsonObject requestObject;
-            requestObject.insert("method", "POST");
-            requestObject.insert("path", apiPath);
+
+            if (pObject->objectId().isEmpty())
+            {
+                QString apiPath = pathStr + pObject->className();
+                requestObject.insert("method", "POST");
+                requestObject.insert("path", apiPath);
+            }
+            else
+            {
+                QString apiPath = pathStr + pObject->className() + "/" + pObject->objectId();
+                requestObject.insert("method", "PUT");
+                requestObject.insert("path", apiPath);
+            }
+
+            QJsonObject bodyObject = pObject->toJsonObject();
             requestObject.insert("body", bodyObject);
             requestsArray.append(requestObject);
         }
@@ -175,12 +185,12 @@ namespace cg
 
         ParseRequest request(ParseRequest::PostHttpMethod, "/parse/batch", content);
         ParseReply *pReply = new ParseReply(request.sendRequest());
-        connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateCreateAllFinished);
+        connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateSaveAllFinished);
         _replyObjectListMap.insert(pReply, objects);
         return pReply;
     }
 
-    void ParseObjectHelper::privateCreateAllFinished()
+    void ParseObjectHelper::privateSaveAllFinished()
     {
         ParseReply *pReply = qobject_cast<ParseReply*>(sender());
         if (!pReply)
@@ -207,37 +217,6 @@ namespace cg
                 }
             }
         }
-    }
-
-    ParseReply* ParseObjectHelper::updateAll(const QList<ParseObjectPtr>& objects)
-    {
-        if (objects.size() == 0)
-        {
-            return new ParseReply(ParseError::UnknownError);
-        }
-
-        QString pathStr = "/parse/classes/";
-        QJsonArray requestsArray;
-
-        for (auto & pObject : objects)
-        {
-            QJsonObject bodyObject = pObject->toJsonObject();
-
-            QString apiPath = pathStr + pObject->className() + "/" + pObject->objectId();
-            QJsonObject requestObject;
-            requestObject.insert("method", "PUT");
-            requestObject.insert("path", apiPath);
-            requestObject.insert("body", bodyObject);
-            requestsArray.append(requestObject);
-        }
-
-        QJsonObject contentObject;
-        contentObject.insert("requests", requestsArray);
-        QJsonDocument doc(contentObject);
-        QByteArray content = doc.toJson(QJsonDocument::Compact);
-
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/batch", content);
-        return new ParseReply(request.sendRequest());
     }
 
     ParseReply* ParseObjectHelper::deleteAll(const QList<ParseObjectPtr>& objects)
