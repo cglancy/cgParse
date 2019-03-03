@@ -293,7 +293,8 @@ namespace cg {
     {
         return key != Parse::ObjectIdKey &&
             key != Parse::CreatedAtKey &&
-            key != Parse::UpdatedAtKey;
+            key != Parse::UpdatedAtKey &&
+            !key.startsWith('_');
     }
 
     ParseObjectPointer ParseObject::toPointer() const
