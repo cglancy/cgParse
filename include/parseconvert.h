@@ -43,6 +43,7 @@ namespace cg
 
         static bool isFile(const QVariant &variant);
         static ParseFilePtr fileFromVariant(const QVariant &variant);
+        static bool isReadOnlyKey(const QString &key);
     };
 }
 

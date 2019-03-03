@@ -248,10 +248,10 @@ namespace cg
 
         bool contains(const QString &key) const;
         void clearDirtyState();
-        QVariantMap toMap(bool onlyUserValues = true) const;
+        QVariantMap toMap() const;
         ParseObjectPointer toPointer() const;
         void setValues(const QVariantMap &variantMap);
-        QStringList keys(bool onlyUserValues = true) const;
+        QStringList keys() const;
         static bool isUserValue(const QString &key);
 
     private:

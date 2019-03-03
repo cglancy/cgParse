@@ -277,16 +277,9 @@ namespace cg {
         return list.contains(key);
     }
 
-    QStringList ParseObject::keys(bool onlyUserValues) const
+    QStringList ParseObject::keys() const
     {
-        QStringList list;
-        for (auto & key : _valueMap.keys())
-        {
-            if (isUserValue(key) || !onlyUserValues)
-                list.append(key);
-        }
-
-        return list;
+        return _valueMap.keys();
     }
 
     bool ParseObject::isUserValue(const QString &key)
@@ -302,17 +295,9 @@ namespace cg {
         return ParseObjectPointer(_className, objectId());
     }
 
-    QVariantMap ParseObject::toMap(bool onlyUserValues) const
+    QVariantMap ParseObject::toMap() const
     {
-        QVariantMap map = _valueMap;
-        if (onlyUserValues)
-        {
-            map.remove(Parse::ObjectIdKey);
-            map.remove(Parse::CreatedAtKey);
-            map.remove(Parse::UpdatedAtKey);
-        }
-
-        return map;
+        return _valueMap;
     }
 
     void ParseObject::setValues(const QVariantMap &variantMap)

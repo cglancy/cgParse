@@ -38,40 +38,87 @@ namespace cg
 
     bool ParseObjectHelper::collectDirtyChildren(ParseObjectPtr pObject, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects)
     {
-        // first level search for now
         for (auto & key : pObject->keys())
         {
             if (pObject->isDirty(key))
             {
                 QVariant variant = pObject->value(key);
                 if (variant.canConvert<ParseObjectPtr>())
-                {
                     objects.append(variant.value<ParseObjectPtr>());
-                }
                 else if (variant.canConvert<ParseFilePtr>())
-                {
                     files.append(variant.value<ParseFilePtr>());
-                }
+                else if (variant.canConvert<QVariantMap>())
+                    collectDirtyChildren(variant.toMap(), files, objects);
+                else if (variant.canConvert<QVariantList>())
+                    collectDirtyChildren(variant.toList(), files, objects);
             }
         }
 
-        return files.size() > 0;
+        return files.size() > 0 || objects.size() > 0;
+    }
+
+    void ParseObjectHelper::collectDirtyChildren(const QVariantMap &map, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects)
+    {
+        for (auto & key : map.keys())
+        {
+            QVariant variant = map.value(key);
+            if (variant.canConvert<ParseObjectPtr>())
+                objects.append(variant.value<ParseObjectPtr>());
+            else if (variant.canConvert<ParseFilePtr>())
+                files.append(variant.value<ParseFilePtr>());
+            else if (variant.canConvert<QVariantMap>())
+                collectDirtyChildren(variant.toMap(), files, objects);
+            else if (variant.canConvert<QVariantList>())
+                collectDirtyChildren(variant.toList(), files, objects);
+        }
+    }
+
+    void ParseObjectHelper::collectDirtyChildren(const QVariantList &list, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects)
+    {
+        for (auto & variant : list)
+        {
+            if (variant.canConvert<ParseObjectPtr>())
+                objects.append(variant.value<ParseObjectPtr>());
+            else if (variant.canConvert<ParseFilePtr>())
+                files.append(variant.value<ParseFilePtr>());
+            else if (variant.canConvert<QVariantMap>())
+                collectDirtyChildren(variant.toMap(), files, objects);
+            else if (variant.canConvert<QVariantList>())
+                collectDirtyChildren(variant.toList(), files, objects);
+        }
     }
 
     void ParseObjectHelper::saveChildrenIfNeeded(ParseObjectPtr pObject)
     {
+        _objectsBeingSaved.insert(pObject);
+
         QList<ParseFilePtr> files;
         QList<ParseObjectPtr> objects;
         collectDirtyChildren(pObject, files, objects);
 
-        for (auto & pFile : files)
+        QList<ParseFilePtr> filesToSave;
+        QList<ParseObjectPtr> objectsToSave;
+
+        // prevent infinite recursion
+        for (auto & pDirtyObject : objects)
+        {
+            if (!_objectsBeingSaved.contains(pDirtyObject) && pDirtyObject->className() != "_User")
+            {
+                _objectsBeingSaved.insert(pDirtyObject);
+                objectsToSave.append(pDirtyObject);
+            }
+        }
+
+        _objectObjectsMap.insert(pObject, objectsToSave);
+
+        for (auto & pFile : filesToSave)
         {
             ParseReply *pFileReply = pFile->save();
             QSignalSpy fileSpy(pFileReply, &ParseReply::finished);
             fileSpy.wait(200000);
         }
 
-        for (auto & pObject : objects)
+        for (auto & pObject : objectsToSave)
         {
             ParseReply *pObjectReply = pObject->save();
             QSignalSpy objectSpy(pObjectReply, &ParseReply::finished);
@@ -112,6 +159,14 @@ namespace cg
                 pObject->clearDirtyState();
             }
         }
+
+        QList<ParseObjectPtr> savedObjects = _objectObjectsMap.take(pObject);
+        for (auto & pSavedObject : savedObjects)
+        {
+            _objectsBeingSaved.remove(pSavedObject);
+        }
+
+        _objectsBeingSaved.remove(pObject);
     }
 
     ParseReply* ParseObjectHelper::fetchObject(ParseObjectPtr pObject)
@@ -179,6 +234,14 @@ namespace cg
                 pObject->clearDirtyState();
             }
         }
+
+        QList<ParseObjectPtr> savedObjects = _objectObjectsMap.take(pObject);
+        for (auto & pSavedObject : savedObjects)
+        {
+            _objectsBeingSaved.remove(pSavedObject);
+        }
+
+        _objectsBeingSaved.remove(pObject);
     }
 
     ParseReply* ParseObjectHelper::deleteObject(ParseObjectPtr pObject)

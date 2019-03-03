@@ -32,6 +32,8 @@ namespace cg
         CGPARSE_API const QString LatitudeKey = QStringLiteral("latitude");
         CGPARSE_API const QString LongitudeKey = QStringLiteral("longitude");
         CGPARSE_API const QString OperatorKey = QStringLiteral("__op");
+        CGPARSE_API const QString EmailVerifiedKey = QStringLiteral("emailVerified");
+        CGPARSE_API const QString PerishableTokenKey = QStringLiteral("_perishable_token");
 
         CGPARSE_API const QString PointerValue = QStringLiteral("Pointer");
         CGPARSE_API const QString ObjectValue = QStringLiteral("Object");

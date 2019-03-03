@@ -19,10 +19,12 @@
 
 #include "parse.h"
 #include "parsetypes.h"
+#include "parseobjectpointer.h"
 
 #include <QObject>
 #include <QWeakPointer>
 #include <QMap>
+#include <QSet>
 
 class QNetworkReply;
 
@@ -54,9 +56,13 @@ namespace cg
     private:
         void saveChildrenIfNeeded(ParseObjectPtr pObject);
         bool collectDirtyChildren(ParseObjectPtr pObject, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects);
+        void collectDirtyChildren(const QVariantMap &map, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects);
+        void collectDirtyChildren(const QVariantList &list, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects);
 
     private:
         QWeakPointer<ParseObject> _pObject;
+        QMap<ParseObjectPtr, QList<ParseObjectPtr>> _objectObjectsMap;
+        QSet<ParseObjectPtr> _objectsBeingSaved;
         QMap<ParseReply*, QList<ParseObjectPtr>> _replyObjectListMap;
     };
 }

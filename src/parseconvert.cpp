@@ -22,7 +22,9 @@ namespace cg
         {
             QVariant variant = map.value(key);
 
-            if (canConvert(variant, toJson))
+            if (toJson && isReadOnlyKey(key))
+                convertedMap.remove(key);
+            else if (canConvert(variant, toJson))
                 convertedMap[key] = convertVariant(variant, toJson);
             else if (variant.canConvert<QVariantMap>())
                 convertedMap[key] = convertMap(variant.toMap(), toJson);
@@ -178,5 +180,13 @@ namespace cg
         }
 
         return pFile;
+    }
+
+    bool ParseConvert::isReadOnlyKey(const QString & key)
+    {
+        return key == Parse::CreatedAtKey ||
+            key == Parse::UpdatedAtKey ||
+            key == Parse::EmailVerifiedKey ||
+            key == Parse::PerishableTokenKey;
     }
 }

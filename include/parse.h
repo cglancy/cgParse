@@ -52,6 +52,8 @@ namespace cg
         CGPARSE_API extern const QString LatitudeKey;
         CGPARSE_API extern const QString LongitudeKey;
         CGPARSE_API extern const QString OperatorKey;
+        CGPARSE_API extern const QString EmailVerifiedKey;
+        CGPARSE_API extern const QString PerishableTokenKey;
 
         CGPARSE_API extern const QString PointerValue;
         CGPARSE_API extern const QString ObjectValue;
