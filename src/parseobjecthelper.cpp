@@ -135,7 +135,7 @@ namespace cg
         QJsonDocument doc(object);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/classes/" + pObject->className(), content);
+        ParseRequest request(ParseRequest::PostHttpMethod, "/classes/" + pObject->className(), content);
 
         ParseReply *pReply = new ParseReply(request.sendRequest());
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateCreateObjectFinished);
@@ -172,7 +172,7 @@ namespace cg
     ParseReply* ParseObjectHelper::fetchObject(ParseObjectPtr pObject)
     {
         _pObject = pObject;
-        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/classes/" + pObject->className() + "/" + pObject->objectId());
+        ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pObject->className() + "/" + pObject->objectId());
         ParseReply *pReply = new ParseReply(request.sendRequest());
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateFetchObjectFinished);
         return pReply;
@@ -211,7 +211,7 @@ namespace cg
         QJsonDocument doc(object);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
-        ParseRequest request(ParseRequest::PutHttpMethod, "/parse/classes/" + pObject->className() + "/" + pObject->objectId(), content);
+        ParseRequest request(ParseRequest::PutHttpMethod, "/classes/" + pObject->className() + "/" + pObject->objectId(), content);
         ParseReply *pReply = new ParseReply(request.sendRequest());
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateUpdateObjectFinished);
         return pReply;
@@ -252,7 +252,7 @@ namespace cg
         }
 
         _pObject = pObject;
-        ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/classes/" + pObject->className() + "/" + pObject->objectId());
+        ParseRequest request(ParseRequest::DeleteHttpMethod, "/classes/" + pObject->className() + "/" + pObject->objectId());
         return new ParseReply(request.sendRequest());
     }
 
@@ -263,7 +263,7 @@ namespace cg
             return new ParseReply(ParseError::UnknownError);
         }
 
-        QString pathStr = "/parse/classes/";
+        QString pathStr = "/classes/";
         QJsonArray requestsArray;
 
         for (auto & pObject : objects)
@@ -295,7 +295,7 @@ namespace cg
         QJsonDocument doc(contentObject);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/batch", content);
+        ParseRequest request(ParseRequest::PostHttpMethod, "/batch", content);
         ParseReply *pReply = new ParseReply(request.sendRequest());
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateSaveAllFinished);
         _replyObjectListMap.insert(pReply, objects);
@@ -338,7 +338,7 @@ namespace cg
             return new ParseReply(ParseError::UnknownError);
         }
 
-        QString pathStr = "/parse/classes/";
+        QString pathStr = "/classes/";
         QJsonArray requestsArray;
 
         for (auto & pObject : objects)
@@ -355,7 +355,7 @@ namespace cg
         QJsonDocument doc(contentObject);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/batch", content);
+        ParseRequest request(ParseRequest::PostHttpMethod, "/batch", content);
         return new ParseReply(request.sendRequest());
     }
 }

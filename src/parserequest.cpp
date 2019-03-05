@@ -128,7 +128,7 @@ namespace cg
 
     QString ParseRequest::fullUrl() const
     {
-        QString fullUrlStr = "https://" + ParseClient::get()->apiHost();
+        QString fullUrlStr = ParseClient::get()->serverUrl();
         if (_apiRoute.startsWith("/"))
             fullUrlStr += _apiRoute;
         else

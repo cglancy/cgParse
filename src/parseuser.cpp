@@ -67,7 +67,7 @@ namespace cg
     // static 
     ParseReply * ParseUser::login(const QString & username, const QString & password)
     {
-        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/login");
+        ParseRequest request(ParseRequest::GetHttpMethod, "/login");
         request.setHeader("X-Parse-Revocable-Session", "1");
 
         QUrlQuery query;
@@ -88,7 +88,7 @@ namespace cg
         if (!pUser.isNull())
             sessionToken = pUser->sessionToken();
 
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/logout");
+        ParseRequest request(ParseRequest::PostHttpMethod, "/logout");
         request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
 
         ParseReply *pParseReply = new ParseReply(request.sendRequest());
@@ -105,14 +105,14 @@ namespace cg
         QJsonDocument doc(jsonObject);
         content = doc.toJson(QJsonDocument::Compact);
 
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/requestPasswordReset", content);
+        ParseRequest request(ParseRequest::PostHttpMethod, "/requestPasswordReset", content);
         return new ParseReply(request.sendRequest());
     }
 
     // static
     ParseReply * ParseUser::become(const QString & sessionToken)
     {
-        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/users/me");
+        ParseRequest request(ParseRequest::GetHttpMethod, "/users/me");
         request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
 
         ParseReply *pParseReply = new ParseReply(request.sendRequest());
@@ -168,7 +168,7 @@ namespace cg
         QJsonDocument doc(object);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/users", content);
+        ParseRequest request(ParseRequest::PostHttpMethod, "/users", content);
         request.setHeader("X-Parse-Revocable-Session", "1");
 
         ParseReply *pParseReply = new ParseReply(request.sendRequest());
@@ -180,7 +180,7 @@ namespace cg
     {
         _pHelper->_pUser = sharedFromThis().staticCast<ParseUser>();
 
-        ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/users/" + objectId());
+        ParseRequest request(ParseRequest::DeleteHttpMethod, "/users/" + objectId());
         request.setHeader("X-Parse-Session-Token", sessionToken().toUtf8());
 
         ParseReply *pParseReply = new ParseReply(request.sendRequest());

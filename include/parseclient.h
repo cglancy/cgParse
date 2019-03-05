@@ -31,10 +31,10 @@ namespace cg
         static QNetworkAccessManager* networkAccessManager();
 
     public:
-        void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost);
+        void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &serverUrl);
         QByteArray applicationId() const;
         QByteArray clientKey() const;
-        QByteArray apiHost() const;
+        QByteArray serverUrl() const;
         bool isLoggingEnabled() const;
         void setLoggingEnabled(bool enabled);
 
@@ -44,7 +44,7 @@ namespace cg
 
         static ParseClient *_pInstance;
         static QNetworkAccessManager *_pNetworkAccessManager;
-        QByteArray _appId, _clientKey, _apiHost;
+        QByteArray _appId, _clientKey, _serverUrl;
         bool _loggingEnabled;
     };
 }

@@ -47,7 +47,7 @@ namespace cg
     // static
     ParseReply* ParseSession::deleteSession(const QString &sessionToken)
     {
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/logout");
+        ParseRequest request(ParseRequest::PostHttpMethod, "/logout");
         request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
         return new ParseReply(request.sendRequest());
     }

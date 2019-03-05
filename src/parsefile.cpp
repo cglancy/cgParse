@@ -94,7 +94,7 @@ namespace cg
 
     ParseReply* ParseFile::deleteFile(const QString &urlStr, const QString &masterKey)
     {
-        ParseRequest request(ParseRequest::DeleteHttpMethod, "/parse/files/" + urlStr);
+        ParseRequest request(ParseRequest::DeleteHttpMethod, "/files/" + urlStr);
         request.removeHeader("X-Parse-REST-API-Key");
         request.setHeader("X-Parse-Master-Key", masterKey.toUtf8());
         return new ParseReply(request.sendRequest());
@@ -162,7 +162,7 @@ namespace cg
     ParseReply* ParseFile::save()
     {
         _pHelper->_pFile = sharedFromThis();
-        ParseRequest request(ParseRequest::PostHttpMethod, "/parse/files/" + name(), data(), contentType());
+        ParseRequest request(ParseRequest::PostHttpMethod, "/files/" + name(), data(), contentType());
         ParseReply *pReply = new ParseReply(request.sendRequest());
         QObject::connect(pReply, &ParseReply::preFinished, _pHelper.data(), &ParseFileHelper::saveFileFinished);
         return pReply;

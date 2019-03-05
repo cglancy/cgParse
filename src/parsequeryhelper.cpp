@@ -45,7 +45,7 @@ namespace cg
         QUrlQuery urlQuery;
         urlQuery.setQuery(queryStr);
 
-        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/classes/" + className);
+        ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
         request.setUrlQuery(urlQuery);
 
         ParseReply *pReply = new ParseReply(request.sendRequest());
@@ -77,7 +77,7 @@ namespace cg
             return new ParseReply(ParseError::UnknownError);
         }
 
-        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/classes/" + className);
+        ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
         request.setUrlQuery(urlQuery);
 
         ParseReply *pReply = new ParseReply(request.sendRequest());
@@ -109,7 +109,7 @@ namespace cg
             return new ParseReply(ParseError::UnknownError);
         }
 
-        ParseRequest request(ParseRequest::GetHttpMethod, "/parse/classes/" + className);
+        ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
         request.setUrlQuery(urlQuery);
 
         return new ParseReply(request.sendRequest());

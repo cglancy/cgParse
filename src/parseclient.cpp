@@ -46,11 +46,11 @@ namespace cg {
         return _pNetworkAccessManager;
     }
 
-    void ParseClient::initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &apiHost)
+    void ParseClient::initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &serverUrl)
     {
         _appId = appId;
         _clientKey = clientKey;
-        _apiHost = apiHost;
+        _serverUrl = serverUrl;
     }
 
     QByteArray ParseClient::applicationId() const
@@ -63,9 +63,9 @@ namespace cg {
         return _clientKey;
     }
 
-    QByteArray ParseClient::apiHost() const
+    QByteArray ParseClient::serverUrl() const
     {
-        return _apiHost;
+        return _serverUrl;
     }
 
     bool ParseClient::isLoggingEnabled() const

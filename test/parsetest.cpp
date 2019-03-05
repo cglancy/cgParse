@@ -200,7 +200,7 @@ void ParseTest::initTestCase()
     QCoreApplication::setApplicationName("ParseTest");
     QCoreApplication::setApplicationVersion("0.1");
 
-    ParseClient::get()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, "api.parse.buddy.com");
+    ParseClient::get()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, PARSE_SERVER_URL);
 
     QByteArray testDir = qgetenv("CGPARSE_TEST_DIR");
     QVERIFY(!testDir.isEmpty());
@@ -430,23 +430,26 @@ void ParseTest::testPolygon()
 void ParseTest::testUserLogin()
 {
 #if 0
-    ParseUserPtr testUser = ();
+    ParseUserPtr testUser = ParseUser::create();
     testUser->setUsername("TestLogin");
     testUser->setPassword("Parse123");
     testUser->setEmail(PARSE_TEST_EMAIL);
     QVERIFY(testUser->sessionToken().isEmpty());
 
-    auto signupFuture = testUser->signUp();
-    await(signupFuture);
-#endif
+    ParseReply* pSignUpReply = testUser->signUp();
+    QSignalSpy signUpSpy(pSignUpReply, &ParseReply::finished);
+    QVERIFY(signUpSpy.wait(SPY_WAIT));
 
+    QVERIFY(!pSignUpReply->isError());
+    pSignUpReply->deleteLater();
+#else
     ParseReply *pLoginReply = ParseUser::login("TestLogin", "Parse123");
     QSignalSpy loginSpy(pLoginReply, &ParseReply::finished);
     QVERIFY(loginSpy.wait(SPY_WAIT));
 
     QVERIFY(!pLoginReply->isError());
     pLoginReply->deleteLater();
-
+#endif
     ParseUserPtr pCurrentUser = ParseUser::currentUser();
     QVERIFY(!pCurrentUser.isNull());
     QVERIFY(pCurrentUser->isAuthenticated());
