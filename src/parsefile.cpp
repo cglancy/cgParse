@@ -22,6 +22,7 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QUrl>
 
 namespace cg
 {
@@ -94,7 +95,8 @@ namespace cg
 
     ParseReply* ParseFile::deleteFile(const QString &urlStr, const QString &masterKey)
     {
-        ParseRequest request(ParseRequest::DeleteHttpMethod, "/files/" + urlStr);
+        QUrl url(urlStr);
+        ParseRequest request(ParseRequest::DeleteHttpMethod, "/files/" + url.fileName());
         request.removeHeader("X-Parse-REST-API-Key");
         request.setHeader("X-Parse-Master-Key", masterKey.toUtf8());
         return new ParseReply(request.sendRequest());
