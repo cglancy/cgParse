@@ -1,5 +1,4 @@
-QT += core network testlib
-QT -= gui
+QT += network testlib
 
 TARGET = cgParse
 CONFIG += dll
