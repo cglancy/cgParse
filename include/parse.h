@@ -19,6 +19,7 @@
 
 #include <QtGlobal>
 
+#ifdef CGPARSE_DLL
 #ifdef Q_OS_WIN32
 
 #ifdef CGPARSE_EXPORTS
@@ -31,7 +32,12 @@
 
 #define CGPARSE_API __attribute__((visibility("default")))
 
-#endif
+#endif // Q_OS_WIN32
+#else
+
+#define CGPARSE_API
+
+#endif // CGPARSE_DLL
 
 #include <QString>
 

@@ -1,7 +1,7 @@
 QT += network testlib
 
 TARGET = cgParseTest
-CONFIG += testcase 
+CONFIG += testcase warn_on debug_and_release debug_and_release_target
 
 TEMPLATE = app
 
@@ -13,10 +13,10 @@ HEADERS += parsetest.h \
 INCLUDEPATH += ../include ../src
 
 CONFIG(debug, debug|release) {
-    LIBS += -L../src/debug -lcgParse0
-    PRE_TARGETDEPS += ../src/debug/cgParse0.dll
+    LIBS += -L../src/debug -lcgParse
+    PRE_TARGETDEPS += ../src/debug/cgParse.lib
 }
 else {
-    LIBS += -L../src/release -lcgParse0
-    PRE_TARGETDEPS += ../src/release/cgParse0.dll
+    LIBS += -L../src/release -lcgParse
+    PRE_TARGETDEPS += ../src/release/cgParse.lib
 }

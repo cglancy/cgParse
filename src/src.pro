@@ -1,7 +1,7 @@
 QT += network testlib
 
 TARGET = cgParse
-CONFIG += dll
+CONFIG += staticlib warn_on debug_and_release debug_and_release_target
 TEMPLATE = lib
 VERSION	= 0.1.1
 
