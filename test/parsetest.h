@@ -137,6 +137,8 @@ private slots:
     void testQueryFullText();
     void testQueryOr();
 
+    void testLiveQueryClient();
+
 private:
     TestMoviePtr episode1, episode2, episode3, episode4, episode5, episode6, episode7, episode8, rogue1;
     TestCharacterPtr leia, han, obiwan, yoda, luke, palpatine, anakin, vader, quigon, nute, 

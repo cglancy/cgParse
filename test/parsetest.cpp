@@ -24,6 +24,7 @@
 #include "parsedatetime.h"
 #include "parsepolygon.h"
 #include "parsereply.h"
+#include "parselivequeryclient.h"
 
 #include <QTimer>
 #include <QFile>
@@ -815,4 +816,28 @@ void ParseTest::testQueryOr()
 
     QList<TestQuotePtr> quotes = pQuery->results();
     QCOMPARE(quotes.size(), 3);
+}
+
+void ParseTest::testLiveQueryClient()
+{
+    ParseLiveQueryClient *pClient = ParseLiveQueryClient::get();
+
+    pClient->open(PARSE_APPLICATION_ID, PARSE_LIVEQUERY_URL, PARSE_CLIENT_API_KEY);
+    QSignalSpy openedSpy(pClient, &ParseLiveQueryClient::opened);
+    QVERIFY(openedSpy.wait(SPY_WAIT));
+
+    QJsonObject whereObject;
+    whereObject.insert("playerName", "Charles");
+
+    QJsonObject queryObject;
+    queryObject.insert("className", "TestGameScore");
+    queryObject.insert("where", whereObject);
+
+    pClient->subscribe(queryObject);
+    QSignalSpy subscribedSpy(pClient, &ParseLiveQueryClient::subscribed);
+    QVERIFY(subscribedSpy.wait(SPY_WAIT));
+
+    pClient->close();
+    //QSignalSpy closedSpy(pClient, &ParseLiveQueryClient::closed);
+    //QVERIFY(closedSpy.wait(60000));
 }

@@ -1,4 +1,4 @@
-QT += network testlib
+QT += network testlib websockets
 
 TARGET = cgParseTest
 CONFIG += testcase warn_on debug_and_release debug_and_release_target

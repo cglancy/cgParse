@@ -1,4 +1,4 @@
-QT += network testlib
+QT += network testlib websockets
 
 TARGET = cgParse
 CONFIG += staticlib warn_on debug_and_release debug_and_release_target
@@ -16,6 +16,7 @@ HEADERS +=  \
 	../include/parseerror.h \
 	../include/parsefile.h \
 	../include/parsegeopoint.h \
+	../include/parselivequeryclient.h \
 	../include/parseobject.h \
 	../include/parseobjectpointer.h \
 	../include/parsepolygon.h \
@@ -41,6 +42,7 @@ SOURCES += parse.cpp \
 	parsefile.cpp \
 	parsefilehelper.cpp \
 	parsegeopoint.cpp \
+	parselivequeryclient.cpp \
 	parseobject.cpp \
 	parseobjecthelper.cpp \
 	parseobjectpointer.cpp \
