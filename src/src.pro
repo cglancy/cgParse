@@ -17,6 +17,7 @@ HEADERS +=  \
 	../include/parsefile.h \
 	../include/parsegeopoint.h \
 	../include/parselivequeryclient.h \
+	../include/parselivequerysubscription.h \
 	../include/parseobject.h \
 	../include/parseobjectpointer.h \
 	../include/parsepolygon.h \
@@ -43,6 +44,7 @@ SOURCES += parse.cpp \
 	parsefilehelper.cpp \
 	parsegeopoint.cpp \
 	parselivequeryclient.cpp \
+	parselivequerysubscription.cpp \
 	parseobject.cpp \
 	parseobjecthelper.cpp \
 	parseobjectpointer.cpp \

@@ -18,13 +18,17 @@
 #pragma once
 
 #include "parse.h"
+#include "parseobject.h"
 #include <QObject>
 #include <QWebSocket>
 #include <QString>
 #include <QJsonObject>
+#include <QMap>
 
 namespace cg
 {
+    class ParseLiveQuerySubscription;
+
     class CGPARSE_API ParseLiveQueryClient : public QObject
     {
         Q_OBJECT
@@ -32,9 +36,11 @@ namespace cg
         static ParseLiveQueryClient * get();
 
     public:
+        bool isOpened() const;
+
         void open(const QString &appId, const QString &serverUrl, const QString &restApiKey, const QString &sessionToken = QString());
         void close();
-        int subscribe(const QJsonObject &queryObject, const QString &sessionToken = QString());
+        ParseLiveQuerySubscription* subscribe(const QJsonObject &queryObject, const QString &sessionToken = QString());
         void unsubscribe(int id);
 
     signals:
@@ -43,12 +49,6 @@ namespace cg
         void closed();
         void subscribed(int id);
         void unsubscribed(int id);
-
-        void createEvent(int id, const QJsonObject &jsonObject);
-        void enterEvent(int id, const QJsonObject &jsonObject);
-        void leaveEvent(int id, const QJsonObject &jsonObject);
-        void updateEvent(int id, const QJsonObject &jsonObject);
-        void deleteEvent(int id, const QJsonObject &jsonObject);
 
     private slots:
         void connected();
@@ -60,11 +60,14 @@ namespace cg
         ~ParseLiveQueryClient();
 
         void sendJsonObject(const QJsonObject &jsonObject);
+        QSharedPointer<ParseObject> createObject(const QJsonObject &jsonObject);
 
+    private:
         static ParseLiveQueryClient *_pInstance;
         QString _appId, _serverUrl, _restApiKey, _sessionToken;
         int _nextId;
         QWebSocket _webSocket;
+        QMap<int, ParseLiveQuerySubscription*> _subscriptionMap;
     };
 }
 

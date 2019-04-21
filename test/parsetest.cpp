@@ -25,6 +25,7 @@
 #include "parsepolygon.h"
 #include "parsereply.h"
 #include "parselivequeryclient.h"
+#include "parselivequerysubscription.h"
 
 #include <QTimer>
 #include <QFile>
@@ -833,10 +834,11 @@ void ParseTest::testLiveQueryClient()
     queryObject.insert("className", "TestGameScore");
     queryObject.insert("where", whereObject);
 
-    pClient->subscribe(queryObject);
+    ParseLiveQuerySubscription *pSubscription = pClient->subscribe(queryObject);
     QSignalSpy subscribedSpy(pClient, &ParseLiveQueryClient::subscribed);
     QVERIFY(subscribedSpy.wait(SPY_WAIT));
 
+    pSubscription->deleteLater();
     pClient->close();
     //QSignalSpy closedSpy(pClient, &ParseLiveQueryClient::closed);
     //QVERIFY(closedSpy.wait(60000));

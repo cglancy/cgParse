@@ -14,6 +14,8 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parselivequeryclient.h"
+#include "parselivequerysubscription.h"
+#include "parseconvert.h"
 
 #include <QJsonDocument>
 #include <QDebug>
@@ -80,9 +82,14 @@ namespace cg {
         _webSocket.sendTextMessage(byteArray);
     }
 
-    int ParseLiveQueryClient::subscribe(const QJsonObject & queryObject, const QString & sessionToken)
+    ParseLiveQuerySubscription* ParseLiveQueryClient::subscribe(const QJsonObject & queryObject, const QString & sessionToken)
     {
+        if (_webSocket.state() != QAbstractSocket::ConnectedState)
+            return nullptr;
+
         int id = _nextId++;
+        ParseLiveQuerySubscription *pSubscription = new ParseLiveQuerySubscription(id);
+        _subscriptionMap.insert(id, pSubscription);
 
         QJsonObject jsonObject;
         jsonObject.insert("op", "subscribe");
@@ -94,11 +101,13 @@ namespace cg {
 
         sendJsonObject(jsonObject);
 
-        return id;
+        return pSubscription;
     }
 
     void ParseLiveQueryClient::unsubscribe(int id)
     {
+        _subscriptionMap.remove(id);
+
         QJsonObject jsonObject;
         jsonObject.insert("op", "unsubscribe");
         jsonObject.insert("requestId", id);
@@ -147,6 +156,9 @@ namespace cg {
             else if (operation == "subscribed")
             {
                 int id = messageObject.value("requestId").toInt();
+                ParseLiveQuerySubscription *pSubscription = _subscriptionMap.value(id);
+                if (pSubscription)
+                    emit pSubscription->subscribed();
                 emit subscribed(id);
             }
             else if (operation == "unsubscribed")
@@ -157,33 +169,75 @@ namespace cg {
             else if (operation == "create")
             {
                 int id = messageObject.value("requestId").toInt();
-                QJsonObject jsonObject = messageObject.value("object").toObject();
-                emit createEvent(id, jsonObject);
+                ParseLiveQuerySubscription *pSubscription = _subscriptionMap.value(id);
+
+                if (pSubscription)
+                {
+                    QJsonObject jsonObject = messageObject.value("object").toObject();
+                    ParseObjectPtr pObject = createObject(jsonObject);
+                    emit pSubscription->createEvent(pObject);
+                }
             }
             else if (operation == "enter")
             {
                 int id = messageObject.value("requestId").toInt();
-                QJsonObject jsonObject = messageObject.value("object").toObject();
-                emit enterEvent(id, jsonObject);
+                ParseLiveQuerySubscription *pSubscription = _subscriptionMap.value(id);
+
+                if (pSubscription)
+                {
+                    QJsonObject jsonObject = messageObject.value("object").toObject();
+                    ParseObjectPtr pObject = createObject(jsonObject);
+                    emit pSubscription->enterEvent(pObject);
+                }
             }
             else if (operation == "leave")
             {
                 int id = messageObject.value("requestId").toInt();
-                QJsonObject jsonObject = messageObject.value("object").toObject();
-                emit leaveEvent(id, jsonObject);
+                ParseLiveQuerySubscription *pSubscription = _subscriptionMap.value(id);
+
+                if (pSubscription)
+                {
+                    QJsonObject jsonObject = messageObject.value("object").toObject();
+                    ParseObjectPtr pObject = createObject(jsonObject);
+                    emit pSubscription->leaveEvent(pObject);
+                }
             }
             else if (operation == "update")
             {
                 int id = messageObject.value("requestId").toInt();
-                QJsonObject jsonObject = messageObject.value("object").toObject();
-                emit updateEvent(id, jsonObject);
+                ParseLiveQuerySubscription *pSubscription = _subscriptionMap.value(id);
+
+                if (pSubscription)
+                {
+                    QJsonObject jsonObject = messageObject.value("object").toObject();
+                    ParseObjectPtr pObject = createObject(jsonObject);
+                    emit pSubscription->updateEvent(pObject);
+                }
             }
             else if (operation == "delete")
             {
                 int id = messageObject.value("requestId").toInt();
-                QJsonObject jsonObject = messageObject.value("object").toObject();
-                emit deleteEvent(id, jsonObject);
+                ParseLiveQuerySubscription *pSubscription = _subscriptionMap.value(id);
+
+                if (pSubscription)
+                {
+                    QJsonObject jsonObject = messageObject.value("object").toObject();
+                    ParseObjectPtr pObject = createObject(jsonObject);
+                    emit pSubscription->deleteEvent(pObject);
+                }
             }
         }
+    }
+
+    QSharedPointer<ParseObject> ParseLiveQueryClient::createObject(const QJsonObject &jsonObject)
+    {
+        QString className = jsonObject.value(Parse::ClassNameKey).toString();
+        QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
+        QVariantMap map = ParseConvert::toVariantMap(jsonObject);
+
+        ParseObjectPtr pObject = ParseObject::createWithoutData(className, objectId);
+        pObject->setValues(map);
+
+        return pObject;
     }
 }
