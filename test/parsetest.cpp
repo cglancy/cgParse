@@ -838,6 +838,29 @@ void ParseTest::testLiveQueryClient()
     QSignalSpy subscribedSpy(pClient, &ParseLiveQueryClient::subscribed);
     QVERIFY(subscribedSpy.wait(SPY_WAIT));
 
+    ParseObjectPtr pGameScore = ParseObject::create("TestGameScore");
+    pGameScore->setValue("score", 42);
+    pGameScore->setValue("playerName", "Charles");
+    pGameScore->save();
+
+    QSignalSpy createEventSpy(pSubscription, &ParseLiveQuerySubscription::createEvent);
+    QVERIFY(createEventSpy.wait(SPY_WAIT));
+
+    pGameScore->setValue("score", 43);
+    pGameScore->save();
+
+    QSignalSpy updateEventSpy(pSubscription, &ParseLiveQuerySubscription::updateEvent);
+    QVERIFY(updateEventSpy.wait(SPY_WAIT));
+
+    pGameScore->deleteObject();
+
+    QSignalSpy deleteEventSpy(pSubscription, &ParseLiveQuerySubscription::deleteEvent);
+    QVERIFY(deleteEventSpy.wait(SPY_WAIT));
+
+    pSubscription->unsubscribe();
+    QSignalSpy unsubscribedEventSpy(pClient, &ParseLiveQueryClient::unsubscribed);
+    QVERIFY(unsubscribedEventSpy.wait(SPY_WAIT));
+
     pSubscription->deleteLater();
     pClient->close();
     //QSignalSpy closedSpy(pClient, &ParseLiveQueryClient::closed);
