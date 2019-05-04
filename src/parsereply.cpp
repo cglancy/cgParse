@@ -29,15 +29,6 @@ namespace cg
     //
     // ParseReply
     //
-    ParseReply::ParseReply(QNetworkReply *pReply)
-        : _pReply(pReply),
-        _errorCode(ParseError::NoError),
-        _statusCode(0)
-    {
-        if (pReply)
-            connect(pReply, &QNetworkReply::finished, this, &ParseReply::replyFinished);
-    }
-
     ParseReply::ParseReply(int error)
         : _pReply(nullptr),
         _errorCode(error),
@@ -46,8 +37,32 @@ namespace cg
         QTimer::singleShot(200, this, &ParseReply::finished);
     }
 
+    ParseReply::ParseReply(const ParseRequest &request)
+        : _pReply(nullptr),
+        _request(request),
+        _errorCode(NoError),
+        _statusCode(0)
+    {
+        sendMainRequest(request);
+    }
+
     ParseReply::~ParseReply()
     {
+    }
+
+    void ParseReply::sendMainRequest(const ParseRequest &request)
+    {
+        if (request.isNull())
+            return;
+
+        _pReply = request.sendRequest();
+        if (_pReply)
+            connect(_pReply, &QNetworkReply::finished, this, &ParseReply::replyFinished);
+    }
+
+    void ParseReply::sendChildRequest(const ParseRequest &request)
+    {
+        request;
     }
 
     bool ParseReply::isError() const 

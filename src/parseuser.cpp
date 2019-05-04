@@ -75,7 +75,7 @@ namespace cg
         query.addQueryItem("password", password);
         request.setUrlQuery(query);
 
-        ParseReply *pParseReply = new ParseReply(request.sendRequest());
+        ParseReply *pParseReply = new ParseReply(request);
         QObject::connect(pParseReply, &ParseReply::preFinished, staticHelper(), &ParseUserHelper::loginFinished);
         return pParseReply;
     }
@@ -91,7 +91,7 @@ namespace cg
         ParseRequest request(ParseRequest::PostHttpMethod, "/logout");
         request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
 
-        ParseReply *pParseReply = new ParseReply(request.sendRequest());
+        ParseReply *pParseReply = new ParseReply(request);
         QObject::connect(pParseReply, &ParseReply::preFinished, staticHelper(), &ParseUserHelper::logoutFinished);
         return pParseReply;
     }
@@ -106,7 +106,7 @@ namespace cg
         content = doc.toJson(QJsonDocument::Compact);
 
         ParseRequest request(ParseRequest::PostHttpMethod, "/requestPasswordReset", content);
-        return new ParseReply(request.sendRequest());
+        return new ParseReply(request);
     }
 
     // static
@@ -115,7 +115,7 @@ namespace cg
         ParseRequest request(ParseRequest::GetHttpMethod, "/users/me");
         request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
 
-        ParseReply *pParseReply = new ParseReply(request.sendRequest());
+        ParseReply *pParseReply = new ParseReply(request);
         QObject::connect(pParseReply, &ParseReply::preFinished, staticHelper(), &ParseUserHelper::becomeFinished);
         return pParseReply;
     }
@@ -171,7 +171,7 @@ namespace cg
         ParseRequest request(ParseRequest::PostHttpMethod, "/users", content);
         request.setHeader("X-Parse-Revocable-Session", "1");
 
-        ParseReply *pParseReply = new ParseReply(request.sendRequest());
+        ParseReply *pParseReply = new ParseReply(request);
         QObject::connect(pParseReply, &ParseReply::preFinished, _pHelper.data(), &ParseUserHelper::signUpFinished);
         return pParseReply;
     }
@@ -183,7 +183,7 @@ namespace cg
         ParseRequest request(ParseRequest::DeleteHttpMethod, "/users/" + objectId());
         request.setHeader("X-Parse-Session-Token", sessionToken().toUtf8());
 
-        ParseReply *pParseReply = new ParseReply(request.sendRequest());
+        ParseReply *pParseReply = new ParseReply(request);
         QObject::connect(pParseReply, &ParseReply::preFinished, _pHelper.data(), &ParseUserHelper::deleteUserFinished);
         return pParseReply;
     }

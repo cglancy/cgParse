@@ -99,7 +99,7 @@ namespace cg
         ParseRequest request(ParseRequest::DeleteHttpMethod, "/files/" + url.fileName());
         request.removeHeader("X-Parse-REST-API-Key");
         request.setHeader("X-Parse-Master-Key", masterKey.toUtf8());
-        return new ParseReply(request.sendRequest());
+        return new ParseReply(request);
     }
 
     bool ParseFile::isDirty() const
@@ -165,7 +165,7 @@ namespace cg
     {
         _pHelper->_pFile = sharedFromThis();
         ParseRequest request(ParseRequest::PostHttpMethod, "/files/" + name(), data(), contentType());
-        ParseReply *pReply = new ParseReply(request.sendRequest());
+        ParseReply *pReply = new ParseReply(request);
         QObject::connect(pReply, &ParseReply::preFinished, _pHelper.data(), &ParseFileHelper::saveFileFinished);
         return pReply;
     }

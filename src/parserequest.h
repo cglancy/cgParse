@@ -34,6 +34,7 @@ namespace cg
     public:
         enum HttpMethod
         {
+            UnknownHttpMethod,
             GetHttpMethod,
             PutHttpMethod,
             PostHttpMethod,
@@ -44,10 +45,15 @@ namespace cg
         static QByteArray userAgent();
 
     public:
+        ParseRequest();
         ParseRequest(HttpMethod method, const QString &apiRoute);
         ParseRequest(HttpMethod method, const QString &apiRoute, const QByteArray &content,
             const QString &contentType = JsonContentType);
         ParseRequest(const ParseRequest &request);
+
+        ParseRequest & operator=(const ParseRequest &request);
+
+        bool isNull() const;
 
         HttpMethod httpMethod() const;
         void setHttpMethod(HttpMethod method);

@@ -27,6 +27,11 @@ namespace cg
 {
     const QString ParseRequest::JsonContentType = QStringLiteral("application/json");
 
+    ParseRequest::ParseRequest()
+        : _method(UnknownHttpMethod)
+    {
+    }
+
     ParseRequest::ParseRequest(HttpMethod method, const QString & apiRoute)
         : _method(method),
         _apiRoute(apiRoute)
@@ -51,6 +56,22 @@ namespace cg
         _urlQuery = request._urlQuery;
         _content = request._content;
         _headers = request._headers;
+    }
+
+    ParseRequest & ParseRequest::operator=(const ParseRequest &request)
+    {
+        _method = request._method;
+        _apiRoute = request._apiRoute;
+        _contentType = request._contentType;
+        _urlQuery = request._urlQuery;
+        _content = request._content;
+        _headers = request._headers;
+        return *this;
+    }
+
+    bool ParseRequest::isNull() const
+    {
+        return _method == UnknownHttpMethod;
     }
 
     void ParseRequest::init()
