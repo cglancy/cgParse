@@ -40,8 +40,7 @@ namespace cg
         ParseReply(const ParseRequest &request);
         virtual ~ParseReply();
 
-        void sendMainRequest(const ParseRequest &request);
-        void sendChildRequest(const ParseRequest &request);
+        void sendRequest(const ParseRequest &request);
 
         bool isError() const;
         int statusCode() const;
@@ -105,7 +104,6 @@ namespace cg
     private:
         QNetworkReply *_pReply;
         ParseRequest _request;
-        QList<QNetworkReply*> _childReplyList;
         int _statusCode, _errorCode;
         QString _errorMessage;
         QByteArray _data;

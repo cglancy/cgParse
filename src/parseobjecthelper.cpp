@@ -24,7 +24,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QSignalSpy>
+#include <QEventLoop>
 
 namespace cg
 {
@@ -113,16 +113,18 @@ namespace cg
 
         for (auto & pFile : filesToSave)
         {
+            QEventLoop loop;
             ParseReply *pFileReply = pFile->save();
-            QSignalSpy fileSpy(pFileReply, &ParseReply::finished);
-            fileSpy.wait(200000);
+            connect(pFileReply, &ParseReply::finished, &loop, &QEventLoop::quit);
+            loop.exec();
         }
 
         for (auto & pObject : objectsToSave)
         {
+            QEventLoop loop;
             ParseReply *pObjectReply = pObject->save();
-            QSignalSpy objectSpy(pObjectReply, &ParseReply::finished);
-            objectSpy.wait(10000);
+            connect(pObjectReply, &ParseReply::finished, &loop, &QEventLoop::quit);
+            loop.exec();
         }
     }
 

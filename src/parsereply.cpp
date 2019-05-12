@@ -43,14 +43,14 @@ namespace cg
         _errorCode(NoError),
         _statusCode(0)
     {
-        sendMainRequest(request);
+        sendRequest(request);
     }
 
     ParseReply::~ParseReply()
     {
     }
 
-    void ParseReply::sendMainRequest(const ParseRequest &request)
+    void ParseReply::sendRequest(const ParseRequest &request)
     {
         if (request.isNull())
             return;
@@ -58,11 +58,6 @@ namespace cg
         _pReply = request.sendRequest();
         if (_pReply)
             connect(_pReply, &QNetworkReply::finished, this, &ParseReply::replyFinished);
-    }
-
-    void ParseReply::sendChildRequest(const ParseRequest &request)
-    {
-        request;
     }
 
     bool ParseReply::isError() const 
