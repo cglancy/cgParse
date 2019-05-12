@@ -21,7 +21,6 @@
 #include "parsetypes.h"
 #include "parseerror.h"
 #include "parseconvert.h"
-#include "parserequest.h"
 
 #include <QString>
 #include <QByteArray>
@@ -32,6 +31,8 @@ class QNetworkReply;
 
 namespace cg
 {
+    class ParseRequest;
+
     class CGPARSE_API ParseReply : public QObject
     {
         Q_OBJECT
@@ -103,7 +104,6 @@ namespace cg
 
     private:
         QNetworkReply *_pReply;
-        ParseRequest _request;
         int _statusCode, _errorCode;
         QString _errorMessage;
         QByteArray _data;

@@ -18,6 +18,7 @@
 #include "parseuser.h"
 #include "parsesession.h"
 #include "parseconvert.h"
+#include "parserequest.h"
 
 #include <QNetworkReply>
 #include <QJsonDocument>
@@ -39,7 +40,6 @@ namespace cg
 
     ParseReply::ParseReply(const ParseRequest &request)
         : _pReply(nullptr),
-        _request(request),
         _errorCode(NoError),
         _statusCode(0)
     {
