@@ -26,6 +26,7 @@
 #include "parsereply.h"
 #include "parselivequeryclient.h"
 #include "parselivequerysubscription.h"
+#include "parsequerymodel.h"
 
 #include <QTimer>
 #include <QFile>
@@ -41,7 +42,6 @@
 #include <QScopedPointer>
 #include <QFileInfo>
 #include <QSequentialIterable>
-#include <QScopedPointer>
 
 #define SPY_WAIT 10000
 
@@ -817,6 +817,48 @@ void ParseTest::testQueryOr()
 
     QList<TestQuotePtr> quotes = pQuery->results();
     QCOMPARE(quotes.size(), 3);
+}
+
+void ParseTest::testQueryModel()
+{
+    QStringList keys;
+    keys << Parse::ObjectIdKey;
+    keys << "rank";
+    keys << "quote";
+
+    QStringList orderList;
+    orderList << "rank";
+    QVariantMap queryMap;
+    queryMap.insert("order", orderList);
+
+    QVariantMap movieTitle{ {"title", "Star Wars: Episode IV A New Hope"} };
+    QVariantMap movieWhere{ {"where", movieTitle}, { "className", "TestMovie" } };
+    QVariantMap innerQuery{ {"$inQuery", movieWhere} };
+    QVariantMap movieQuery{ {"movie", innerQuery} };
+    queryMap["where"] = movieQuery;
+
+    QScopedPointer<ParseQueryModel> pQueryModel(new ParseQueryModel);
+    pQueryModel->setClassName("TestQuote");
+    pQueryModel->setKeys(keys);
+    pQueryModel->setQuery(queryMap);
+    ParseReply *pFindReply = pQueryModel->findWithReply();
+    QSignalSpy findSpy(pFindReply, &ParseReply::finished);
+    QVERIFY(findSpy.wait(SPY_WAIT));
+
+    int count = pQueryModel->rowCount();
+    QCOMPARE(count, 6);
+
+    QHash<int, QByteArray> names = pQueryModel->roleNames();
+    QCOMPARE(names.size(), 3);
+
+    QModelIndex index = pQueryModel->index(0);
+    int rank = pQueryModel->data(index, Qt::UserRole + 1).toInt();
+    QString quote = pQueryModel->data(index, Qt::UserRole + 2).toString();
+
+    QCOMPARE(rank, 1);
+    QCOMPARE(quote, QString("Help me, Obi-Wan Kenobi. You're my only hope."));
+
+    pFindReply->deleteLater();
 }
 
 void ParseTest::testLiveQueryClient()

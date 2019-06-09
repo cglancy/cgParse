@@ -23,6 +23,7 @@ HEADERS +=  \
 	../include/parsepolygon.h \
 	../include/parsequery.h \
 	../include/parsequeryhelper.h \
+	../include/parsequerymodel.h \
 	../include/parserelation.h \
 	../include/parsereply.h \
 	../include/parserole.h \
@@ -49,6 +50,7 @@ SOURCES += parse.cpp \
 	parseobjecthelper.cpp \
 	parseobjectpointer.cpp \
 	parsequeryhelper.cpp \
+	parsequerymodel.cpp \
 	parsereply.cpp \
 	parserequest.cpp \
 	parserole.cpp \

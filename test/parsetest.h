@@ -136,6 +136,7 @@ private slots:
     void testQueryComparison();
     void testQueryFullText();
     void testQueryOr();
+    void testQueryModel();
 
     void testLiveQueryClient();
 
