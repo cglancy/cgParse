@@ -8,3 +8,4 @@ build/windows/test
 build/windows/cgParse.sln
 *.opendb
 test/parsesecret.h
+*.suo
