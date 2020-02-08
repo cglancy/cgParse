@@ -802,11 +802,11 @@ void ParseTest::testQueryOr()
     QList<QSharedPointer<ParseQuery<TestQuote>>> list;
 
     auto pAnakinQuery = ParseQuery<TestQuote>::create();
-    pAnakinQuery->whereEqualTo("character", anakin->toPointer().toMap());
+    pAnakinQuery->whereEqualTo("character", anakin);
     list.append(pAnakinQuery);
 
     auto pVaderQuery = ParseQuery<TestQuote>::create();
-    pVaderQuery->whereEqualTo("character", vader->toPointer().toMap());
+    pVaderQuery->whereEqualTo("character", vader);
     list.append(pVaderQuery);
 
     auto pQuery = ParseQuery<TestQuote>::or(list);

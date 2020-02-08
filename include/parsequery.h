@@ -158,6 +158,12 @@ namespace cg
             return sharedFromThis();
         }
 
+		QSharedPointer<ParseQuery<T>> whereEqualTo(const QString &key, QSharedPointer<ParseObject> pObject)
+		{
+			_whereObject.insert(key, QJsonValue::fromVariant(pObject->toPointer().toMap()));
+			return sharedFromThis();
+		}
+
         QSharedPointer<ParseQuery<T>> whereNotEqualTo(const QString &key, const QVariant &value)
         {
             addConstraint(key, "$ne", value);
