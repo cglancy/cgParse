@@ -64,7 +64,7 @@ namespace cg
             _skip(0),
             _count(0)
         {
-            _className = CLASSNAME_FROM_TYPE(T);
+            _className = removeNamespace(CLASSNAME_FROM_TYPE(T));
         }
 
         ParseQuery(const QString &relationClassName, const QString &relationObjectId, const QString &relationKey)
@@ -73,7 +73,7 @@ namespace cg
             _skip(0), 
             _count(0)
         {
-            _className = CLASSNAME_FROM_TYPE(T);
+            _className = removeNamespace(CLASSNAME_FROM_TYPE(T));
 
             QJsonObject pointerObject;
             pointerObject.insert(Parse::TypeKey, Parse::PointerValue);
@@ -291,7 +291,7 @@ namespace cg
         {
             if (_pHelper->jsonArray.size() > 0 && _results.isEmpty())
             {
-                for (auto &jsonValue : _pHelper->jsonArray)
+                for (auto jsonValue : _pHelper->jsonArray)
                 {
                     if (jsonValue.isObject())
                     {
@@ -330,6 +330,11 @@ namespace cg
                 _whereObject.insert(key, constraintObject);
             }
         }
+
+		static QString removeNamespace(const QString &className)
+		{
+			return className.section("::", -1);
+		}
 
     private:
         QString _className;
