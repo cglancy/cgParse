@@ -27,6 +27,7 @@
 #include "parselivequeryclient.h"
 #include "parselivequerysubscription.h"
 #include "parsequerymodel.h"
+#include "parselivequerymodel.h"
 
 #include <QTimer>
 #include <QFile>
@@ -216,6 +217,12 @@ void ParseTest::initTestCase()
 
     deleteTestObjects();
     createTestObjects();
+
+	ParseLiveQueryClient *pClient = ParseLiveQueryClient::get();
+
+	pClient->open(PARSE_APPLICATION_ID, PARSE_LIVEQUERY_URL, PARSE_CLIENT_API_KEY);
+	QSignalSpy openedSpy(pClient, &ParseLiveQueryClient::opened);
+	QVERIFY(openedSpy.wait(SPY_WAIT));
 }
 
 void ParseTest::createTestObjects()
@@ -305,6 +312,9 @@ void ParseTest::createTestObjects()
 void ParseTest::cleanupTestCase()
 {
     deleteTestObjects();
+
+	ParseLiveQueryClient *pClient = ParseLiveQueryClient::get();
+	pClient->close();
 }
 
 void ParseTest::deleteTestObjects()
@@ -863,12 +873,6 @@ void ParseTest::testQueryModel()
 
 void ParseTest::testLiveQueryClient()
 {
-    ParseLiveQueryClient *pClient = ParseLiveQueryClient::get();
-
-    pClient->open(PARSE_APPLICATION_ID, PARSE_LIVEQUERY_URL, PARSE_CLIENT_API_KEY);
-    QSignalSpy openedSpy(pClient, &ParseLiveQueryClient::opened);
-    QVERIFY(openedSpy.wait(SPY_WAIT));
-
     QJsonObject whereObject;
     whereObject.insert("playerName", "Charles");
 
@@ -876,6 +880,7 @@ void ParseTest::testLiveQueryClient()
     queryObject.insert("className", "TestGameScore");
     queryObject.insert("where", whereObject);
 
+    ParseLiveQueryClient *pClient = ParseLiveQueryClient::get();
     ParseLiveQuerySubscription *pSubscription = pClient->subscribe(queryObject);
     QSignalSpy subscribedSpy(pClient, &ParseLiveQueryClient::subscribed);
     QVERIFY(subscribedSpy.wait(SPY_WAIT));
@@ -904,7 +909,37 @@ void ParseTest::testLiveQueryClient()
     QVERIFY(unsubscribedEventSpy.wait(SPY_WAIT));
 
     pSubscription->deleteLater();
-    pClient->close();
-    //QSignalSpy closedSpy(pClient, &ParseLiveQueryClient::closed);
-    //QVERIFY(closedSpy.wait(60000));
+}
+
+void ParseTest::testLiveQueryModel()
+{
+	QVariantMap queryMap;
+	queryMap.insert("playerName", "Charles");
+
+	QScopedPointer<ParseLiveQueryModel> pQueryModel(new ParseLiveQueryModel);
+	pQueryModel->setClassName("TestGameScore");
+	pQueryModel->setQuery(queryMap);
+	pQueryModel->subscribe();
+
+	QSignalSpy subscribedSpy(pQueryModel.data(), &ParseLiveQueryModel::subscribed);
+	QVERIFY(subscribedSpy.wait(SPY_WAIT));
+
+	ParseObjectPtr pGameScore = ParseObject::create("TestGameScore");
+	pGameScore->setValue("score", 42);
+	pGameScore->setValue("playerName", "Charles");
+	pGameScore->save();
+
+	QSignalSpy createEventSpy(pQueryModel.data(), &ParseLiveQueryModel::rowsInserted);
+	QVERIFY(createEventSpy.wait(SPY_WAIT));
+
+	pGameScore->setValue("score", 43);
+	pGameScore->save();
+
+	QSignalSpy updateEventSpy(pQueryModel.data(), &ParseLiveQueryModel::dataChanged);
+	QVERIFY(updateEventSpy.wait(SPY_WAIT));
+
+	pGameScore->deleteObject();
+
+	QSignalSpy deleteEventSpy(pQueryModel.data(), &ParseLiveQueryModel::rowsRemoved);
+	QVERIFY(deleteEventSpy.wait(SPY_WAIT));
 }

@@ -23,69 +23,9 @@
 namespace cg
 {
     ParseQueryModel::ParseQueryModel(QObject *parent)
-        : QAbstractListModel(parent),
+        : ParseQueryModelBase(parent),
         _pHelper(new ParseQueryHelper())
     {
-        _keysList << Parse::ObjectIdKey;
-        _keysList << Parse::CreatedAtKey;
-        _keysList << Parse::UpdatedAtKey;
-        updateHash();
-    }
-
-    QString ParseQueryModel::className() const
-    {
-        return _className;
-    }
-
-    void ParseQueryModel::setClassName(const QString & className)
-    {
-        beginResetModel();
-
-        _objects.clear();
-        _className = className;
-
-        endResetModel();
-
-        emit classNameNotify();
-    }
-
-    QStringList ParseQueryModel::keys() const
-    {
-        return _keysList;
-    }
-
-    void ParseQueryModel::setKeys(const QStringList & keys)
-    {
-        beginResetModel();
-
-        _objects.clear();
-        _keysList = keys;
-        updateHash();
-
-        endResetModel();
-
-        emit keysNotify();
-    }
-
-    QVariantMap ParseQueryModel::query() const
-    {
-        return _queryMap;
-    }
-
-    void ParseQueryModel::setQuery(const QVariantMap & queryMap)
-    {
-        _queryMap = queryMap;
-        emit queryNotify();
-    }
-
-    void ParseQueryModel::updateHash()
-    {
-        _roleHash.clear();
-
-        for (int i = 0; i < _keysList.size(); i++)
-        {
-            _roleHash.insert(i + Qt::UserRole, _keysList.at(i).toLocal8Bit());
-        }
     }
 
     void ParseQueryModel::find()
@@ -111,7 +51,7 @@ namespace cg
             urlQuery.addQueryItem("order", orderList.join(','));
         }
 
-        ParseReply *pReply = _pHelper->findObjects(_className, urlQuery);
+        ParseReply *pReply = _pHelper->findObjects(className(), urlQuery);
         connect(pReply, &ParseReply::finished, this, &ParseQueryModel::findFinished);
         return pReply;
     }
@@ -138,38 +78,5 @@ namespace cg
         }
 
         pReply->deleteLater();
-    }
-
-    int ParseQueryModel::rowCount(const QModelIndex &parent) const
-    {
-        if (parent.isValid())
-            return 0;
-
-        return _objects.size();
-    }
-
-    QVariant ParseQueryModel::data(const QModelIndex &index, const QString &key) const
-    {
-        if (!index.isValid())
-            return QVariant();
-
-        if (index.row() < 0 || index.row() >= _objects.size())
-            return QVariant();
-
-        ParseObjectPtr pObject = _objects.at(index.row());
-        QVariant variant = pObject->value(key);
-
-        return variant;
-    }
-
-    QVariant ParseQueryModel::data(const QModelIndex &index, int role) const
-    {
-        QString key = _roleHash.value(role);
-        return data(index, key);
-    }
-
-    QHash<int, QByteArray> ParseQueryModel::roleNames() const
-    {
-        return _roleHash;
     }
 }

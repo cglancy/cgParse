@@ -13,30 +13,43 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEQUERYMODEL_H
-#define CGPARSE_PARSEQUERYMODEL_H
+#ifndef CGPARSE_PARSELIVEQUERYMODEL_H
+#define CGPARSE_PARSELIVEQUERYMODEL_H
 #pragma once
 
 #include "parsequerymodelbase.h"
-#include "parsequeryhelper.h"
 
 namespace cg
 {
-    class ParseQueryModel : public ParseQueryModelBase
+	class ParseLiveQuerySubscription;
+
+    class ParseLiveQueryModel : public ParseQueryModelBase
     {
         Q_OBJECT
     public:
-        explicit ParseQueryModel(QObject *parent = nullptr);
+        explicit ParseLiveQueryModel(QObject *parent = nullptr);
+		~ParseLiveQueryModel();
 
-        Q_INVOKABLE void find();
-        ParseReply * findWithReply();
+	public slots:
+		void subscribe();
+		void unsubscribe();
 
-    private slots:
-        void findFinished();
+	signals:
+		void subscribed();
+
+	private slots:
+		void createEvent(QSharedPointer<ParseObject> pObject);
+		void enterEvent(QSharedPointer<ParseObject> pObject);
+		void leaveEvent(QSharedPointer<ParseObject> pObject);
+		void updateEvent(QSharedPointer<ParseObject> pObject);
+		void deleteEvent(QSharedPointer<ParseObject> pObject);
+
+	private:
+		int indexOf(QSharedPointer<ParseObject> pObject) const;
 
     private:
-        QScopedPointer<ParseQueryHelper> _pHelper;
+		ParseLiveQuerySubscription *m_pSubscription;
     };
 }
 
-#endif // CGPARSE_PARSEQUERYMODEL_H
+#endif // CGPARSE_PARSELIVEQUERYMODEL_H
