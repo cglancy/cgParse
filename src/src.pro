@@ -25,6 +25,7 @@ HEADERS +=  \
 	../include/parsequery.h \
 	../include/parsequeryhelper.h \
 	../include/parsequerymodel.h \
+	../include/parsequerymodelbase.h \
 	../include/parserelation.h \
 	../include/parsereply.h \
 	../include/parserole.h \
@@ -33,7 +34,6 @@ HEADERS +=  \
 	../include/parseuser.h \
 	parsefilehelper.h \
 	parseobjecthelper.h \
-	parsequerymodelbase.h \
 	parserequest.h \
 	parsesessionhelper.h \
 	parseuserhelper.h
