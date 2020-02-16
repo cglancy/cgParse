@@ -24,7 +24,7 @@
 namespace cg
 {
     ParseLiveQueryModel::ParseLiveQueryModel(QObject *parent)
-        : ParseQueryModelBase(parent),
+        : ParseQueryModel(parent),
 		m_pSubscription(nullptr)
     {
     }
@@ -43,13 +43,10 @@ namespace cg
 		if (!pClient)
 			return;
 
-		QJsonObject whereObject = QJsonObject::fromVariantMap(_queryMap);
+		QJsonObject subscriptionQueryObject = QJsonObject::fromVariantMap(_queryMap);
+		subscriptionQueryObject.insert("className", _className);
 
-		QJsonObject queryObject;
-		queryObject.insert("className", _className);
-		queryObject.insert("where", whereObject);
-
-		m_pSubscription = pClient->subscribe(queryObject);
+		m_pSubscription = pClient->subscribe(subscriptionQueryObject);
 		connect(m_pSubscription, &ParseLiveQuerySubscription::subscribed, this, &ParseLiveQueryModel::subscribed);
 		connect(m_pSubscription, &ParseLiveQuerySubscription::createEvent, this, &ParseLiveQueryModel::createEvent);
 		connect(m_pSubscription, &ParseLiveQuerySubscription::enterEvent, this, &ParseLiveQueryModel::enterEvent);
@@ -84,12 +81,20 @@ namespace cg
 
 	void ParseLiveQueryModel::enterEvent(QSharedPointer<ParseObject> pObject)
 	{
-		updateEvent(pObject);
+		beginInsertRows(QModelIndex(), _objects.size(), _objects.size());
+		_objects.append(pObject);
+		endInsertRows();
 	}
 
 	void ParseLiveQueryModel::leaveEvent(QSharedPointer<ParseObject> pObject)
 	{
-		updateEvent(pObject);
+		int index = indexOf(pObject);
+		if (index >= 0 && index < _objects.size())
+		{
+			beginRemoveRows(QModelIndex(), index, index);
+			_objects.removeAt(index);
+			endRemoveRows();
+		}
 	}
 
 	void ParseLiveQueryModel::updateEvent(QSharedPointer<ParseObject> pObject)

@@ -17,25 +17,63 @@
 #define CGPARSE_PARSEQUERYMODEL_H
 #pragma once
 
-#include "parsequerymodelbase.h"
+#include "parseobject.h"
 #include "parsequeryhelper.h"
+
+#include <QAbstractListModel>
+#include <QScopedPointer>
+#include <QVariant>
+#include <QHash>
 
 namespace cg
 {
-    class ParseQueryModel : public ParseQueryModelBase
+    class ParseQueryModel : public QAbstractListModel
     {
         Q_OBJECT
+        Q_PROPERTY(QString className READ className WRITE setClassName NOTIFY classNameNotify)
+        Q_PROPERTY(QStringList keys READ keys WRITE setKeys NOTIFY keysNotify)
+        Q_PROPERTY(QVariantMap query READ query WRITE setQuery NOTIFY queryNotify)
+
     public:
         explicit ParseQueryModel(QObject *parent = nullptr);
+		virtual ~ParseQueryModel();
 
-        Q_INVOKABLE void find();
-        ParseReply * findWithReply();
+		Q_INVOKABLE void find();
+		ParseReply * findWithReply();
 
-    private slots:
-        void findFinished();
+        QString className() const;
+        void setClassName(const QString &className);
 
-    private:
-        QScopedPointer<ParseQueryHelper> _pHelper;
+        QStringList keys() const;
+        void setKeys(const QStringList &keysList);
+
+        QVariantMap query() const;
+        void setQuery(const QVariantMap &queryMap);
+
+        QVariant data(const QModelIndex &index, const QString &key) const;
+
+        int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+        QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+        QHash<int, QByteArray> roleNames() const override;
+
+    signals:
+        void classNameNotify();
+        void keysNotify();
+        void queryNotify();
+
+	private slots:
+		void findFinished();
+
+	protected:
+        void updateHash();
+
+    protected:
+        QString _className;
+        QStringList _keysList;
+        QVariantMap _queryMap;
+        QHash<int, QByteArray> _roleHash;
+        QList<ParseObjectPtr> _objects;
+		QScopedPointer<ParseQueryHelper> _pHelper;
     };
 }
 

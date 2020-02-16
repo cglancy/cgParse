@@ -17,13 +17,13 @@
 #define CGPARSE_PARSELIVEQUERYMODEL_H
 #pragma once
 
-#include "parsequerymodelbase.h"
+#include "parsequerymodel.h"
 
 namespace cg
 {
 	class ParseLiveQuerySubscription;
 
-    class ParseLiveQueryModel : public ParseQueryModelBase
+    class ParseLiveQueryModel : public ParseQueryModel
     {
         Q_OBJECT
     public:

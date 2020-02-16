@@ -23,60 +23,157 @@
 namespace cg
 {
     ParseQueryModel::ParseQueryModel(QObject *parent)
-        : ParseQueryModelBase(parent),
-        _pHelper(new ParseQueryHelper())
+        : QAbstractListModel(parent),
+		_pHelper(new ParseQueryHelper())
     {
+        _keysList << Parse::ObjectIdKey;
+        _keysList << Parse::CreatedAtKey;
+        _keysList << Parse::UpdatedAtKey;
+        updateHash();
     }
 
-    void ParseQueryModel::find()
+	ParseQueryModel::~ParseQueryModel()
+	{
+	}
+
+    QString ParseQueryModel::className() const
     {
-        findWithReply();
+        return _className;
     }
 
-    ParseReply * ParseQueryModel::findWithReply()
+    void ParseQueryModel::setClassName(const QString & className)
     {
-        QUrlQuery urlQuery;
+        beginResetModel();
 
-        if (_queryMap.contains("where") && _queryMap.value("where").canConvert<QVariantMap>())
+        _objects.clear();
+        _className = className;
+
+        endResetModel();
+
+        emit classNameNotify();
+    }
+
+    QStringList ParseQueryModel::keys() const
+    {
+        return _keysList;
+    }
+
+    void ParseQueryModel::setKeys(const QStringList & keys)
+    {
+        beginResetModel();
+
+        _objects.clear();
+        _keysList = keys;
+        updateHash();
+
+        endResetModel();
+
+        emit keysNotify();
+    }
+
+    QVariantMap ParseQueryModel::query() const
+    {
+        return _queryMap;
+    }
+
+    void ParseQueryModel::setQuery(const QVariantMap & queryMap)
+    {
+        _queryMap = queryMap;
+        emit queryNotify();
+    }
+
+    void ParseQueryModel::updateHash()
+    {
+        _roleHash.clear();
+
+        for (int i = 0; i < _keysList.size(); i++)
         {
-            QJsonObject whereObject = QJsonObject::fromVariantMap(_queryMap.value("where").toMap());
-            QJsonDocument doc(whereObject);
-
-            urlQuery.addQueryItem("where", doc.toJson(QJsonDocument::Compact));
+            _roleHash.insert(i + Qt::UserRole, _keysList.at(i).toLocal8Bit());
         }
-
-        if (_queryMap.contains("order") && _queryMap.value("order").canConvert<QStringList>())
-        {
-            QStringList orderList = _queryMap.value("order").toStringList();
-            urlQuery.addQueryItem("order", orderList.join(','));
-        }
-
-        ParseReply *pReply = _pHelper->findObjects(className(), urlQuery);
-        connect(pReply, &ParseReply::finished, this, &ParseQueryModel::findFinished);
-        return pReply;
     }
 
-    void ParseQueryModel::findFinished()
+    int ParseQueryModel::rowCount(const QModelIndex &parent) const
     {
-        ParseReply *pReply = qobject_cast<ParseReply*>(sender());
-        if (!pReply)
-            return;
+        if (parent.isValid())
+            return 0;
 
-        QList<ParseObjectPtr> objects = pReply->objects<ParseObject>();
-        if (objects.size() > 0)
-        {
-            if (_objects.size() > 0)
-            {
-                beginRemoveRows(QModelIndex(), 0, _objects.size() - 1);
-                _objects.clear();
-                endRemoveRows();
-            }
-
-            beginInsertRows(QModelIndex(), 0, objects.size() - 1);
-            _objects = objects;
-            endInsertRows();
-        }
-
-        pReply->deleteLater();
+        return _objects.size();
     }
+
+    QVariant ParseQueryModel::data(const QModelIndex &index, const QString &key) const
+    {
+        if (!index.isValid())
+            return QVariant();
+
+        if (index.row() < 0 || index.row() >= _objects.size())
+            return QVariant();
+
+        ParseObjectPtr pObject = _objects.at(index.row());
+        QVariant variant = pObject->value(key);
+
+        return variant;
+    }
+
+    QVariant ParseQueryModel::data(const QModelIndex &index, int role) const
+    {
+        QString key = _roleHash.value(role);
+        return data(index, key);
+    }
+
+    QHash<int, QByteArray> ParseQueryModel::roleNames() const
+    {
+        return _roleHash;
+    }
+
+	void ParseQueryModel::find()
+	{
+		findWithReply();
+	}
+
+	ParseReply * ParseQueryModel::findWithReply()
+	{
+		QUrlQuery urlQuery;
+
+		if (_queryMap.contains("where") && _queryMap.value("where").canConvert<QVariantMap>())
+		{
+			QJsonObject whereObject = QJsonObject::fromVariantMap(_queryMap.value("where").toMap());
+			QJsonDocument doc(whereObject);
+
+			urlQuery.addQueryItem("where", doc.toJson(QJsonDocument::Compact));
+		}
+
+		if (_queryMap.contains("order") && _queryMap.value("order").canConvert<QStringList>())
+		{
+			QStringList orderList = _queryMap.value("order").toStringList();
+			urlQuery.addQueryItem("order", orderList.join(','));
+		}
+
+		ParseReply *pReply = _pHelper->findObjects(className(), urlQuery);
+		connect(pReply, &ParseReply::finished, this, &ParseQueryModel::findFinished);
+		return pReply;
+	}
+
+	void ParseQueryModel::findFinished()
+	{
+		ParseReply *pReply = qobject_cast<ParseReply*>(sender());
+		if (!pReply)
+			return;
+
+		QList<ParseObjectPtr> objects = pReply->objects<ParseObject>();
+		if (objects.size() > 0)
+		{
+			if (_objects.size() > 0)
+			{
+				beginRemoveRows(QModelIndex(), 0, _objects.size() - 1);
+				_objects.clear();
+				endRemoveRows();
+			}
+
+			beginInsertRows(QModelIndex(), 0, objects.size() - 1);
+			_objects = objects;
+			endInsertRows();
+		}
+
+		pReply->deleteLater();
+	}
 }

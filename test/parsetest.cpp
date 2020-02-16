@@ -913,8 +913,11 @@ void ParseTest::testLiveQueryClient()
 
 void ParseTest::testLiveQueryModel()
 {
+	QVariantMap whereMap;
+	whereMap.insert("playerName", "Charles");
+
 	QVariantMap queryMap;
-	queryMap.insert("playerName", "Charles");
+	queryMap.insert("where", whereMap);
 
 	QScopedPointer<ParseLiveQueryModel> pQueryModel(new ParseLiveQueryModel);
 	pQueryModel->setClassName("TestGameScore");
