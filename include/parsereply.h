@@ -66,7 +66,7 @@ namespace cg
                 QJsonObject obj = doc.object();
                 QJsonArray jsonArray = obj.value("results").toArray();
 
-                for (auto &jsonValue : jsonArray)
+                for (auto jsonValue : jsonArray)
                 {
                     if (jsonValue.isObject())
                     {

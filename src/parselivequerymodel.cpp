@@ -39,12 +39,20 @@ namespace cg
 		if (m_pSubscription)
 			return;
 
+		find();
+
 		ParseLiveQueryClient *pClient = ParseLiveQueryClient::get();
 		if (!pClient)
 			return;
 
-		QJsonObject subscriptionQueryObject = QJsonObject::fromVariantMap(_queryMap);
+		QJsonObject subscriptionQueryObject;
 		subscriptionQueryObject.insert("className", _className);
+
+		if (_queryMap.contains("where") && _queryMap.value("where").canConvert<QVariantMap>())
+		{
+			QJsonObject whereObject = QJsonObject::fromVariantMap(_queryMap.value("where").toMap());
+			subscriptionQueryObject.insert("where", whereObject);
+		}
 
 		m_pSubscription = pClient->subscribe(subscriptionQueryObject);
 		connect(m_pSubscription, &ParseLiveQuerySubscription::subscribed, this, &ParseLiveQueryModel::subscribed);

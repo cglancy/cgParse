@@ -148,6 +148,36 @@ namespace cg
 			urlQuery.addQueryItem("order", orderList.join(','));
 		}
 
+		if (_queryMap.contains("count") && _queryMap.value("count").canConvert<int>())
+		{
+			int count = _queryMap.value("count").toInt();
+			urlQuery.addQueryItem("count", QString::number(count));
+		}
+
+		if (_queryMap.contains("limit") && _queryMap.value("limit").canConvert<int>())
+		{
+			int limit = _queryMap.value("limit").toInt();
+			urlQuery.addQueryItem("limit", QString::number(limit));
+		}
+
+		if (_queryMap.contains("skip") && _queryMap.value("skip").canConvert<int>())
+		{
+			int skip = _queryMap.value("skip").toInt();
+			urlQuery.addQueryItem("skip", QString::number(skip));
+		}
+
+		if (_queryMap.contains("keys") && _queryMap.value("keys").canConvert<QStringList>())
+		{
+			QStringList keysList = _queryMap.value("keys").toStringList();
+			urlQuery.addQueryItem("keys", keysList.join(','));
+		}
+
+		if (_queryMap.contains("include") && _queryMap.value("include").canConvert<QStringList>())
+		{
+			QStringList includeList = _queryMap.value("include").toStringList();
+			urlQuery.addQueryItem("include", includeList.join(','));
+		}
+
 		ParseReply *pReply = _pHelper->findObjects(className(), urlQuery);
 		connect(pReply, &ParseReply::finished, this, &ParseQueryModel::findFinished);
 		return pReply;
