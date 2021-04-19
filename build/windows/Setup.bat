@@ -1,10 +1,10 @@
-set QTDIR=C:\Qt\5.12.7\msvc2017_64
-set VSDIR=C:\Program Files (x86)\Microsoft Visual Studio 14.0
+set QTDIR=C:\Qt\5.15.2\msvc2019_64
+set VSDIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional
 set QMAKESPEC=win32-msvc
 set CGPARSE_TEST_DIR=C:\Users\cglancy\Documents\GitHub\cgParse\test
 set CGPARSE_TEST_LOG=C:\Temp\cgparselog.txt
 
-call "%VSDIR%\VC\vcvarsall.bat" x64 8.1
+call "%VSDIR%\VC\Auxiliary\Build\vcvarsall.bat" x64
 
 %QTDIR%\bin\qmake.exe -tp vc -r ../../cgParse.pro
 

@@ -61,19 +61,18 @@ namespace cg
         void setContentType(const QString &contentType);
 
         ParseReply* save();
+        ParseReply* fetch();
 
         QByteArray data() const;
         QVariantMap toMap() const;
         void setValues(const QVariantMap &map);
 
     private:
-        static ParseFileHelper * staticHelper();
-
-    private:
         QString _name, _url, _contentType;
         QByteArray _data;
+
+        friend class ParseFileHelper;
         QScopedPointer<ParseFileHelper> _pHelper;
-        static ParseFileHelper *_pStaticHelper;
     };
 
     Q_DECLARE_METATYPE(QSharedPointer<ParseFile>);

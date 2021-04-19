@@ -26,16 +26,6 @@
 
 namespace cg
 {
-    ParseFileHelper * ParseFile::_pStaticHelper = nullptr;
-
-    ParseFileHelper * ParseFile::staticHelper()
-    {
-        if (!_pStaticHelper)
-            _pStaticHelper = new ParseFileHelper();
-
-        return _pStaticHelper;
-    }
-
     ParseFilePtr ParseFile::create()
     {
         return QSharedPointer<ParseFile>::create();
@@ -68,7 +58,7 @@ namespace cg
         QFileInfo fi(path);
         _name = fi.fileName();
         QString extension = fi.suffix();
-        if (extension == "jpg")
+        if (extension == "jpg" || extension == "jpeg")
             _contentType = "image/jpeg";
         else if (extension == "png")
             _contentType = "image/png";
@@ -167,6 +157,15 @@ namespace cg
         ParseRequest request(ParseRequest::PostHttpMethod, "/files/" + name(), data(), contentType());
         ParseReply *pReply = new ParseReply(request);
         QObject::connect(pReply, &ParseReply::preFinished, _pHelper.data(), &ParseFileHelper::saveFileFinished);
+        return pReply;
+    }
+
+    ParseReply* ParseFile::fetch()
+    {
+        _pHelper->_pFile = sharedFromThis();
+        ParseRequest request(ParseRequest::GetHttpMethod, url());
+        ParseReply* pReply = new ParseReply(request);
+        QObject::connect(pReply, &ParseReply::preFinished, _pHelper.data(), &ParseFileHelper::fetchFileFinished);
         return pReply;
     }
 }

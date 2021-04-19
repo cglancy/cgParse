@@ -51,4 +51,18 @@ namespace cg
             }
         }
     }
+
+    void ParseFileHelper::fetchFileFinished()
+    {
+        ParseReply* pReply = qobject_cast<ParseReply*>(sender());
+        if (!pReply)
+            return;
+
+        ParseFilePtr pFile = _pFile.lock();
+
+        if (!pReply->isError() && pReply->statusCode() == 200 && pFile)
+        {
+            pFile->_data = pReply->data();
+        }
+    }
 }

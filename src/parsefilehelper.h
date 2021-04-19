@@ -34,6 +34,7 @@ namespace cg
 
     public slots:
         void saveFileFinished();
+        void fetchFileFinished();
 
     public:
         QWeakPointer<ParseFile> _pFile;

@@ -149,11 +149,20 @@ namespace cg
 
     QString ParseRequest::fullUrl() const
     {
-        QString fullUrlStr = ParseClient::get()->serverUrl();
-        if (_apiRoute.startsWith("/"))
-            fullUrlStr += _apiRoute;
+        QString fullUrlStr;
+
+        if (_apiRoute.startsWith("http"))
+        {
+            fullUrlStr = _apiRoute;
+        }
         else
-            fullUrlStr += "/" + _apiRoute;
+        {
+            fullUrlStr = ParseClient::get()->serverUrl();
+            if (_apiRoute.startsWith("/"))
+                fullUrlStr += _apiRoute;
+            else
+                fullUrlStr += "/" + _apiRoute;
+        }
 
         return fullUrlStr;
     }

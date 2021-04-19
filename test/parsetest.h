@@ -138,6 +138,8 @@ private slots:
     void testQueryOr();
     void testQueryModel();
 
+    void testFile();
+
     void testLiveQueryClient();
 	void testLiveQueryModel();
 

@@ -871,6 +871,35 @@ void ParseTest::testQueryModel()
     pFindReply->deleteLater();
 }
 
+void ParseTest::testFile()
+{
+    QString imagePath = _testImagesDir.absolutePath() + "/star_wars.jpeg";
+
+    ParseFilePtr pFile = QSharedPointer<ParseFile>::create(imagePath);
+    QVERIFY(pFile->url().isEmpty());
+    QByteArray data1 = pFile->data();
+
+    ParseReply *pSaveReply = pFile->save();
+    QSignalSpy saveSpy(pSaveReply, &ParseReply::finished);
+    QVERIFY(saveSpy.wait(SPY_WAIT));
+    pSaveReply->deleteLater();
+
+    QVERIFY(!pFile->url().isEmpty());
+
+    ParseReply* pFetchReply = pFile->fetch();
+    QSignalSpy fetchSpy(pFetchReply, &ParseReply::finished);
+    QVERIFY(fetchSpy.wait(SPY_WAIT));
+    QByteArray data2 = pFetchReply->data();
+    pFetchReply->deleteLater();
+
+    QCOMPARE(data2, data1);
+
+    ParseReply* pDeleteReply = ParseFile::deleteFile(pFile->url(), PARSE_MASTER_KEY);
+    QSignalSpy deleteSpy(pDeleteReply, &ParseReply::finished);
+    QVERIFY(deleteSpy.wait(SPY_WAIT));
+    pDeleteReply->deleteLater();
+}
+
 void ParseTest::testLiveQueryClient()
 {
     QJsonObject whereObject;
