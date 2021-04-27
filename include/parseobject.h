@@ -87,6 +87,7 @@ namespace cg
         void addUnique(const QString &key, const QVariant &value);
         void addAll(const QString &key, const QVariantList &valueList);
         void addAllUnique(const QString &key, const QVariantList &valueList);
+        void remove(const QString& key, const QVariant& value);
         void removeAll(const QString &key, const QVariantList &valueList);
 
         ParseFilePtr file(const QString &key) const;
@@ -214,6 +215,15 @@ namespace cg
                 variantList.append(QVariant::fromValue(pBaseObject));
             }
             addAllUnique(key, variantList);
+        }
+
+        template <class T>
+        void removeObject(const QString& key, QSharedPointer<T> pObject)
+        {
+            QVariantList variantList;
+            ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+            variantList.append(QVariant::fromValue(pBaseObject));
+            removeAll(key, variantList);
         }
 
         template <class T>

@@ -211,6 +211,13 @@ namespace cg {
         setValue(key, map);
     }
 
+    void ParseObject::remove(const QString& key, const QVariant& value)
+    {
+        QVariantList valueList;
+        valueList.append(value);
+        removeAll(key, valueList);
+    }
+
     void ParseObject::removeAll(const QString & key, const QVariantList & valueList)
     {
         QVariantMap map;
