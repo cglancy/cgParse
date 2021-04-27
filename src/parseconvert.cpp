@@ -106,7 +106,9 @@ namespace cg
 
         if (variant.canConvert<QVariantMap>())
         {
-            QVariantMap map = variant.toMap();
+            // convert sub-objects
+            QVariantMap map = convertMap(variant.toMap(), false);
+
             if (map.contains(Parse::TypeKey) && map.value(Parse::TypeKey).toString() == Parse::PointerValue)
             {
                 QString className = map.value(Parse::ClassNameKey).toString();
