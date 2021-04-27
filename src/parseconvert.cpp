@@ -72,7 +72,10 @@ namespace cg
             if (variant.canConvert<ParseObjectPtr>())
             {
                 ParseObjectPtr pObject = variant.value<ParseObjectPtr>();
-                convertedVariant = pObject->toPointer().toMap();
+                if (pObject)
+                    convertedVariant = pObject->toPointer().toMap();
+                else
+                    convertedVariant = QVariant();
             }
             else if (variant.canConvert<ParseFilePtr>())
             {

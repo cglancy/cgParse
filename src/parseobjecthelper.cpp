@@ -102,7 +102,7 @@ namespace cg
         // prevent infinite recursion
         for (auto & pDirtyObject : objects)
         {
-            if (!_objectsBeingSaved.contains(pDirtyObject) && pDirtyObject->className() != "_User")
+            if (pDirtyObject && !_objectsBeingSaved.contains(pDirtyObject) && pDirtyObject->className() != "_User")
             {
                 _objectsBeingSaved.insert(pDirtyObject);
                 objectsToSave.append(pDirtyObject);
