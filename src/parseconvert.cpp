@@ -192,7 +192,6 @@ namespace cg
         return key == Parse::CreatedAtKey ||
             key == Parse::UpdatedAtKey ||
             key == Parse::EmailVerifiedKey ||
-            key == Parse::PerishableTokenKey ||
-            key == Parse::TypeKey;
+            key == Parse::PerishableTokenKey;
     }
 }
