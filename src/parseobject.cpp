@@ -309,8 +309,11 @@ namespace cg {
 
     void ParseObject::setValues(const QVariantMap &variantMap)
     {
-        for (auto & key : variantMap.keys())
-            _valueMap.insert(key, variantMap.value(key));
+        for (auto& key : variantMap.keys())
+        {
+            if (key != Parse::TypeKey)
+                _valueMap.insert(key, variantMap.value(key));
+        }
     }
 
     ParseReply* ParseObject::save()
