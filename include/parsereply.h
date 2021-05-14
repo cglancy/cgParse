@@ -25,6 +25,7 @@
 #include <QString>
 #include <QByteArray>
 #include <QSharedPointer>
+#include <QJsonDocument>
 #include <QJsonArray>
 
 class QNetworkReply;
@@ -32,6 +33,8 @@ class QNetworkReply;
 namespace cg
 {
     class ParseRequest;
+    class ParseUser;
+    class ParseSession;
 
     class CGPARSE_API ParseReply : public QObject
     {
@@ -52,8 +55,8 @@ namespace cg
         const QByteArray & constData() const;
 
         int count() const;
-        ParseUserPtr user() const;
-        ParseSessionPtr session() const;
+        QSharedPointer<ParseUser> user() const;
+        QSharedPointer<ParseSession> session() const;
 
         template <class T>
         QList<QSharedPointer<T>> objects() const

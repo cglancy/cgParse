@@ -140,9 +140,9 @@ namespace cg
         return count;
     }
 
-    ParseUserPtr ParseReply::user() const
+    QSharedPointer<ParseUser> ParseReply::user() const
     {
-        ParseUserPtr pUser;
+        QSharedPointer<ParseUser> pUser;
 
         QJsonDocument doc = QJsonDocument::fromJson(constData());
         if (doc.isObject())
@@ -155,9 +155,9 @@ namespace cg
         return pUser;
     }
 
-    ParseSessionPtr ParseReply::session() const
+    QSharedPointer<ParseSession> ParseReply::session() const
     {
-        ParseSessionPtr pSession;
+        QSharedPointer<ParseSession> pSession;
 
         QJsonDocument doc = QJsonDocument::fromJson(constData());
         if (doc.isObject())

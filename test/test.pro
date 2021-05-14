@@ -14,9 +14,7 @@ INCLUDEPATH += ../include ../src
 
 CONFIG(debug, debug|release) {
     LIBS += -L../src/debug -lcgParse
-    PRE_TARGETDEPS += ../src/debug/cgParse.lib
 }
 else {
     LIBS += -L../src/release -lcgParse
-    PRE_TARGETDEPS += ../src/release/cgParse.lib
 }

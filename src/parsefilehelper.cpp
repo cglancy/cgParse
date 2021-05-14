@@ -38,7 +38,7 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseFilePtr pFile = _pFile.lock();
+        QSharedPointer<ParseFile> pFile = _pFile.lock();
 
         if (!pReply->isError() && pReply->statusCode() == 201 && pFile)
         {
@@ -58,7 +58,7 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseFilePtr pFile = _pFile.lock();
+        QSharedPointer<ParseFile> pFile = _pFile.lock();
 
         if (!pReply->isError() && pReply->statusCode() == 200 && pFile)
         {

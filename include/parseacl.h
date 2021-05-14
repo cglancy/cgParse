@@ -23,33 +23,35 @@
 
 namespace cg
 {
+    class ParseUser;
+
     class CGPARSE_API ParseACL
     {
     public:
-        static ParseACLPtr create();
-        static ParseACLPtr create(ParseUserPtr pUser);
+        static QSharedPointer<ParseACL> create();
+        static QSharedPointer<ParseACL> create(QSharedPointer<ParseUser> pUser);
 
         static ParseACL defaultACL();
         static void setDefaultACL(const ParseACL &acl, bool withAccessForCurrentUser);
 
     public:
         ParseACL();
-        ParseACL(ParseUserPtr pUser);
+        ParseACL(QSharedPointer<ParseUser> pUser);
         ParseACL(const ParseACL &acl);
         ~ParseACL();
 
         bool publicReadAccess() const;
         bool publicWriteAccess() const;
-        bool readAccess(ParseUserPtr pUser) const;
+        bool readAccess(QSharedPointer<ParseUser> pUser) const;
         bool readAccess(const QString &userId) const;
-        bool writeAccess(ParseUserPtr pUser) const;
+        bool writeAccess(QSharedPointer<ParseUser> pUser) const;
         bool writeAccess(const QString &userId) const;
 
         void setPublicReadAccess(bool allowed);
         void setPublicWriteAccess(bool allowed);
-        void setReadAccess(ParseUserPtr pUser, bool allowed);
+        void setReadAccess(QSharedPointer<ParseUser> pUser, bool allowed);
         void setReadAccess(const QString &userId, bool allowed);
-        void setWriteAccess(ParseUserPtr pUser, bool allowed);
+        void setWriteAccess(QSharedPointer<ParseUser> pUser, bool allowed);
         void setWriteAccess(const QString &userId, bool allowed);
 
         QVariantMap toMap() const;

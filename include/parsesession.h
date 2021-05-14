@@ -29,7 +29,7 @@ namespace cg
     class CGPARSE_API ParseSession : public ParseObject
     {
     public:
-        static ParseSessionPtr create();
+        static QSharedPointer<ParseSession> create();
         static QSharedPointer<ParseQuery<ParseSession>> query();
 
         static ParseReply* currentSession();

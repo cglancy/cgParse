@@ -27,7 +27,7 @@ namespace cg
     class CGPARSE_API ParseRole : public ParseObject
     {
     public:
-        static ParseRolePtr create();
+        static QSharedPointer<ParseRole> create();
         static QSharedPointer<ParseQuery<ParseRole>> query();
 
     public:

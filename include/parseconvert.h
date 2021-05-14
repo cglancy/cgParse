@@ -24,11 +24,15 @@
 
 namespace cg
 {
+    class ParseObject;
+    class ParseFile;
+
     class CGPARSE_API ParseConvert
     {
     public:
         static QJsonObject toJsonObject(const QVariantMap &map);
         static QVariantMap toVariantMap(const QJsonObject &object);
+        static QVariantMap toVariantMap(QSharedPointer<ParseObject> pObject);
 
         static bool isPointer(const QVariant &variant);
         static bool isObject(const QVariant &variant);
@@ -39,10 +43,10 @@ namespace cg
         static bool canConvert(const QVariant &variant, bool toJson);
         static QVariant convertVariant(const QVariant &variant, bool toJson);
 
-        static ParseObjectPtr objectFromVariant(const QVariant &variant);
+        static QSharedPointer<ParseObject> objectFromVariant(const QVariant &variant);
 
         static bool isFile(const QVariant &variant);
-        static ParseFilePtr fileFromVariant(const QVariant &variant);
+        static QSharedPointer<ParseFile> fileFromVariant(const QVariant &variant);
         static bool isReadOnlyKey(const QString &key);
     };
 }

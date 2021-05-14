@@ -72,7 +72,7 @@ namespace cg
         QStringList _keysList;
         QVariantMap _queryMap;
         QHash<int, QByteArray> _roleHash;
-        QList<ParseObjectPtr> _objects;
+        QList<QSharedPointer<ParseObject>> _objects;
 		QScopedPointer<ParseQueryHelper> _pHelper;
     };
 }

@@ -60,9 +60,9 @@ namespace cg {
     {
     }
 
-    ParseObjectPtr ParseObject::create(const QString &className)
+    QSharedPointer<ParseObject> ParseObject::create(const QString &className)
     {
-        ParseObjectPtr pObject;
+        QSharedPointer<ParseObject> pObject;
 
         int id = QMetaType::type(className.toLocal8Bit());
         if (id != QMetaType::UnknownType)
@@ -79,9 +79,9 @@ namespace cg {
         return pObject;
     }
 
-    ParseObjectPtr ParseObject::createWithoutData(const QString &className, const QString &objectId)
+    QSharedPointer<ParseObject> ParseObject::createWithoutData(const QString &className, const QString &objectId)
     {
-        ParseObjectPtr pObject = create(className);
+        QSharedPointer<ParseObject> pObject = create(className);
         if (pObject)
             pObject->setValue(Parse::ObjectIdKey, objectId);
         return pObject;
@@ -133,7 +133,7 @@ namespace cg {
         _savedValueMap = _valueMap;
     }
 
-    bool ParseObject::hasSameId(ParseObjectPtr pObject) const
+    bool ParseObject::hasSameId(QSharedPointer<ParseObject> pObject) const
     {
         return pObject && pObject->value(Parse::ObjectIdKey) == value(Parse::ObjectIdKey);
     }
@@ -226,25 +226,25 @@ namespace cg {
         setValue(key, map);
     }
 
-    ParseFilePtr ParseObject::file(const QString &key) const
+    QSharedPointer<ParseFile> ParseObject::file(const QString &key) const
     {
-        return _valueMap.value(key).value<ParseFilePtr>();
+        return _valueMap.value(key).value<QSharedPointer<ParseFile>>();
     }
 
-    void ParseObject::setFile(const QString &key, ParseFilePtr pFile)
+    void ParseObject::setFile(const QString &key, QSharedPointer<ParseFile> pFile)
     {
         setValue(key, QVariant::fromValue(pFile));
     }
 
-    ParseUserPtr ParseObject::user(const QString & key) const
+    QSharedPointer<ParseUser> ParseObject::user(const QString & key) const
     {
-        ParseObjectPtr pBaseObject = value(key).value<ParseObjectPtr>();
+        QSharedPointer<ParseObject> pBaseObject = value(key).value<QSharedPointer<ParseObject>>();
         return pBaseObject.staticCast<ParseUser>();
     }
 
-    void ParseObject::setUser(const QString & key, ParseUserPtr pUser)
+    void ParseObject::setUser(const QString & key, QSharedPointer<ParseUser> pUser)
     {
-        ParseObjectPtr pBaseObject = pUser.staticCast<ParseObject>();
+        QSharedPointer<ParseObject> pBaseObject = pUser.staticCast<ParseObject>();
         setValue(key, QVariant::fromValue(pBaseObject));
     }
 
@@ -339,12 +339,12 @@ namespace cg {
         return _pHelper->deleteObject(sharedFromThis());
     }
 
-    ParseReply* ParseObject::saveAll(const QList<ParseObjectPtr> &objects)
+    ParseReply* ParseObject::saveAll(const QList<QSharedPointer<ParseObject>> &objects)
     {
         return staticHelper()->saveAll(objects);
     }
 
-    ParseReply* ParseObject::deleteAll(const QList<ParseObjectPtr>& objects)
+    ParseReply* ParseObject::deleteAll(const QList<QSharedPointer<ParseObject>>& objects)
     {
         return staticHelper()->deleteAll(objects);
     }

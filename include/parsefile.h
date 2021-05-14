@@ -36,9 +36,9 @@ namespace cg
     class CGPARSE_API ParseFile : public QEnableSharedFromThis<ParseFile>
     {
     public:
-        static ParseFilePtr create();
-        static ParseFilePtr create(const QString &localPath);
-        static ParseFilePtr create(const QString &name, const QByteArray &data, const QString &contentType);
+        static QSharedPointer<ParseFile> create();
+        static QSharedPointer<ParseFile> create(const QString &localPath);
+        static QSharedPointer<ParseFile> create(const QString &name, const QByteArray &data, const QString &contentType);
         static QSharedPointer<ParseQuery<ParseFile>> query();
 
         static ParseReply* deleteFile(const QString &url, const QString &masterKey);
@@ -74,8 +74,8 @@ namespace cg
         friend class ParseFileHelper;
         QScopedPointer<ParseFileHelper> _pHelper;
     };
-
-    Q_DECLARE_METATYPE(QSharedPointer<ParseFile>);
 }
+
+Q_DECLARE_METATYPE(QSharedPointer<cg::ParseFile>);
 
 #endif // CGPARSE_PARSEFILE_H
