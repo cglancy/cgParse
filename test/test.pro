@@ -1,7 +1,6 @@
 QT += network testlib websockets
 
 TARGET = cgParseTest
-CONFIG += testcase warn_on debug_and_release debug_and_release_target
 
 TEMPLATE = app
 
@@ -13,8 +12,8 @@ HEADERS += parsetest.h \
 INCLUDEPATH += ../include ../src
 
 CONFIG(debug, debug|release) {
-    LIBS += -L../src/debug -lcgParse
+    LIBS += -L../build-src-Desktop_Qt_5_15_4_clang_64bit-Debug -lcgParse
 }
 else {
-    LIBS += -L../src/release -lcgParse
+    LIBS += -L../build-src-Desktop_Qt_5_15_4_clang_64bit-Release -lcgParse
 }

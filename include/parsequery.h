@@ -31,7 +31,11 @@
 #include <QScopedPointer>
 #include <typeinfo>
 
+#ifdef Q_OS_MAC
+#define CLASSNAME_FROM_TYPE(T) QString(typeid(T).name()).remove(QRegExp("\\d"))
+#else
 #define CLASSNAME_FROM_TYPE(T) QString(typeid(T).name()).mid(6)
+#endif
 
 namespace cg
 {
@@ -344,12 +348,12 @@ namespace cg
 		}
 
     private:
+        QScopedPointer<ParseQueryHelper> _pHelper;
         QString _className;
         QJsonObject _whereObject;
         int _limit, _skip, _count;
         QStringList _keysList, _orderList, _includeList;
         QList<QSharedPointer<T>> _results;
-        QScopedPointer<ParseQueryHelper> _pHelper;
     };
 }
 

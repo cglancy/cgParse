@@ -169,12 +169,19 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     switch (type) {
     case QtDebugMsg:
     {
-        QFile file(logFileName);
-        if (file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
+        if (!logFileName.isEmpty())
         {
-            QTextStream outStream(&file);
-            outStream << localMsg << "\n";
-            file.close();
+            QFile file(logFileName);
+            if (file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append))
+            {
+                QTextStream outStream(&file);
+                outStream << localMsg << "\n";
+                file.close();
+            }
+        }
+        else
+        {
+            fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
         }
     }
         break;
@@ -204,6 +211,7 @@ void ParseTest::initTestCase()
     ParseClient::get()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, PARSE_SERVER_URL);
 
     QByteArray testDir = qgetenv("CGPARSE_TEST_DIR");
+    testDir = "/Users/charles/cgParse/test";
     QVERIFY(!testDir.isEmpty());
     _testImagesDir.setPath(testDir + "/images");
     QVERIFY(_testImagesDir.exists());

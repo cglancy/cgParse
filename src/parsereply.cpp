@@ -33,16 +33,16 @@ namespace cg
     //
     ParseReply::ParseReply(int error)
         : _pReply(nullptr),
-        _errorCode(error),
-        _statusCode(0)
+        _statusCode(0),
+        _errorCode(error)
     {
         QTimer::singleShot(200, this, &ParseReply::finished);
     }
 
     ParseReply::ParseReply(const ParseRequest &request)
         : _pReply(nullptr),
-        _errorCode(NoError),
-        _statusCode(0)
+        _statusCode(0),
+        _errorCode(NoError)
     {
         sendRequest(request);
     }

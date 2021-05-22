@@ -73,8 +73,8 @@ namespace cg
 
     ParseFile::ParseFile(const QString &name, const QByteArray &data, const QString &contentType)
         : _name(name),
-        _data(data),
         _contentType(contentType),
+        _data(data),
         _pHelper(new ParseFileHelper())
     {
     }

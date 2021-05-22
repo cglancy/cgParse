@@ -42,8 +42,8 @@ namespace cg
     ParseRequest::ParseRequest(HttpMethod method, const QString & apiRoute, const QByteArray & content, const QString &contentType)
         : _method(method),
         _apiRoute(apiRoute),
-        _content(content),
-        _contentType(contentType)
+        _contentType(contentType),
+        _content(content)
     {
         init();
     }
@@ -83,8 +83,7 @@ namespace cg
 
     QByteArray ParseRequest::userAgent()
     {
-        return QString("%1 %2").arg(QCoreApplication::applicationName())
-            .arg(QCoreApplication::applicationVersion()).toUtf8();
+        return QString("%1 %2").arg(QCoreApplication::applicationName(), QCoreApplication::applicationVersion()).toUtf8();
     }
 
     ParseRequest::HttpMethod ParseRequest::httpMethod() const
@@ -212,9 +211,11 @@ namespace cg
 
     void ParseRequest::logRequest() const
     {
-        QString method;
+        QString method = "GET";
+
         switch (_method)
         {
+        default:
         case GetHttpMethod:
             method = "GET";
             break;
@@ -229,9 +230,9 @@ namespace cg
             break;
         }
 
-        qDebug() << QString("Network Request: %1 %2").arg(method).arg(fullUrl());
+        qDebug() << QString("Network Request: %1 %2").arg(method, fullUrl());
         
-        for (auto & key : _headers.keys())
+        for (auto const& key : _headers.keys())
             qDebug() << "Header " << key << ": " << _headers.value(key);
 
         qDebug() << "Query " << _urlQuery.toString();
