@@ -687,6 +687,12 @@ void ParseTest::testObjectArraySave()
 {
 }
 
+void ParseTest::testQueryNamespace()
+{
+    auto pQuery = ParseQuery<ns1::ns2::TestNamespace>::create();
+    QCOMPARE(pQuery->className(), QString("TestNamespace"));
+}
+
 void ParseTest::testQueryGet()
 {
     auto pQuote = QSharedPointer<TestQuote>::create(episode1, luke, 1, "I have a very bad feeling about this.");

@@ -7,6 +7,7 @@ VERSION	= 0.1.1
 INCLUDEPATH += ../include
 
 HEADERS +=  \
+        ../include/nameof.h \
 	../include/parse.h \
 	../include/parseacl.h \
 	../include/parseclient.h \
