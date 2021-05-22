@@ -14,6 +14,11 @@ namespace cg
         return convertMap(object.toVariantMap(), false);
     }
 
+    QVariantMap ParseConvert::toVariantMap(QSharedPointer<ParseObject> pObject)
+    {
+        return pObject->toPointer().toMap();
+    }
+
     QVariantMap ParseConvert::convertMap(const QVariantMap &map, bool toJson)
     {
         QVariantMap convertedMap = map;
@@ -58,7 +63,7 @@ namespace cg
     {
         bool canConvert = false;
         if (toJson)
-            canConvert = variant.canConvert<ParseFilePtr>() || variant.canConvert<ParseObjectPtr>();
+            canConvert = variant.canConvert<QSharedPointer<ParseFile>>() || variant.canConvert<QSharedPointer<ParseObject>>();
         else
             canConvert = isObject(variant) || isPointer(variant) || isFile(variant);
         return canConvert;
@@ -69,17 +74,17 @@ namespace cg
         QVariant convertedVariant = variant;
         if (toJson)
         {
-            if (variant.canConvert<ParseObjectPtr>())
+            if (variant.canConvert<QSharedPointer<ParseObject>>())
             {
-                ParseObjectPtr pObject = variant.value<ParseObjectPtr>();
+                QSharedPointer<ParseObject> pObject = variant.value<QSharedPointer<ParseObject>>();
                 if (pObject)
                     convertedVariant = pObject->toPointer().toMap();
                 else
                     convertedVariant = QVariant();
             }
-            else if (variant.canConvert<ParseFilePtr>())
+            else if (variant.canConvert<QSharedPointer<ParseFile>>())
             {
-                ParseFilePtr pFile = variant.value<ParseFilePtr>();
+                QSharedPointer<ParseFile> pFile = variant.value<QSharedPointer<ParseFile>>();
                 convertedVariant = pFile->toMap();
             }
         }
@@ -87,12 +92,12 @@ namespace cg
         {
             if (isObject(variant) || isPointer(variant))
             {
-                ParseObjectPtr pObject = objectFromVariant(variant);
+                QSharedPointer<ParseObject> pObject = objectFromVariant(variant);
                 convertedVariant = QVariant::fromValue(pObject);
             }
             else if (isFile(variant))
             {
-                ParseFilePtr pFile = fileFromVariant(variant);
+                QSharedPointer<ParseFile> pFile = fileFromVariant(variant);
                 convertedVariant = QVariant::fromValue(pFile);
             }
         }
@@ -100,9 +105,9 @@ namespace cg
         return convertedVariant;
     }
 
-    ParseObjectPtr ParseConvert::objectFromVariant(const QVariant &variant)
+    QSharedPointer<ParseObject> ParseConvert::objectFromVariant(const QVariant &variant)
     {
-        ParseObjectPtr pObject;
+        QSharedPointer<ParseObject> pObject;
 
         if (variant.canConvert<QVariantMap>())
         {
@@ -166,9 +171,9 @@ namespace cg
         return file;
     }
 
-    ParseFilePtr ParseConvert::fileFromVariant(const QVariant &variant)
+    QSharedPointer<ParseFile> ParseConvert::fileFromVariant(const QVariant &variant)
     {
-        ParseFilePtr pFile;
+        QSharedPointer<ParseFile> pFile;
 
         if (variant.canConvert<QVariantMap>())
         {

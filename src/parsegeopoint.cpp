@@ -88,9 +88,9 @@ namespace cg
     bool ParseGeoPoint::operator<(const ParseGeoPoint &geoPoint) const
     {
         if (value(Parse::LatitudeKey) == geoPoint.value(Parse::LatitudeKey))
-            return value(Parse::LongitudeKey) < geoPoint.value(Parse::LongitudeKey);
+            return value(Parse::LongitudeKey).toDouble() < geoPoint.value(Parse::LongitudeKey).toDouble();
         else
-            return value(Parse::LatitudeKey) < geoPoint.value(Parse::LatitudeKey);
+            return value(Parse::LatitudeKey).toDouble() < geoPoint.value(Parse::LatitudeKey).toDouble();
     }
 
     bool ParseGeoPoint::isNull() const

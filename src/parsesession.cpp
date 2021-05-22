@@ -33,7 +33,7 @@ namespace cg
     }
 
     // static
-    ParseSessionPtr ParseSession::create()
+    QSharedPointer<ParseSession> ParseSession::create()
     {
         return QSharedPointer<ParseSession>::create();
     }
@@ -55,7 +55,7 @@ namespace cg
     // static
     ParseReply* ParseSession::currentSession()
     {
-        ParseUserPtr pCurrentUser = ParseUser::currentUser();
+        QSharedPointer<ParseUser> pCurrentUser = ParseUser::currentUser();
         if (pCurrentUser.isNull())
             return new ParseReply(ParseError::UnknownError);
 

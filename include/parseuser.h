@@ -28,10 +28,10 @@ namespace cg
     class CGPARSE_API ParseUser : public ParseObject
     {
     public:
-        static ParseUserPtr create();
+        static QSharedPointer<ParseUser> create();
         static QSharedPointer<ParseQuery<ParseUser>> query();
 
-        static ParseUserPtr currentUser();
+        static QSharedPointer<ParseUser> currentUser();
 
         static ParseReply* login(const QString &username, const QString &password);
         static ParseReply* logout();
@@ -64,12 +64,12 @@ namespace cg
 
     private:
         friend class ParseUserHelper;
-        static ParseUserPtr _pCurrentUser;
+        static QSharedPointer<ParseUser> _pCurrentUser;
         QScopedPointer<ParseUserHelper> _pHelper;
         static ParseUserHelper *_pStaticHelper;
     };
-
-    Q_DECLARE_METATYPE(ParseUser);
 }
+
+Q_DECLARE_METATYPE(cg::ParseUser);
 
 #endif // CGPARSE_PARSEUSER_H

@@ -1,13 +1,13 @@
 QT += network websockets
 
 TARGET = cgParse
-CONFIG += staticlib warn_on debug_and_release debug_and_release_target
 TEMPLATE = lib
 VERSION	= 0.1.1
 
 INCLUDEPATH += ../include
 
 HEADERS +=  \
+        ../include/nameof.h \
 	../include/parse.h \
 	../include/parseacl.h \
 	../include/parseclient.h \

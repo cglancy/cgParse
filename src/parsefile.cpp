@@ -26,17 +26,17 @@
 
 namespace cg
 {
-    ParseFilePtr ParseFile::create()
+    QSharedPointer<ParseFile> ParseFile::create()
     {
         return QSharedPointer<ParseFile>::create();
     }
 
-    ParseFilePtr ParseFile::create(const QString &localPath)
+    QSharedPointer<ParseFile> ParseFile::create(const QString &localPath)
     {
         return QSharedPointer<ParseFile>::create(localPath);
     }
 
-    ParseFilePtr ParseFile::create(const QString &name, const QByteArray &data, const QString &contentType)
+    QSharedPointer<ParseFile> ParseFile::create(const QString &name, const QByteArray &data, const QString &contentType)
     {
         return QSharedPointer<ParseFile>::create(name, data, contentType);
     }
@@ -73,8 +73,8 @@ namespace cg
 
     ParseFile::ParseFile(const QString &name, const QByteArray &data, const QString &contentType)
         : _name(name),
-        _data(data),
         _contentType(contentType),
+        _data(data),
         _pHelper(new ParseFileHelper())
     {
     }

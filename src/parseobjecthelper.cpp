@@ -36,17 +36,17 @@ namespace cg
     {
     }
 
-    bool ParseObjectHelper::collectDirtyChildren(ParseObjectPtr pObject, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects)
+    bool ParseObjectHelper::collectDirtyChildren(QSharedPointer<ParseObject> pObject, QList<QSharedPointer<ParseFile>> &files, QList<QSharedPointer<ParseObject>> &objects)
     {
         for (auto & key : pObject->keys())
         {
             if (pObject->isDirty(key))
             {
                 QVariant variant = pObject->value(key);
-                if (variant.canConvert<ParseObjectPtr>())
-                    objects.append(variant.value<ParseObjectPtr>());
-                else if (variant.canConvert<ParseFilePtr>())
-                    files.append(variant.value<ParseFilePtr>());
+                if (variant.canConvert<QSharedPointer<ParseObject>>())
+                    objects.append(variant.value<QSharedPointer<ParseObject>>());
+                else if (variant.canConvert<QSharedPointer<ParseFile>>())
+                    files.append(variant.value<QSharedPointer<ParseFile>>());
                 else if (variant.canConvert<QVariantMap>())
                     collectDirtyChildren(variant.toMap(), files, objects);
                 else if (variant.canConvert<QVariantList>())
@@ -57,15 +57,15 @@ namespace cg
         return files.size() > 0 || objects.size() > 0;
     }
 
-    void ParseObjectHelper::collectDirtyChildren(const QVariantMap &map, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects)
+    void ParseObjectHelper::collectDirtyChildren(const QVariantMap &map, QList<QSharedPointer<ParseFile>> &files, QList<QSharedPointer<ParseObject>> &objects)
     {
         for (auto & key : map.keys())
         {
             QVariant variant = map.value(key);
-            if (variant.canConvert<ParseObjectPtr>())
-                objects.append(variant.value<ParseObjectPtr>());
-            else if (variant.canConvert<ParseFilePtr>())
-                files.append(variant.value<ParseFilePtr>());
+            if (variant.canConvert<QSharedPointer<ParseObject>>())
+                objects.append(variant.value<QSharedPointer<ParseObject>>());
+            else if (variant.canConvert<QSharedPointer<ParseFile>>())
+                files.append(variant.value<QSharedPointer<ParseFile>>());
             else if (variant.canConvert<QVariantMap>())
                 collectDirtyChildren(variant.toMap(), files, objects);
             else if (variant.canConvert<QVariantList>())
@@ -73,14 +73,14 @@ namespace cg
         }
     }
 
-    void ParseObjectHelper::collectDirtyChildren(const QVariantList &list, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects)
+    void ParseObjectHelper::collectDirtyChildren(const QVariantList &list, QList<QSharedPointer<ParseFile>> &files, QList<QSharedPointer<ParseObject>> &objects)
     {
         for (auto & variant : list)
         {
-            if (variant.canConvert<ParseObjectPtr>())
-                objects.append(variant.value<ParseObjectPtr>());
-            else if (variant.canConvert<ParseFilePtr>())
-                files.append(variant.value<ParseFilePtr>());
+            if (variant.canConvert<QSharedPointer<ParseObject>>())
+                objects.append(variant.value<QSharedPointer<ParseObject>>());
+            else if (variant.canConvert<QSharedPointer<ParseFile>>())
+                files.append(variant.value<QSharedPointer<ParseFile>>());
             else if (variant.canConvert<QVariantMap>())
                 collectDirtyChildren(variant.toMap(), files, objects);
             else if (variant.canConvert<QVariantList>())
@@ -88,16 +88,16 @@ namespace cg
         }
     }
 
-    void ParseObjectHelper::saveChildrenIfNeeded(ParseObjectPtr pObject)
+    void ParseObjectHelper::saveChildrenIfNeeded(QSharedPointer<ParseObject> pObject)
     {
         _objectsBeingSaved.insert(pObject);
 
-        QList<ParseFilePtr> files;
-        QList<ParseObjectPtr> objects;
+        QList<QSharedPointer<ParseFile>> files;
+        QList<QSharedPointer<ParseObject>> objects;
         collectDirtyChildren(pObject, files, objects);
 
-        QList<ParseFilePtr> filesToSave;
-        QList<ParseObjectPtr> objectsToSave;
+        QList<QSharedPointer<ParseFile>> filesToSave;
+        QList<QSharedPointer<ParseObject>> objectsToSave;
 
         // prevent infinite recursion
         for (auto & pDirtyObject : objects)
@@ -128,7 +128,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseObjectHelper::createObject(ParseObjectPtr pObject)
+    ParseReply* ParseObjectHelper::createObject(QSharedPointer<ParseObject> pObject)
     {
         saveChildrenIfNeeded(pObject);
 
@@ -150,7 +150,7 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseObjectPtr pObject = _pObject.lock();
+        QSharedPointer<ParseObject> pObject = _pObject.lock();
 
         if (!pReply->isError() && pObject)
         {
@@ -162,7 +162,7 @@ namespace cg
             }
         }
 
-        QList<ParseObjectPtr> savedObjects = _objectObjectsMap.take(pObject);
+        QList<QSharedPointer<ParseObject>> savedObjects = _objectObjectsMap.take(pObject);
         for (auto & pSavedObject : savedObjects)
         {
             _objectsBeingSaved.remove(pSavedObject);
@@ -171,7 +171,7 @@ namespace cg
         _objectsBeingSaved.remove(pObject);
     }
 
-    ParseReply* ParseObjectHelper::fetchObject(ParseObjectPtr pObject)
+    ParseReply* ParseObjectHelper::fetchObject(QSharedPointer<ParseObject> pObject)
     {
         _pObject = pObject;
         ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pObject->className() + "/" + pObject->objectId());
@@ -186,7 +186,7 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseObjectPtr pObject = _pObject.lock();
+        QSharedPointer<ParseObject> pObject = _pObject.lock();
 
         if (!pReply->isError() && pObject)
         {
@@ -199,7 +199,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseObjectHelper::updateObject(ParseObjectPtr pObject)
+    ParseReply* ParseObjectHelper::updateObject(QSharedPointer<ParseObject> pObject)
     {
         if (!pObject || pObject->objectId().isEmpty())
         {
@@ -225,7 +225,7 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseObjectPtr pObject = _pObject.lock();
+        QSharedPointer<ParseObject> pObject = _pObject.lock();
 
         if (!pReply->isError() && pObject)
         {
@@ -237,7 +237,7 @@ namespace cg
             }
         }
 
-        QList<ParseObjectPtr> savedObjects = _objectObjectsMap.take(pObject);
+        QList<QSharedPointer<ParseObject>> savedObjects = _objectObjectsMap.take(pObject);
         for (auto & pSavedObject : savedObjects)
         {
             _objectsBeingSaved.remove(pSavedObject);
@@ -246,7 +246,7 @@ namespace cg
         _objectsBeingSaved.remove(pObject);
     }
 
-    ParseReply* ParseObjectHelper::deleteObject(ParseObjectPtr pObject)
+    ParseReply* ParseObjectHelper::deleteObject(QSharedPointer<ParseObject> pObject)
     {
         if (!pObject || pObject->objectId().isEmpty())
         {
@@ -258,7 +258,7 @@ namespace cg
         return new ParseReply(request);
     }
 
-    ParseReply* ParseObjectHelper::saveAll(const QList<ParseObjectPtr>& objects)
+    ParseReply* ParseObjectHelper::saveAll(const QList<QSharedPointer<ParseObject>>& objects)
     {
         if (objects.size() == 0)
         {
@@ -310,7 +310,7 @@ namespace cg
         if (!pReply)
             return;
 
-        QList<ParseObjectPtr> objects = _replyObjectListMap.take(pReply);
+        QList<QSharedPointer<ParseObject>> objects = _replyObjectListMap.take(pReply);
 
         if (!pReply->isError())
         {
@@ -324,7 +324,7 @@ namespace cg
                     if (arrayObject.contains("success"))
                     {
                         QJsonObject successObject = arrayObject.value("success").toObject();
-                        ParseObjectPtr pObject = objects.at(i);
+                        QSharedPointer<ParseObject> pObject = objects.at(i);
                         pObject->setValues(ParseConvert::toVariantMap(successObject));
                         pObject->clearDirtyState();
                     }
@@ -333,7 +333,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseObjectHelper::deleteAll(const QList<ParseObjectPtr>& objects)
+    ParseReply* ParseObjectHelper::deleteAll(const QList<QSharedPointer<ParseObject>>& objects)
     {
         if (objects.size() == 0)
         {

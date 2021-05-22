@@ -108,7 +108,7 @@ namespace cg
         if (index.row() < 0 || index.row() >= _objects.size())
             return QVariant();
 
-        ParseObjectPtr pObject = _objects.at(index.row());
+        QSharedPointer<ParseObject> pObject = _objects.at(index.row());
         QVariant variant = pObject->value(key);
 
         return variant;
@@ -189,7 +189,7 @@ namespace cg
 		if (!pReply)
 			return;
 
-		QList<ParseObjectPtr> objects = pReply->objects<ParseObject>();
+        QList<QSharedPointer<ParseObject>> objects = pReply->objects<ParseObject>();
 		if (objects.size() > 0)
 		{
 			if (_objects.size() > 0)

@@ -23,6 +23,8 @@
 
 namespace cg
 {
+    class ParseObject;
+
     template <class T>
     class ParseRelation
     {
@@ -32,10 +34,10 @@ namespace cg
         {
         }
 
-        QSharedPointer<ParseQuery<T>> query()
-        {
-            return QSharedPointer<ParseQuery<T>>::create(_objectClassName, _objectId, _objectKey);
-        }
+//        QSharedPointer<ParseQuery<T>> query()
+//        {
+//            return QSharedPointer<ParseQuery<T>>::create(_objectClassName, _objectId, _objectKey);
+//        }
 
         void add(QSharedPointer<T> pObject) { _addList.append(pObject); }
         void remove(QSharedPointer<T> pObject) { _removeList.append(pObject); }
@@ -50,8 +52,8 @@ namespace cg
                 QVariantList list = map.value("objects").toList();
                 for (auto & variant : list)
                 {
-                    ParseObjectPtr pBaseObject = variant.value<ParseObjectPtr>();
-                    _addList.append(pBaseObject.staticCast<T>());
+                    QSharedPointer<ParseObject> pBaseObject = variant.value<QSharedPointer<ParseObject>>();
+                    _addList.append(pBaseObject.template staticCast<T>());
                 }
             }
             else if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::RemoveRelationValue)
@@ -59,8 +61,8 @@ namespace cg
                 QVariantList list = map.value("objects").toList();
                 for (auto & variant : list)
                 {
-                    ParseObjectPtr pBaseObject = variant.value<ParseObjectPtr>();
-                    _removeList.append(pBaseObject.staticCast<T>());
+                    QSharedPointer<ParseObject> pBaseObject = variant.value<QSharedPointer<ParseObject>>();
+                    _removeList.append(pBaseObject.template staticCast<T>());
                 }
             }
         }
@@ -74,7 +76,7 @@ namespace cg
             {
                 for (auto & pObject : _addList)
                 {
-                    ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+                    QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
                     list.append(QVariant::fromValue(pBaseObject));
                 }
 
@@ -85,7 +87,7 @@ namespace cg
             {
                 for (auto & pObject : _removeList)
                 {
-                    ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+                    QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
                     list.append(QVariant::fromValue(pBaseObject));
                 }
 

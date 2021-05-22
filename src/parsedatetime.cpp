@@ -88,7 +88,7 @@ namespace cg
 
     bool ParseDateTime::operator<(const ParseDateTime & dateTime) const
     {
-        return value(Parse::IsoDateKey) < dateTime.value(Parse::IsoDateKey);
+        return value(Parse::IsoDateKey).toDateTime() < dateTime.value(Parse::IsoDateKey).toDateTime();
     }
 
     QDateTime ParseDateTime::toDateTime() const

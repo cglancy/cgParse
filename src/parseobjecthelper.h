@@ -31,6 +31,8 @@ class QNetworkReply;
 namespace cg
 {
     class ParseReply;
+    class ParseObject;
+    class ParseFile;
 
     class CGPARSE_API ParseObjectHelper : public QObject
     {
@@ -39,13 +41,13 @@ namespace cg
         ParseObjectHelper();
         ~ParseObjectHelper();
 
-        ParseReply* createObject(ParseObjectPtr pObject);
-        ParseReply* fetchObject(ParseObjectPtr pObject);
-        ParseReply* updateObject(ParseObjectPtr pObject);
-        ParseReply* deleteObject(ParseObjectPtr pObject);
+        ParseReply* createObject(QSharedPointer<ParseObject> pObject);
+        ParseReply* fetchObject(QSharedPointer<ParseObject> pObject);
+        ParseReply* updateObject(QSharedPointer<ParseObject> pObject);
+        ParseReply* deleteObject(QSharedPointer<ParseObject> pObject);
 
-        ParseReply* saveAll(const QList<ParseObjectPtr> &objects);
-        ParseReply* deleteAll(const QList<ParseObjectPtr> &objects);
+        ParseReply* saveAll(const QList<QSharedPointer<ParseObject>> &objects);
+        ParseReply* deleteAll(const QList<QSharedPointer<ParseObject>> &objects);
 
     private slots:
         void privateCreateObjectFinished();
@@ -54,16 +56,16 @@ namespace cg
         void privateSaveAllFinished();
 
     private:
-        void saveChildrenIfNeeded(ParseObjectPtr pObject);
-        bool collectDirtyChildren(ParseObjectPtr pObject, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects);
-        void collectDirtyChildren(const QVariantMap &map, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects);
-        void collectDirtyChildren(const QVariantList &list, QList<ParseFilePtr> &files, QList<ParseObjectPtr> &objects);
+        void saveChildrenIfNeeded(QSharedPointer<ParseObject> pObject);
+        bool collectDirtyChildren(QSharedPointer<ParseObject> pObject, QList<QSharedPointer<ParseFile>> &files, QList<QSharedPointer<ParseObject>> &objects);
+        void collectDirtyChildren(const QVariantMap &map, QList<QSharedPointer<ParseFile>> &files, QList<QSharedPointer<ParseObject>> &objects);
+        void collectDirtyChildren(const QVariantList &list, QList<QSharedPointer<ParseFile>> &files, QList<QSharedPointer<ParseObject>> &objects);
 
     private:
         QWeakPointer<ParseObject> _pObject;
-        QMap<ParseObjectPtr, QList<ParseObjectPtr>> _objectObjectsMap;
-        QSet<ParseObjectPtr> _objectsBeingSaved;
-        QMap<ParseReply*, QList<ParseObjectPtr>> _replyObjectListMap;
+        QMap<QSharedPointer<ParseObject>, QList<QSharedPointer<ParseObject>>> _objectObjectsMap;
+        QSet<QSharedPointer<ParseObject>> _objectsBeingSaved;
+        QMap<ParseReply*, QList<QSharedPointer<ParseObject>>> _replyObjectListMap;
     };
 }
 

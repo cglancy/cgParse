@@ -18,7 +18,7 @@
 
 namespace cg
 {
-    ParseRolePtr ParseRole::create()
+    QSharedPointer<ParseRole> ParseRole::create()
     {
         return QSharedPointer<ParseRole>::create();
     }

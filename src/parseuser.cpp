@@ -22,7 +22,7 @@
 
 namespace cg
 {
-    ParseUserPtr ParseUser::_pCurrentUser;
+    QSharedPointer<ParseUser> ParseUser::_pCurrentUser;
     ParseUserHelper * ParseUser::_pStaticHelper = nullptr;
 
     ParseUserHelper * ParseUser::staticHelper()
@@ -33,7 +33,7 @@ namespace cg
         return _pStaticHelper;
     }
 
-    ParseUserPtr ParseUser::create()
+    QSharedPointer<ParseUser> ParseUser::create()
     {
         return QSharedPointer<ParseUser>::create();
     }
@@ -59,7 +59,7 @@ namespace cg
     }
 
     // static
-    ParseUserPtr ParseUser::currentUser()
+    QSharedPointer<ParseUser> ParseUser::currentUser()
     {
         return _pCurrentUser;
     }
@@ -84,7 +84,7 @@ namespace cg
     ParseReply * ParseUser::logout()
     {
         QString sessionToken;
-        ParseUserPtr pUser = currentUser();
+        QSharedPointer<ParseUser> pUser = currentUser();
         if (!pUser.isNull())
             sessionToken = pUser->sessionToken();
 

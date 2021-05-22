@@ -33,16 +33,16 @@ namespace cg
     //
     ParseReply::ParseReply(int error)
         : _pReply(nullptr),
-        _errorCode(error),
-        _statusCode(0)
+        _statusCode(0),
+        _errorCode(error)
     {
         QTimer::singleShot(200, this, &ParseReply::finished);
     }
 
     ParseReply::ParseReply(const ParseRequest &request)
         : _pReply(nullptr),
-        _errorCode(NoError),
-        _statusCode(0)
+        _statusCode(0),
+        _errorCode(NoError)
     {
         sendRequest(request);
     }
@@ -140,9 +140,9 @@ namespace cg
         return count;
     }
 
-    ParseUserPtr ParseReply::user() const
+    QSharedPointer<ParseUser> ParseReply::user() const
     {
-        ParseUserPtr pUser;
+        QSharedPointer<ParseUser> pUser;
 
         QJsonDocument doc = QJsonDocument::fromJson(constData());
         if (doc.isObject())
@@ -155,9 +155,9 @@ namespace cg
         return pUser;
     }
 
-    ParseSessionPtr ParseReply::session() const
+    QSharedPointer<ParseSession> ParseReply::session() const
     {
-        ParseSessionPtr pSession;
+        QSharedPointer<ParseSession> pSession;
 
         QJsonDocument doc = QJsonDocument::fromJson(constData());
         if (doc.isObject())

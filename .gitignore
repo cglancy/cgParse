@@ -3,6 +3,7 @@
 *.vcxproj
 *.filters
 *.rc
+*.user
 build/windows/src
 build/windows/test
 build/windows/.vs
@@ -10,3 +11,5 @@ build/windows/cgParse.sln
 *.opendb
 test/parsesecret.h
 *.suo
+build-src*
+build-test*

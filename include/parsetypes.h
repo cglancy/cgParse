@@ -16,6 +16,7 @@
 #pragma once
 #include <QSharedPointer>
 
+#if 1
 namespace cg
 {
     class ParseObject;
@@ -36,3 +37,4 @@ namespace cg
     class ParseSession;
     typedef QSharedPointer<ParseSession> ParseSessionPtr;
 }
+#endif

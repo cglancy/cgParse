@@ -174,7 +174,7 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    ParseObjectPtr pObject = createObject(jsonObject);
+                    QSharedPointer<ParseObject> pObject = createObject(jsonObject);
                     emit pSubscription->createEvent(pObject);
                 }
             }
@@ -186,7 +186,7 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    ParseObjectPtr pObject = createObject(jsonObject);
+                    QSharedPointer<ParseObject> pObject = createObject(jsonObject);
                     emit pSubscription->enterEvent(pObject);
                 }
             }
@@ -198,7 +198,7 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    ParseObjectPtr pObject = createObject(jsonObject);
+                    QSharedPointer<ParseObject> pObject = createObject(jsonObject);
                     emit pSubscription->leaveEvent(pObject);
                 }
             }
@@ -210,7 +210,7 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    ParseObjectPtr pObject = createObject(jsonObject);
+                    QSharedPointer<ParseObject> pObject = createObject(jsonObject);
                     emit pSubscription->updateEvent(pObject);
                 }
             }
@@ -222,7 +222,7 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    ParseObjectPtr pObject = createObject(jsonObject);
+                    QSharedPointer<ParseObject> pObject = createObject(jsonObject);
                     emit pSubscription->deleteEvent(pObject);
                 }
             }
@@ -235,7 +235,7 @@ namespace cg {
         QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
         QVariantMap map = ParseConvert::toVariantMap(jsonObject);
 
-        ParseObjectPtr pObject = ParseObject::createWithoutData(className, objectId);
+        QSharedPointer<ParseObject> pObject = ParseObject::createWithoutData(className, objectId);
         pObject->setValues(map);
 
         return pObject;

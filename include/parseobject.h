@@ -18,7 +18,6 @@
 #pragma once
 
 #include "parse.h"
-#include "parsetypes.h"
 #include "parserelation.h"
 #include "parseerror.h"
 #include "parseobjectpointer.h"
@@ -33,12 +32,15 @@
 namespace cg
 {
     class ParseObjectHelper;
+    class ParseReply;
+    class ParseFile;
+    class ParseUser;
 
     class CGPARSE_API ParseObject : public QEnableSharedFromThis<ParseObject>
     {
     public:
-        static ParseObjectPtr create(const QString &className);
-        static ParseObjectPtr createWithoutData(const QString &className, const QString &objectId);
+        static QSharedPointer<ParseObject> create(const QString &className);
+        static QSharedPointer<ParseObject> createWithoutData(const QString &className, const QString &objectId);
 
         template <class T>
         static QSharedPointer<T> create()
@@ -53,14 +55,14 @@ namespace cg
             return pObject;
         }
 
-        static ParseReply* saveAll(const QList<ParseObjectPtr> &objects);
-        static ParseReply* deleteAll(const QList<ParseObjectPtr> &objects);
+        static ParseReply* saveAll(const QList<QSharedPointer<ParseObject>> &objects);
+        static ParseReply* deleteAll(const QList<QSharedPointer<ParseObject>> &objects);
 
-        template <class T>
-        static QSharedPointer<ParseQuery<T>> query()
-        {
-            return QSharedPointer<ParseQuery<T>>::create();
-        }
+//        template <class T>
+//        static QSharedPointer<ParseQuery<T>> query()
+//        {
+//            return QSharedPointer<ParseQuery<T>>::create();
+//        }
 
     public:
         ParseObject();
@@ -73,7 +75,7 @@ namespace cg
         QDateTime createdAt() const;
         QDateTime updatedAt() const;
 
-        bool hasSameId(ParseObjectPtr pObject) const;
+        bool hasSameId(QSharedPointer<ParseObject> pObject) const;
         bool isDirty() const;
         bool isDirty(const QString &key) const;
         void revert();
@@ -90,11 +92,11 @@ namespace cg
         void remove(const QString& key, const QVariant& value);
         void removeAll(const QString &key, const QVariantList &valueList);
 
-        ParseFilePtr file(const QString &key) const;
-        void setFile(const QString &key, ParseFilePtr pFile);
+        QSharedPointer<ParseFile> file(const QString &key) const;
+        void setFile(const QString &key, QSharedPointer<ParseFile> pFile);
 
-        ParseUserPtr user(const QString &key) const;
-        void setUser(const QString &key, ParseUserPtr pUser);
+        QSharedPointer<ParseUser> user(const QString &key) const;
+        void setUser(const QString &key, QSharedPointer<ParseUser> pUser);
 
         QDateTime dateTime(const QString &key) const;
         void setDateTime(const QString &key, const QDateTime &dateTime);
@@ -108,14 +110,14 @@ namespace cg
         template <class T>
         QSharedPointer<T> object(const QString &key) const
         {
-            ParseObjectPtr pBaseObject = value(key).value<ParseObjectPtr>();
+            QSharedPointer<ParseObject> pBaseObject = value(key).value<QSharedPointer<ParseObject>>();
             return pBaseObject.staticCast<T>();
         }
 
         template <class T>
         void setObject(const QString &key, QSharedPointer<T> pObject)
         {
-            ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+            QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
             setValue(key, QVariant::fromValue(pBaseObject));
         }
 
@@ -182,14 +184,14 @@ namespace cg
         template <class T>
         void addObject(const QString &key, QSharedPointer<T> pObject)
         {
-            ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+            QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
             add(key, QVariant::fromValue(pBaseObject));
         }
 
         template <class T>
         void addUniqueObject(const QString &key, QSharedPointer<T> pObject)
         {
-            ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+            QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
             addUnique(key, QVariant::fromValue(pBaseObject));
         }
 
@@ -199,7 +201,7 @@ namespace cg
             QVariantList variantList;
             for (auto & pObject : objectList)
             {
-                ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+                QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
                 variantList.append(QVariant::fromValue(pBaseObject));
             }
             addAll(key, variantList);
@@ -211,7 +213,7 @@ namespace cg
             QVariantList variantList;
             for (auto & pObject : objectList)
             {
-                ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+                QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
                 variantList.append(QVariant::fromValue(pBaseObject));
             }
             addAllUnique(key, variantList);
@@ -221,7 +223,7 @@ namespace cg
         void removeObject(const QString& key, QSharedPointer<T> pObject)
         {
             QVariantList variantList;
-            ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+            QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
             variantList.append(QVariant::fromValue(pBaseObject));
             removeAll(key, variantList);
         }
@@ -232,7 +234,7 @@ namespace cg
             QVariantList variantList;
             for (auto & pObject : objectList)
             {
-                ParseObjectPtr pBaseObject = pObject.staticCast<ParseObject>();
+                QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
                 variantList.append(QVariant::fromValue(pBaseObject));
             }
             removeAll(key, variantList);
@@ -245,7 +247,7 @@ namespace cg
             QVariantList variantList = value(key).toList();
             for (auto & variant : variantList)
             {
-                ParseObjectPtr pBaseObject = variant.value<ParseObjectPtr>();
+                QSharedPointer<ParseObject> pBaseObject = variant.value<QSharedPointer<ParseObject>>();
                 objectList.append(pBaseObject.staticCast<T>());
             }
 
@@ -273,9 +275,9 @@ namespace cg
         QScopedPointer<ParseObjectHelper> _pHelper;
         static ParseObjectHelper *_pStaticHelper;
     };
-
-    Q_DECLARE_METATYPE(ParseObject);
-    Q_DECLARE_METATYPE(QSharedPointer<ParseObject>);
 }
+
+Q_DECLARE_METATYPE(cg::ParseObject);
+Q_DECLARE_METATYPE(QSharedPointer<cg::ParseObject>);
 
 #endif // CGPARSE_PARSEOBJECT_H

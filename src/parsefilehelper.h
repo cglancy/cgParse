@@ -25,6 +25,8 @@
 
 namespace cg
 {
+    class ParseFile;
+
     class CGPARSE_API ParseFileHelper : public QObject
     {
         Q_OBJECT

@@ -95,6 +95,24 @@ private:
 };
 
 Q_DECLARE_METATYPE(TestQuote);
+
+//
+// TestNamespace
+//
+namespace ns1
+{
+    namespace ns2
+    {
+        class TestNamespace : public cg::ParseObject
+        {
+        public:
+            TestNamespace();
+        };
+    }
+}
+
+Q_DECLARE_METATYPE(ns1::ns2::TestNamespace);
+
 //
 // ParseTest
 //
@@ -129,6 +147,7 @@ private slots:
     void testObjectReferenceSave();
     void testObjectArraySave();
 
+    void testQueryNamespace();
     void testQueryGet();
     void testQueryFindAll();
     void testQueryCount();

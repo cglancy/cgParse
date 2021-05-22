@@ -75,7 +75,7 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseUserPtr pUser = _pUser.lock();
+        QSharedPointer<ParseUser> pUser = _pUser.lock();
 
         if (!pReply->isError() && pReply->statusCode() == 201 && !pUser.isNull())
         {
@@ -96,7 +96,7 @@ namespace cg
         if (!pReply)
             return;
 
-        ParseUserPtr pUser = _pUser.lock();
+        QSharedPointer<ParseUser> pUser = _pUser.lock();
 
         if (!pReply->isError() && !pUser.isNull())
         {
