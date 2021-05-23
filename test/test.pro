@@ -13,9 +13,11 @@ HEADERS += parsetest.h \
 
 INCLUDEPATH += ../include ../src
 
+
 CONFIG(debug, debug|release) {
-    LIBS += -L$$(CGPARSE_DEBUG_DIR) -lcgParse0
+    LIBS += -L$$(PARSE_DEBUG_DIR) -lcgParse
 }
 else {
-    LIBS += -L$$(CGPARSE_RELEASE_DIR) -lcgParse0
+    LIBS += -L$$(PARSE_RELEASE_DIR) -lcgParse
 }
+
