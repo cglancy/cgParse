@@ -4,6 +4,8 @@ TARGET = cgParse
 TEMPLATE = lib
 VERSION	= 0.1.1
 
+DEFINES += CGPARSE_DLL CGPARSE_EXPORTS
+
 INCLUDEPATH += ../include
 
 HEADERS +=  \
@@ -61,6 +63,4 @@ SOURCES += parse.cpp \
 	parseuser.cpp \
 	parseuserhelper.cpp
 
-
-DEFINES += CGPARSE_EXPORTS
 

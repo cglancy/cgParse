@@ -211,7 +211,6 @@ void ParseTest::initTestCase()
     ParseClient::get()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, PARSE_SERVER_URL);
 
     QByteArray testDir = qgetenv("CGPARSE_TEST_DIR");
-    testDir = "/Users/charles/cgParse/test";
     QVERIFY(!testDir.isEmpty());
     _testImagesDir.setPath(testDir + "/images");
     QVERIFY(_testImagesDir.exists());

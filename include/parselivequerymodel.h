@@ -23,7 +23,7 @@ namespace cg
 {
 	class ParseLiveQuerySubscription;
 
-    class ParseLiveQueryModel : public ParseQueryModel
+    class CGPARSE_API ParseLiveQueryModel : public ParseQueryModel
     {
         Q_OBJECT
     public:

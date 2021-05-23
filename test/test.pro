@@ -4,6 +4,8 @@ TARGET = cgParseTest
 
 TEMPLATE = app
 
+DEFINES += CGPARSE_DLL
+
 SOURCES += parsetest.cpp
 
 HEADERS += parsetest.h \
@@ -12,8 +14,8 @@ HEADERS += parsetest.h \
 INCLUDEPATH += ../include ../src
 
 CONFIG(debug, debug|release) {
-    LIBS += -L../build-src-Desktop_Qt_5_15_4_clang_64bit-Debug -lcgParse
+    LIBS += -L$$(CGPARSE_DEBUG_DIR) -lcgParse0
 }
 else {
-    LIBS += -L../build-src-Desktop_Qt_5_15_4_clang_64bit-Release -lcgParse
+    LIBS += -L$$(CGPARSE_RELEASE_DIR) -lcgParse0
 }

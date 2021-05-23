@@ -27,7 +27,7 @@
 
 namespace cg
 {
-    class ParseQueryModel : public QAbstractListModel
+    class CGPARSE_API ParseQueryModel : public QAbstractListModel
     {
         Q_OBJECT
         Q_PROPERTY(QString className READ className WRITE setClassName NOTIFY classNameNotify)
