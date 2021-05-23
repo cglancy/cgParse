@@ -9,7 +9,6 @@ DEFINES += CGPARSE_DLL CGPARSE_EXPORTS
 INCLUDEPATH += ../include
 
 HEADERS +=  \
-        ../include/nameof.h \
 	../include/parse.h \
 	../include/parseacl.h \
 	../include/parseclient.h \
@@ -31,7 +30,7 @@ HEADERS +=  \
 	../include/parsereply.h \
 	../include/parserole.h \
 	../include/parsesession.h \
- 	../include/parsetypes.h \
+	../include/parsetypes.h \
 	../include/parseuser.h \
 	parsefilehelper.h \
 	parseobjecthelper.h \

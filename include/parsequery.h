@@ -21,7 +21,6 @@
 #include "parseclient.h"
 #include "parsequeryhelper.h"
 #include "parseconvert.h"
-#include "nameof.h"
 #include <QEnableSharedFromThis>
 #include <QString>
 #include <QSharedPointer>
@@ -30,6 +29,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QScopedPointer>
+#include <QMetaType>
 
 
 namespace cg
@@ -64,7 +64,7 @@ namespace cg
             _skip(0),
             _count(0)
         {
-            _className = classNameOf<T>();
+            _className = removeNamespace(QMetaType::fromType<T>().name());
         }
 
         ParseQuery(const QString &relationClassName, const QString &relationObjectId, const QString &relationKey)
@@ -73,7 +73,7 @@ namespace cg
             _skip(0), 
             _count(0)
         {
-            _className = classNameOf<T>();
+            _className = removeNamespace(QMetaType::fromType<T>().name());
 
             QJsonObject pointerObject;
             pointerObject.insert(Parse::TypeKey, Parse::PointerValue);
@@ -335,6 +335,11 @@ namespace cg
                 constraintObject.insert(constraintKey, QJsonValue::fromVariant(value));
                 _whereObject.insert(key, constraintObject);
             }
+        }
+
+        static QString removeNamespace(const QString& className)
+        {
+            return className.section("::", -1);
         }
 
     private:

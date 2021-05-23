@@ -158,6 +158,13 @@ TestQuotePtr ParseTest::createQuote(TestMoviePtr movie, TestCharacterPtr charact
 }
 
 //
+// TestNamespace
+//
+ns1::ns2::TestNamespace::TestNamespace()
+{
+}
+
+//
 // ParseTest
 //
 
@@ -988,3 +995,4 @@ void ParseTest::testLiveQueryModel()
 	QSignalSpy deleteEventSpy(pQueryModel.data(), &ParseLiveQueryModel::rowsRemoved);
 	QVERIFY(deleteEventSpy.wait(SPY_WAIT));
 }
+

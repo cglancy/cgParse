@@ -45,6 +45,7 @@ namespace cg
 
     public:
         ParseFile();
+        ParseFile(const ParseFile& file);
         ParseFile(const QString &localPath);
         ParseFile(const QString &name, const QByteArray &data, const QString &contentType);
         ~ParseFile();
@@ -76,6 +77,7 @@ namespace cg
     };
 }
 
+Q_DECLARE_METATYPE(cg::ParseFile);
 Q_DECLARE_METATYPE(QSharedPointer<cg::ParseFile>);
 
 #endif // CGPARSE_PARSEFILE_H

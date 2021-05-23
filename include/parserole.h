@@ -42,4 +42,7 @@ namespace cg
     };
 }
 
+Q_DECLARE_METATYPE(cg::ParseRole);
+Q_DECLARE_METATYPE(QSharedPointer<cg::ParseRole>);
+
 #endif // CGPARSE_PARSEROLE_H

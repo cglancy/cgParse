@@ -51,6 +51,14 @@ namespace cg
     {
     }
 
+    ParseFile::ParseFile(const ParseFile& file)
+    {
+        _name = file._name;
+        _url = file._url;
+        _contentType = file._contentType;
+        _data = file._data;
+    }
+
     ParseFile::ParseFile(const QString &path)
         : _contentType("unknown/unknown"),
         _pHelper(new ParseFileHelper())

@@ -47,4 +47,7 @@ namespace cg
     };
 }
 
+Q_DECLARE_METATYPE(cg::ParseSession);
+Q_DECLARE_METATYPE(QSharedPointer<cg::ParseSession>);
+
 #endif // CGPARSE_PARSESESSION_H
