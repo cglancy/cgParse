@@ -15,9 +15,9 @@ INCLUDEPATH += ../include ../src
 
 
 CONFIG(debug, debug|release) {
-    LIBS += -L$$(PARSE_DEBUG_DIR) -lcgParse
+    LIBS += -L$$(PARSE_DEBUG_DIR) -lcgParse0
 }
 else {
-    LIBS += -L$$(PARSE_RELEASE_DIR) -lcgParse
+    LIBS += -L$$(PARSE_RELEASE_DIR) -lcgParse0
 }
 
