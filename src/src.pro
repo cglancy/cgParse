@@ -2,6 +2,7 @@ QT += network websockets
 
 TARGET = cgParse
 TEMPLATE = lib
+CONFIG += c++17
 win32:CONFIG += staticlib
 VERSION	= 0.1.1
 
