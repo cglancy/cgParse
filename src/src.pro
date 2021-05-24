@@ -2,9 +2,10 @@ QT += network websockets
 
 TARGET = cgParse
 TEMPLATE = lib
+win32:CONFIG += staticlib
 VERSION	= 0.1.1
 
-DEFINES += CGPARSE_DLL CGPARSE_EXPORTS
+macx:DEFINES += CGPARSE_DLL CGPARSE_EXPORTS
 
 INCLUDEPATH += ../include
 

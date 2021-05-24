@@ -4,7 +4,7 @@ TARGET = cgParseTest
 
 TEMPLATE = app
 
-DEFINES += CGPARSE_DLL
+macx:DEFINES += CGPARSE_DLL
 
 SOURCES += parsetest.cpp
 
@@ -15,9 +15,9 @@ INCLUDEPATH += ../include ../src
 
 
 CONFIG(debug, debug|release) {
-    LIBS += -L$$(PARSE_DEBUG_DIR) -lcgParse0
+    LIBS += -L$$(PARSE_DEBUG_DIR) -lcgParse
 }
 else {
-    LIBS += -L$$(PARSE_RELEASE_DIR) -lcgParse0
+    LIBS += -L$$(PARSE_RELEASE_DIR) -lcgParse
 }
 
