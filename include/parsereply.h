@@ -29,6 +29,7 @@
 #include <QJsonArray>
 
 class QNetworkReply;
+class QNetworkAccessManager;
 
 namespace cg
 {
@@ -41,10 +42,10 @@ namespace cg
         Q_OBJECT
     public:
         ParseReply(int error = NoError);
-        ParseReply(const ParseRequest &request);
+        ParseReply(const ParseRequest &request, QNetworkAccessManager* pNam);
         virtual ~ParseReply();
 
-        void sendRequest(const ParseRequest &request);
+        void sendRequest(const ParseRequest &request, QNetworkAccessManager* pNam);
 
         bool isError() const;
         int statusCode() const;

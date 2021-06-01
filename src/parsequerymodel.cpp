@@ -130,7 +130,7 @@ namespace cg
 		findWithReply();
 	}
 
-	ParseReply * ParseQueryModel::findWithReply()
+	ParseReply * ParseQueryModel::findWithReply(QNetworkAccessManager* pNam)
 	{
 		QUrlQuery urlQuery;
 
@@ -178,7 +178,7 @@ namespace cg
 			urlQuery.addQueryItem("include", includeList.join(','));
 		}
 
-		ParseReply *pReply = _pHelper->findObjects(className(), urlQuery);
+		ParseReply *pReply = _pHelper->findObjects(className(), urlQuery, pNam);
 		connect(pReply, &ParseReply::finished, this, &ParseQueryModel::findFinished);
 		return pReply;
 	}

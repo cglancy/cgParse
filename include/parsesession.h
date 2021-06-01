@@ -21,6 +21,8 @@
 #include "parsetypes.h"
 #include "parsequery.h"
 
+class QNetworkAccessManager;
+
 namespace cg
 {
     class ParseSessionHelper;
@@ -32,8 +34,8 @@ namespace cg
         static QSharedPointer<ParseSession> create();
         static QSharedPointer<ParseQuery<ParseSession>> query();
 
-        static ParseReply* currentSession();
-        static ParseReply* deleteSession(const QString &sessionToken);
+        static ParseReply* currentSession(QNetworkAccessManager* pNam = nullptr);
+        static ParseReply* deleteSession(const QString &sessionToken, QNetworkAccessManager* pNam = nullptr);
 
     public:
         ParseSession();

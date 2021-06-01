@@ -27,6 +27,7 @@
 #include <QSet>
 
 class QNetworkReply;
+class QNetworkAccessManager;
 
 namespace cg
 {
@@ -41,13 +42,13 @@ namespace cg
         ParseObjectHelper();
         ~ParseObjectHelper();
 
-        ParseReply* createObject(QSharedPointer<ParseObject> pObject);
-        ParseReply* fetchObject(QSharedPointer<ParseObject> pObject);
-        ParseReply* updateObject(QSharedPointer<ParseObject> pObject);
-        ParseReply* deleteObject(QSharedPointer<ParseObject> pObject);
+        ParseReply* createObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam);
+        ParseReply* fetchObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam);
+        ParseReply* updateObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam);
+        ParseReply* deleteObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam);
 
-        ParseReply* saveAll(const QList<QSharedPointer<ParseObject>> &objects);
-        ParseReply* deleteAll(const QList<QSharedPointer<ParseObject>> &objects);
+        ParseReply* saveAll(const QList<QSharedPointer<ParseObject>> &objects, QNetworkAccessManager* pNam);
+        ParseReply* deleteAll(const QList<QSharedPointer<ParseObject>> &objects, QNetworkAccessManager* pNam);
 
     private slots:
         void privateCreateObjectFinished();

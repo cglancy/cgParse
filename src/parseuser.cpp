@@ -65,7 +65,7 @@ namespace cg
     }
 
     // static 
-    ParseReply * ParseUser::login(const QString & username, const QString & password)
+    ParseReply * ParseUser::login(const QString & username, const QString & password, QNetworkAccessManager* pNam)
     {
         ParseRequest request(ParseRequest::GetHttpMethod, "/login");
         request.setHeader("X-Parse-Revocable-Session", "1");
@@ -75,13 +75,13 @@ namespace cg
         query.addQueryItem("password", password);
         request.setUrlQuery(query);
 
-        ParseReply *pParseReply = new ParseReply(request);
+        ParseReply *pParseReply = new ParseReply(request, pNam);
         QObject::connect(pParseReply, &ParseReply::preFinished, staticHelper(), &ParseUserHelper::loginFinished);
         return pParseReply;
     }
 
     // static 
-    ParseReply * ParseUser::logout()
+    ParseReply * ParseUser::logout(QNetworkAccessManager* pNam)
     {
         QString sessionToken;
         QSharedPointer<ParseUser> pUser = currentUser();
@@ -91,13 +91,13 @@ namespace cg
         ParseRequest request(ParseRequest::PostHttpMethod, "/logout");
         request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
 
-        ParseReply *pParseReply = new ParseReply(request);
+        ParseReply *pParseReply = new ParseReply(request, pNam);
         QObject::connect(pParseReply, &ParseReply::preFinished, staticHelper(), &ParseUserHelper::logoutFinished);
         return pParseReply;
     }
 
     // static 
-    ParseReply * ParseUser::requestPasswordReset(const QString & email)
+    ParseReply * ParseUser::requestPasswordReset(const QString & email, QNetworkAccessManager* pNam)
     {
         QByteArray content;
         QJsonObject jsonObject;
@@ -106,16 +106,16 @@ namespace cg
         content = doc.toJson(QJsonDocument::Compact);
 
         ParseRequest request(ParseRequest::PostHttpMethod, "/requestPasswordReset", content);
-        return new ParseReply(request);
+        return new ParseReply(request, pNam);
     }
 
     // static
-    ParseReply * ParseUser::become(const QString & sessionToken)
+    ParseReply * ParseUser::become(const QString & sessionToken, QNetworkAccessManager* pNam)
     {
         ParseRequest request(ParseRequest::GetHttpMethod, "/users/me");
         request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
 
-        ParseReply *pParseReply = new ParseReply(request);
+        ParseReply *pParseReply = new ParseReply(request, pNam);
         QObject::connect(pParseReply, &ParseReply::preFinished, staticHelper(), &ParseUserHelper::becomeFinished);
         return pParseReply;
     }
@@ -160,7 +160,7 @@ namespace cg
         return value("sessionToken").toString();
     }
 
-    ParseReply * ParseUser::signUp()
+    ParseReply * ParseUser::signUp(QNetworkAccessManager* pNam)
     {
         _pHelper->_pUser = sharedFromThis().staticCast<ParseUser>();
 
@@ -171,19 +171,19 @@ namespace cg
         ParseRequest request(ParseRequest::PostHttpMethod, "/users", content);
         request.setHeader("X-Parse-Revocable-Session", "1");
 
-        ParseReply *pParseReply = new ParseReply(request);
+        ParseReply *pParseReply = new ParseReply(request, pNam);
         QObject::connect(pParseReply, &ParseReply::preFinished, _pHelper.data(), &ParseUserHelper::signUpFinished);
         return pParseReply;
     }
 
-    ParseReply * ParseUser::deleteUser()
+    ParseReply * ParseUser::deleteUser(QNetworkAccessManager* pNam)
     {
         _pHelper->_pUser = sharedFromThis().staticCast<ParseUser>();
 
         ParseRequest request(ParseRequest::DeleteHttpMethod, "/users/" + objectId());
         request.setHeader("X-Parse-Session-Token", sessionToken().toUtf8());
 
-        ParseReply *pParseReply = new ParseReply(request);
+        ParseReply *pParseReply = new ParseReply(request, pNam);
         QObject::connect(pParseReply, &ParseReply::preFinished, _pHelper.data(), &ParseUserHelper::deleteUserFinished);
         return pParseReply;
     }

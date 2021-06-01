@@ -45,15 +45,15 @@ namespace cg
     }
 
     // static
-    ParseReply* ParseSession::deleteSession(const QString &sessionToken)
+    ParseReply* ParseSession::deleteSession(const QString &sessionToken, QNetworkAccessManager* pNam)
     {
         ParseRequest request(ParseRequest::PostHttpMethod, "/logout");
         request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
-        return new ParseReply(request);
+        return new ParseReply(request, pNam);
     }
 
     // static
-    ParseReply* ParseSession::currentSession()
+    ParseReply* ParseSession::currentSession(QNetworkAccessManager* pNam)
     {
         QSharedPointer<ParseUser> pCurrentUser = ParseUser::currentUser();
         if (pCurrentUser.isNull())
@@ -61,7 +61,7 @@ namespace cg
 
         ParseRequest request(ParseRequest::GetHttpMethod, "parse/sessions/me");
         request.setHeader("X-Parse-Session-Token", pCurrentUser->sessionToken().toUtf8());
-        return new ParseReply(request);
+        return new ParseReply(request, pNam);
     }
 
     ParseSession::ParseSession()

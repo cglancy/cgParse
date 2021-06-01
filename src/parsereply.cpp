@@ -39,24 +39,24 @@ namespace cg
         QTimer::singleShot(200, this, &ParseReply::finished);
     }
 
-    ParseReply::ParseReply(const ParseRequest &request)
+    ParseReply::ParseReply(const ParseRequest &request, QNetworkAccessManager* pNam)
         : _pReply(nullptr),
         _statusCode(0),
         _errorCode(NoError)
     {
-        sendRequest(request);
+        sendRequest(request, pNam);
     }
 
     ParseReply::~ParseReply()
     {
     }
 
-    void ParseReply::sendRequest(const ParseRequest &request)
+    void ParseReply::sendRequest(const ParseRequest &request, QNetworkAccessManager* pNam)
     {
         if (request.isNull())
             return;
 
-        _pReply = request.sendRequest();
+        _pReply = request.sendRequest(pNam);
         if (_pReply)
             connect(_pReply, &QNetworkReply::finished, this, &ParseReply::replyFinished);
     }

@@ -182,27 +182,30 @@ namespace cg
         return request;
     }
 
-    QNetworkReply* ParseRequest::sendRequest() const
+    QNetworkReply* ParseRequest::sendRequest(QNetworkAccessManager *pNam) const
     {
         QNetworkReply *pReply = nullptr;
 
         if (ParseClient::get()->isLoggingEnabled())
             logRequest();
 
+        if (!pNam)
+            pNam = ParseClient::networkAccessManager();
+
         switch (httpMethod())
         {
         case ParseRequest::PutHttpMethod:
-            pReply = ParseClient::networkAccessManager()->put(networkRequest(),content());
+            pReply = pNam->put(networkRequest(),content());
             break;
         case ParseRequest::PostHttpMethod:
-            pReply = ParseClient::networkAccessManager()->post(networkRequest(), content());
+            pReply = pNam->post(networkRequest(), content());
             break;
         case ParseRequest::DeleteHttpMethod:
-            pReply = ParseClient::networkAccessManager()->deleteResource(networkRequest());
+            pReply = pNam->deleteResource(networkRequest());
             break;
         default:
         case ParseRequest::GetHttpMethod:
-            pReply = ParseClient::networkAccessManager()->get(networkRequest());
+            pReply = pNam->get(networkRequest());
             break;
         }
 

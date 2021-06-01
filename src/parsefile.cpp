@@ -91,13 +91,13 @@ namespace cg
     {
     }
 
-    ParseReply* ParseFile::deleteFile(const QString &urlStr, const QString &masterKey)
+    ParseReply* ParseFile::deleteFile(const QString &urlStr, const QString &masterKey, QNetworkAccessManager *pNam)
     {
         QUrl url(urlStr);
         ParseRequest request(ParseRequest::DeleteHttpMethod, "/files/" + url.fileName());
         request.removeHeader("X-Parse-REST-API-Key");
         request.setHeader("X-Parse-Master-Key", masterKey.toUtf8());
-        return new ParseReply(request);
+        return new ParseReply(request, pNam);
     }
 
     bool ParseFile::isDirty() const
@@ -159,20 +159,20 @@ namespace cg
             _url = map.value("url").toString();
     }
 
-    ParseReply* ParseFile::save()
+    ParseReply* ParseFile::save(QNetworkAccessManager *pNam)
     {
         _pHelper->_pFile = sharedFromThis();
         ParseRequest request(ParseRequest::PostHttpMethod, "/files/" + name(), data(), contentType());
-        ParseReply *pReply = new ParseReply(request);
+        ParseReply *pReply = new ParseReply(request, pNam);
         QObject::connect(pReply, &ParseReply::preFinished, _pHelper.data(), &ParseFileHelper::saveFileFinished);
         return pReply;
     }
 
-    ParseReply* ParseFile::fetch()
+    ParseReply* ParseFile::fetch(QNetworkAccessManager* pNam)
     {
         _pHelper->_pFile = sharedFromThis();
         ParseRequest request(ParseRequest::GetHttpMethod, url());
-        ParseReply* pReply = new ParseReply(request);
+        ParseReply* pReply = new ParseReply(request, pNam);
         QObject::connect(pReply, &ParseReply::preFinished, _pHelper.data(), &ParseFileHelper::fetchFileFinished);
         return pReply;
     }

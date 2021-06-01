@@ -25,6 +25,8 @@
 #include <QVariant>
 #include <QHash>
 
+class QNetworkAccessManager;
+
 namespace cg
 {
     class CGPARSE_API ParseQueryModel : public QAbstractListModel
@@ -39,7 +41,7 @@ namespace cg
 		virtual ~ParseQueryModel();
 
 		Q_INVOKABLE void find();
-		ParseReply * findWithReply();
+		ParseReply * findWithReply(QNetworkAccessManager* pNam = nullptr);
 
         QString className() const;
         void setClassName(const QString &className);

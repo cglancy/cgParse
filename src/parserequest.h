@@ -73,7 +73,7 @@ namespace cg
         void setHeader(const QByteArray &header, const QByteArray &value);
         void removeHeader(const QByteArray &header);
 
-        QNetworkReply * sendRequest() const;
+        QNetworkReply * sendRequest(QNetworkAccessManager *pNam) const;
 
     private:
         void init();

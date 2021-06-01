@@ -41,7 +41,7 @@ namespace cg
         static QSharedPointer<ParseFile> create(const QString &name, const QByteArray &data, const QString &contentType);
         static QSharedPointer<ParseQuery<ParseFile>> query();
 
-        static ParseReply* deleteFile(const QString &url, const QString &masterKey);
+        static ParseReply* deleteFile(const QString &url, const QString &masterKey, QNetworkAccessManager *pNam = nullptr);
 
     public:
         ParseFile();
@@ -61,8 +61,8 @@ namespace cg
         QString contentType() const;
         void setContentType(const QString &contentType);
 
-        ParseReply* save();
-        ParseReply* fetch();
+        ParseReply* save(QNetworkAccessManager* pNam = nullptr);
+        ParseReply* fetch(QNetworkAccessManager* pNam = nullptr);
 
         QByteArray data() const;
         QVariantMap toMap() const;

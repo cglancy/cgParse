@@ -29,6 +29,8 @@
 #include <QVariant>
 #include <QScopedPointer>
 
+class QNetworkAccessManager;
+
 namespace cg
 {
     class ParseObjectHelper;
@@ -55,8 +57,8 @@ namespace cg
             return pObject;
         }
 
-        static ParseReply* saveAll(const QList<QSharedPointer<ParseObject>> &objects);
-        static ParseReply* deleteAll(const QList<QSharedPointer<ParseObject>> &objects);
+        static ParseReply* saveAll(const QList<QSharedPointer<ParseObject>> &objects, QNetworkAccessManager* pNam = nullptr);
+        static ParseReply* deleteAll(const QList<QSharedPointer<ParseObject>> &objects, QNetworkAccessManager* pNam = nullptr);
 
 //        template <class T>
 //        static QSharedPointer<ParseQuery<T>> query()
@@ -254,9 +256,9 @@ namespace cg
             return objectList;
         }
 
-        ParseReply* save();
-        ParseReply* fetch();
-        ParseReply* deleteObject();
+        ParseReply* save(QNetworkAccessManager* pNam = nullptr);
+        ParseReply* fetch(QNetworkAccessManager* pNam = nullptr);
+        ParseReply* deleteObject(QNetworkAccessManager* pNam = nullptr);
 
         bool contains(const QString &key) const;
         void clearDirtyState();

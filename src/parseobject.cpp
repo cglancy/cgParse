@@ -316,39 +316,39 @@ namespace cg {
         }
     }
 
-    ParseReply* ParseObject::save()
+    ParseReply* ParseObject::save(QNetworkAccessManager* pNam)
     {
         ParseReply *pReply = nullptr;
 
         if (objectId().isEmpty())
         {
-            pReply = _pHelper->createObject(sharedFromThis());
+            pReply = _pHelper->createObject(sharedFromThis(), pNam);
         }
         else
         {
-            pReply = _pHelper->updateObject(sharedFromThis());
+            pReply = _pHelper->updateObject(sharedFromThis(), pNam);
         }
         
         return pReply;
     }
 
-    ParseReply* ParseObject::fetch()
+    ParseReply* ParseObject::fetch(QNetworkAccessManager* pNam)
     {
-        return _pHelper->fetchObject(sharedFromThis());
+        return _pHelper->fetchObject(sharedFromThis(), pNam);
     }
 
-    ParseReply* ParseObject::deleteObject()
+    ParseReply* ParseObject::deleteObject(QNetworkAccessManager* pNam)
     {
-        return _pHelper->deleteObject(sharedFromThis());
+        return _pHelper->deleteObject(sharedFromThis(), pNam);
     }
 
-    ParseReply* ParseObject::saveAll(const QList<QSharedPointer<ParseObject>> &objects)
+    ParseReply* ParseObject::saveAll(const QList<QSharedPointer<ParseObject>> &objects, QNetworkAccessManager* pNam)
     {
-        return staticHelper()->saveAll(objects);
+        return staticHelper()->saveAll(objects, pNam);
     }
 
-    ParseReply* ParseObject::deleteAll(const QList<QSharedPointer<ParseObject>>& objects)
+    ParseReply* ParseObject::deleteAll(const QList<QSharedPointer<ParseObject>>& objects, QNetworkAccessManager* pNam)
     {
-        return staticHelper()->deleteAll(objects);
+        return staticHelper()->deleteAll(objects, pNam);
     }
 }

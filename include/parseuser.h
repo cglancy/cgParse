@@ -33,10 +33,10 @@ namespace cg
 
         static QSharedPointer<ParseUser> currentUser();
 
-        static ParseReply* login(const QString &username, const QString &password);
-        static ParseReply* logout();
-        static ParseReply* requestPasswordReset(const QString &email);
-        static ParseReply* become(const QString &sessionToken);
+        static ParseReply* login(const QString &username, const QString &password, QNetworkAccessManager* pNam = nullptr);
+        static ParseReply* logout(QNetworkAccessManager* pNam = nullptr);
+        static ParseReply* requestPasswordReset(const QString &email, QNetworkAccessManager* pNam = nullptr);
+        static ParseReply* become(const QString &sessionToken, QNetworkAccessManager* pNam = nullptr);
 
     public:
         ParseUser();
@@ -56,8 +56,8 @@ namespace cg
 
         QString sessionToken() const;
 
-        ParseReply* signUp();
-        ParseReply* deleteUser();
+        ParseReply* signUp(QNetworkAccessManager* pNam = nullptr);
+        ParseReply* deleteUser(QNetworkAccessManager* pNam = nullptr);
 
     private:
         static ParseUserHelper * staticHelper();

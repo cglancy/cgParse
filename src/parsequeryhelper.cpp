@@ -34,7 +34,7 @@ namespace cg
     {
     }
 
-    ParseReply* ParseQueryHelper::getObject(const QString &className, const QString &objectId)
+    ParseReply* ParseQueryHelper::getObject(const QString &className, const QString &objectId, QNetworkAccessManager* pNam)
     {
         if (className.isEmpty() || objectId.isEmpty())
         {
@@ -48,7 +48,7 @@ namespace cg
         ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
         request.setUrlQuery(urlQuery);
 
-        ParseReply *pReply = new ParseReply(request);
+        ParseReply *pReply = new ParseReply(request, pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseQueryHelper::getObjectFinished);
         return pReply;
     }
@@ -70,7 +70,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseQueryHelper::findObjects(const QString & className, const QUrlQuery & urlQuery)
+    ParseReply* ParseQueryHelper::findObjects(const QString & className, const QUrlQuery & urlQuery, QNetworkAccessManager* pNam)
     {
         if (className.isEmpty())
         {
@@ -80,7 +80,7 @@ namespace cg
         ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
         request.setUrlQuery(urlQuery);
 
-        ParseReply *pReply = new ParseReply(request);
+        ParseReply *pReply = new ParseReply(request, pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseQueryHelper::findObjectsFinished);
         return pReply;
     }
@@ -102,7 +102,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseQueryHelper::countObjects(const QString & className, const QUrlQuery & urlQuery)
+    ParseReply* ParseQueryHelper::countObjects(const QString & className, const QUrlQuery & urlQuery, QNetworkAccessManager* pNam)
     {
         if (className.isEmpty())
         {
@@ -112,6 +112,6 @@ namespace cg
         ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
         request.setUrlQuery(urlQuery);
 
-        return new ParseReply(request);
+        return new ParseReply(request, pNam);
     }
 }

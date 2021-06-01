@@ -24,6 +24,7 @@
 #include <QJsonArray>
 
 class QUrlQuery;
+class QNetworkAccessManager;
 
 namespace cg
 {
@@ -38,9 +39,9 @@ namespace cg
 
         QJsonArray jsonArray;
 
-        ParseReply* getObject(const QString &className, const QString &objectId);
-        ParseReply* findObjects(const QString &className, const QUrlQuery &urlQuery);
-        ParseReply* countObjects(const QString &className, const QUrlQuery &urlQuery);
+        ParseReply* getObject(const QString &className, const QString &objectId, QNetworkAccessManager *pNam);
+        ParseReply* findObjects(const QString &className, const QUrlQuery &urlQuery, QNetworkAccessManager* pNam);
+        ParseReply* countObjects(const QString &className, const QUrlQuery &urlQuery, QNetworkAccessManager* pNam);
 
     private slots:
         void getObjectFinished();

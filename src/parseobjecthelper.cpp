@@ -128,7 +128,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseObjectHelper::createObject(QSharedPointer<ParseObject> pObject)
+    ParseReply* ParseObjectHelper::createObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam)
     {
         saveChildrenIfNeeded(pObject);
 
@@ -139,7 +139,7 @@ namespace cg
 
         ParseRequest request(ParseRequest::PostHttpMethod, "/classes/" + pObject->className(), content);
 
-        ParseReply *pReply = new ParseReply(request);
+        ParseReply *pReply = new ParseReply(request, pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateCreateObjectFinished);
         return pReply;
     }
@@ -171,11 +171,11 @@ namespace cg
         _objectsBeingSaved.remove(pObject);
     }
 
-    ParseReply* ParseObjectHelper::fetchObject(QSharedPointer<ParseObject> pObject)
+    ParseReply* ParseObjectHelper::fetchObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam)
     {
         _pObject = pObject;
         ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pObject->className() + "/" + pObject->objectId());
-        ParseReply *pReply = new ParseReply(request);
+        ParseReply *pReply = new ParseReply(request, pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateFetchObjectFinished);
         return pReply;
     }
@@ -199,7 +199,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseObjectHelper::updateObject(QSharedPointer<ParseObject> pObject)
+    ParseReply* ParseObjectHelper::updateObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam)
     {
         if (!pObject || pObject->objectId().isEmpty())
         {
@@ -214,7 +214,7 @@ namespace cg
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
         ParseRequest request(ParseRequest::PutHttpMethod, "/classes/" + pObject->className() + "/" + pObject->objectId(), content);
-        ParseReply *pReply = new ParseReply(request);
+        ParseReply *pReply = new ParseReply(request, pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateUpdateObjectFinished);
         return pReply;
     }
@@ -246,7 +246,7 @@ namespace cg
         _objectsBeingSaved.remove(pObject);
     }
 
-    ParseReply* ParseObjectHelper::deleteObject(QSharedPointer<ParseObject> pObject)
+    ParseReply* ParseObjectHelper::deleteObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam)
     {
         if (!pObject || pObject->objectId().isEmpty())
         {
@@ -255,10 +255,10 @@ namespace cg
 
         _pObject = pObject;
         ParseRequest request(ParseRequest::DeleteHttpMethod, "/classes/" + pObject->className() + "/" + pObject->objectId());
-        return new ParseReply(request);
+        return new ParseReply(request, pNam);
     }
 
-    ParseReply* ParseObjectHelper::saveAll(const QList<QSharedPointer<ParseObject>>& objects)
+    ParseReply* ParseObjectHelper::saveAll(const QList<QSharedPointer<ParseObject>>& objects, QNetworkAccessManager* pNam)
     {
         if (objects.size() == 0)
         {
@@ -298,7 +298,7 @@ namespace cg
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
         ParseRequest request(ParseRequest::PostHttpMethod, "/batch", content);
-        ParseReply *pReply = new ParseReply(request);
+        ParseReply *pReply = new ParseReply(request, pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateSaveAllFinished);
         _replyObjectListMap.insert(pReply, objects);
         return pReply;
@@ -333,7 +333,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseObjectHelper::deleteAll(const QList<QSharedPointer<ParseObject>>& objects)
+    ParseReply* ParseObjectHelper::deleteAll(const QList<QSharedPointer<ParseObject>>& objects, QNetworkAccessManager* pNam)
     {
         if (objects.size() == 0)
         {
@@ -358,6 +358,6 @@ namespace cg
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
         ParseRequest request(ParseRequest::PostHttpMethod, "/batch", content);
-        return new ParseReply(request);
+        return new ParseReply(request, pNam);
     }
 }

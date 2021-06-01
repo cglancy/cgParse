@@ -268,28 +268,28 @@ namespace cg
             return _results;
         }
 
-        ParseReply* count()
+        ParseReply* count(QNetworkAccessManager* pNam = nullptr)
         {
             int origCount = _count, origLimit = _limit;
             clearResults();
             _count = 1;
             _limit = 0;
-            ParseReply * pReply = _pHelper->countObjects(_className, urlQuery());
+            ParseReply * pReply = _pHelper->countObjects(_className, urlQuery(), pNam);
             _count = origCount;
             _limit = origLimit;
             return pReply;
         }
 
-        ParseReply* get(const QString &objectId)
+        ParseReply* get(const QString &objectId, QNetworkAccessManager* pNam = nullptr)
         {
             clearResults();
-            return _pHelper->getObject(_className, objectId);
+            return _pHelper->getObject(_className, objectId, pNam);
         }
 
-        ParseReply* find()
+        ParseReply* find(QNetworkAccessManager* pNam = nullptr)
         {
             clearResults();
-            return _pHelper->findObjects(_className, urlQuery());
+            return _pHelper->findObjects(_className, urlQuery(), pNam);
         }
 
     private:
