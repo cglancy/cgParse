@@ -29,21 +29,6 @@
 
 namespace cg 
 {
-    bool operator==(const ParseObject& object1, const ParseObject& object2)
-    {
-        return object1._pImpl == object2._pImpl;
-    }
-
-    bool operator<(const ParseObject& object1, const ParseObject& object2)
-    {
-        return object1._pImpl < object2._pImpl;
-    }
-
-    uint qHash(const ParseObject& object, uint seed)
-    {
-        return qHash(object._pImpl, seed);
-    }
-
     ParseObject::ParseObject()
     {
         // constructs a null object
@@ -384,5 +369,24 @@ namespace cg
     ParseReply* ParseObject::deleteAll(const QList<ParseObject>& objects, QNetworkAccessManager* pNam)
     {
         return ParseObjectRequest::get()->deleteAll(objects, pNam);
+    }
+
+    // friend functions to enable ParseObject to be used in QHash, QMap and QSet
+    // The logical thing would be to use the objectId for uniqueness, however,
+    // when a ParseObject is first created it does not have an objectId until
+    // the server assigns one.
+    bool operator==(const ParseObject& object1, const ParseObject& object2)
+    {
+        return object1._pImpl == object2._pImpl;
+    }
+
+    bool operator<(const ParseObject& object1, const ParseObject& object2)
+    {
+        return object1._pImpl < object2._pImpl;
+    }
+
+    uint qHash(const ParseObject& object, uint seed)
+    {
+        return qHash(object._pImpl, seed);
     }
 }
