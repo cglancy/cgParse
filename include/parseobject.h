@@ -64,7 +64,7 @@ namespace cg
 
     public:
         ParseObject();
-        ParseObject(const QString &className);
+        explicit ParseObject(const QString &className);
         ParseObject(const ParseObject &object);
         virtual ~ParseObject();
 
@@ -215,7 +215,6 @@ namespace cg
             addAllUnique(key, variantList);
         }
 
-        template <class T>
         void removeObject(const QString& key, const ParseObject& object)
         {
             QVariantList variantList;
