@@ -31,17 +31,17 @@ namespace cg
 {
     bool operator==(const ParseObject& object1, const ParseObject& object2)
     {
-        return object1.objectId() == object2.objectId();
+        return object1._pImpl == object2._pImpl;
     }
 
     bool operator<(const ParseObject& object1, const ParseObject& object2)
     {
-        return object1.objectId() < object2.objectId();
+        return object1._pImpl < object2._pImpl;
     }
 
     uint qHash(const ParseObject& object, uint seed)
     {
-        return qHash(object.objectId(), seed);
+        return qHash(object._pImpl, seed);
     }
 
     ParseObject::ParseObject()

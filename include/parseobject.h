@@ -260,6 +260,10 @@ namespace cg
         QStringList keys() const;
         static bool isUserValue(const QString &key);
 
+        friend bool operator==(const ParseObject& object1, const ParseObject& object2);
+        friend bool operator<(const ParseObject& object1, const ParseObject& object2);
+        friend uint qHash(const ParseObject& object, uint seed);
+
     private:
         bool valueMapHasKey(const QString& key) const;
 
@@ -267,9 +271,6 @@ namespace cg
         QSharedPointer<ParseObjectImpl> _pImpl;
     };
 
-    extern bool operator==(const ParseObject& object1, const ParseObject& object2);
-    extern bool operator<(const ParseObject& object1, const ParseObject& object2);
-    extern uint qHash(const ParseObject& object, uint seed);
 }
 
 Q_DECLARE_METATYPE(cg::ParseObject);

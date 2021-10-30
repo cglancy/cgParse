@@ -349,7 +349,6 @@ void ParseTest::createTestObjects()
     pSave2Reply->deleteLater();
 
     int rank = 1;
-    QList<ParseObject*> quotes;
     createQuote(episode4, leia, rank++, "Help me, Obi-Wan Kenobi. You're my only hope.");
     createQuote(episode4, vader, rank++, "I find your lack of faith disturbing.");
     createQuote(episode4, han, rank++, "It's the ship that made the Kessel run in less than twelve parsecs.");
@@ -734,27 +733,27 @@ void ParseTest::testObjectPointerHash()
 
 void ParseTest::testObjectReferenceSave()
 {
-    TestMovie pSoloMovie = createMovie("Solo: A Star Wars Story");
-    TestCharacter pQira = createCharacter("Qi'ra");
-    TestQuote pQuote = createQuote(pSoloMovie, pQira, 33, "You look good. A little rough around the edges, but good.");
+    TestMovie soloMovie = createMovie("Solo: A Star Wars Story");
+    TestCharacter qira = createCharacter("Qi'ra");
+    TestQuote quote = createQuote(soloMovie, qira, 33, "You look good. A little rough around the edges, but good.");
 
-    ParseReply *pSaveReply = pQuote.save();
+    ParseReply *pSaveReply = quote.save();
     QSignalSpy saveSpy(pSaveReply, &ParseReply::finished);
     QVERIFY(saveSpy.wait(SPY_WAIT));
 
-    QVERIFY(!pQuote.objectId().isEmpty());
-    QVERIFY(!pQira.objectId().isEmpty());
-    QVERIFY(!pSoloMovie.objectId().isEmpty());
+    QVERIFY(!quote.objectId().isEmpty());
+    QVERIFY(!qira.objectId().isEmpty());
+    QVERIFY(!soloMovie.objectId().isEmpty());
 
-    ParseReply *pDelete1Reply = pQuote.deleteObject();
+    ParseReply *pDelete1Reply = quote.deleteObject();
     QSignalSpy delete1Spy(pDelete1Reply, &ParseReply::finished);
     QVERIFY(delete1Spy.wait(SPY_WAIT));
 
-    ParseReply *pDelete2Reply = pQira.deleteObject();
+    ParseReply *pDelete2Reply = qira.deleteObject();
     QSignalSpy delete2Spy(pDelete2Reply, &ParseReply::finished);
     QVERIFY(delete2Spy.wait(SPY_WAIT));
 
-    ParseReply *pDelete3Reply = pSoloMovie.deleteObject();
+    ParseReply *pDelete3Reply = soloMovie.deleteObject();
     QSignalSpy delete3Spy(pDelete3Reply, &ParseReply::finished);
     QVERIFY(delete3Spy.wait(SPY_WAIT));
 }

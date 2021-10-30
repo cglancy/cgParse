@@ -258,7 +258,7 @@ namespace cg
 
     ParseReply* ParseObjectRequest::deleteObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
-        if (!object.isNull() || object.objectId().isEmpty())
+        if (object.isNull() || object.objectId().isEmpty())
         {
             return new ParseReply(ParseError::UnknownError);
         }
