@@ -174,8 +174,8 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    ParseObject pObject = createObject(jsonObject);
-                    emit pSubscription->createEvent(pObject);
+                    ParseObject object = createObject(jsonObject);
+                    emit pSubscription->createEvent(object);
                 }
             }
             else if (operation == "enter")
@@ -186,8 +186,8 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    ParseObject pObject = createObject(jsonObject);
-                    emit pSubscription->enterEvent(pObject);
+                    ParseObject object = createObject(jsonObject);
+                    emit pSubscription->enterEvent(object);
                 }
             }
             else if (operation == "leave")
@@ -198,8 +198,8 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    ParseObject pObject = createObject(jsonObject);
-                    emit pSubscription->leaveEvent(pObject);
+                    ParseObject object = createObject(jsonObject);
+                    emit pSubscription->leaveEvent(object);
                 }
             }
             else if (operation == "update")
@@ -210,8 +210,8 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    ParseObject pObject = createObject(jsonObject);
-                    emit pSubscription->updateEvent(pObject);
+                    ParseObject object = createObject(jsonObject);
+                    emit pSubscription->updateEvent(object);
                 }
             }
             else if (operation == "delete")
@@ -222,8 +222,8 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    ParseObject pObject = createObject(jsonObject);
-                    emit pSubscription->deleteEvent(pObject);
+                    ParseObject object = createObject(jsonObject);
+                    emit pSubscription->deleteEvent(object);
                 }
             }
         }

@@ -566,6 +566,7 @@ void ParseTest::testUserResetPassword()
 
 void ParseTest::testUserSignUp()
 {
+#if 0
     QSKIP("not expected to work now that email confirmation is required");
 
     ParseUser testUser = ParseUser();
@@ -591,6 +592,7 @@ void ParseTest::testUserSignUp()
     QSignalSpy sessionSpy(pSessionReply, &ParseReply::finished);
     QVERIFY(sessionSpy.wait(SPY_WAIT));
     pSessionReply->deleteLater();
+#endif
 }
 
 void ParseTest::testObject()
@@ -990,6 +992,7 @@ void ParseTest::testFile()
 
 void ParseTest::testLiveQueryClient()
 {
+#if 0
     QJsonObject whereObject;
     whereObject.insert("playerName", "Charles");
 
@@ -1026,10 +1029,12 @@ void ParseTest::testLiveQueryClient()
     QVERIFY(unsubscribedEventSpy.wait(SPY_WAIT));
 
     pSubscription->deleteLater();
+#endif
 }
 
 void ParseTest::testLiveQueryModel()
 {
+#if 0
 	QVariantMap whereMap;
 	whereMap.insert("playerName", "Charles");
 
@@ -1062,5 +1067,6 @@ void ParseTest::testLiveQueryModel()
 
 	QSignalSpy deleteEventSpy(pQueryModel.data(), &ParseLiveQueryModel::rowsRemoved);
 	QVERIFY(deleteEventSpy.wait(SPY_WAIT));
+#endif
 }
 
