@@ -142,7 +142,7 @@ namespace cg
 
     ParseUser ParseReply::user() const
     {
-        ParseUser user;
+        ParseUser user = ParseUser::create();
 
         QJsonDocument doc = QJsonDocument::fromJson(constData());
         if (doc.isObject())

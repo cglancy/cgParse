@@ -13,31 +13,31 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "parsequeryhelper.h"
+#include "parsequeryrequest.h"
 #include "parserequest.h"
 #include "parsereply.h"
 
 namespace cg
 {
-	ParseQueryHelper* ParseQueryHelper::_instance = nullptr;
+	ParseQueryRequest* ParseQueryRequest::_instance = nullptr;
 
-	ParseQueryHelper::ParseQueryHelper()
+	ParseQueryRequest::ParseQueryRequest()
 	{
 	}
 
-	ParseQueryHelper::~ParseQueryHelper()
+	ParseQueryRequest::~ParseQueryRequest()
 	{
 	}
 
-	ParseQueryHelper* ParseQueryHelper::get()
+	ParseQueryRequest* ParseQueryRequest::get()
 	{
 		if (!_instance)
-			_instance = new ParseQueryHelper;
+			_instance = new ParseQueryRequest;
 
 		return _instance;
 	}
 
-	ParseReply* ParseQueryHelper::getObject(QSharedPointer<ParseQueryImpl> pQueryImpl, const QString& objectId, QNetworkAccessManager* pNam)
+	ParseReply* ParseQueryRequest::getObject(QSharedPointer<ParseQueryImpl> pQueryImpl, const QString& objectId, QNetworkAccessManager* pNam)
 	{
 		if (!pQueryImpl || pQueryImpl->className.isEmpty() || objectId.isEmpty())
 		{
@@ -52,12 +52,12 @@ namespace cg
 		request.setUrlQuery(urlQuery);
 
 		ParseReply* pReply = new ParseReply(request, pNam);
-		connect(pReply, &ParseReply::finished, this, &ParseQueryHelper::getObjectFinished);
+		connect(pReply, &ParseReply::finished, this, &ParseQueryRequest::getObjectFinished);
 		_replyMap.insert(pReply, pQueryImpl);
 		return pReply;
 	}
 
-	void ParseQueryHelper::getObjectFinished()
+	void ParseQueryRequest::getObjectFinished()
 	{
 		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
 		if (!pReply)
@@ -76,7 +76,7 @@ namespace cg
 		}
 	}
 
-	ParseReply* ParseQueryHelper::findObjects(QSharedPointer<ParseQueryImpl> pQueryImpl, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam)
+	ParseReply* ParseQueryRequest::findObjects(QSharedPointer<ParseQueryImpl> pQueryImpl, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam)
 	{
 		if (!pQueryImpl || pQueryImpl->className.isEmpty())
 		{
@@ -87,12 +87,12 @@ namespace cg
 		request.setUrlQuery(urlQuery);
 
 		ParseReply* pReply = new ParseReply(request, pNam);
-		connect(pReply, &ParseReply::finished, this, &ParseQueryHelper::findObjectsFinished);
+		connect(pReply, &ParseReply::finished, this, &ParseQueryRequest::findObjectsFinished);
 		_replyMap.insert(pReply, pQueryImpl);
 		return pReply;
 	}
 
-	void ParseQueryHelper::findObjectsFinished()
+	void ParseQueryRequest::findObjectsFinished()
 	{
 		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
 		if (!pReply)
@@ -111,7 +111,7 @@ namespace cg
 		}
 	}
 
-	ParseReply* ParseQueryHelper::countObjects(const QString& className, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam)
+	ParseReply* ParseQueryRequest::countObjects(const QString& className, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam)
 	{
 		if (className.isEmpty())
 		{

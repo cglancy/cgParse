@@ -28,9 +28,6 @@ namespace cg
     class CGPARSE_API ParseACL
     {
     public:
-        static ParseACL create();
-        static ParseACL create(const ParseUser& user);
-
         static ParseACL defaultACL();
         static void setDefaultACL(const ParseACL &acl, bool withAccessForCurrentUser);
 

@@ -26,8 +26,8 @@ HEADERS +=  \
 	../include/parseobjectpointer.h \
 	../include/parsepolygon.h \
 	../include/parsequery.h \
-	../include/parsequeryhelper.h \
 	../include/parsequeryimpl.h \
+	../include/parsequeryrequest.h \
 	../include/parsequerymodel.h \
 	../include/parserelation.h \
 	../include/parsereply.h \
@@ -35,37 +35,37 @@ HEADERS +=  \
 	../include/parsesession.h \
 	../include/parsetypes.h \
 	../include/parseuser.h \
-	parseclientobject.h \
 	parsefileimpl.h \
-	parseobjecthelper.h \
+	parsefilerequest.h \
 	parseobjectimpl.h \
+	parseobjectrequest.h \
 	parserequest.h \
-	parsesessionhelper.h
+	parseuserrequest.h
 	
 SOURCES += parse.cpp \
 	parseacl.cpp \
 	parseclient.cpp \
-	parseclientobject.cpp \
 	parseconvert.cpp \
 	parsedatetime.cpp \
 	parsefile.cpp \
 	parsefileimpl.cpp \
+	parsefilerequest.cpp \
 	parsegeopoint.cpp \
 	parselivequeryclient.cpp \
 	parselivequerymodel.cpp \
 	parselivequerysubscription.cpp \
 	parseobject.cpp \
-	parseobjecthelper.cpp \
 	parseobjectimpl.cpp \
 	parseobjectpointer.cpp \
-	parsequeryhelper.cpp \
+	parseobjectrequest.cpp \
 	parsequeryimpl.cpp \
 	parsequerymodel.cpp \
+	parsequeryrequest.cpp \
 	parsereply.cpp \
 	parserequest.cpp \
 	parserole.cpp \
 	parsesession.cpp \
-	parsesessionhelper.cpp \
-	parseuser.cpp
+	parseuser.cpp \
+	parseuserrequest.cpp
 
 

@@ -13,22 +13,43 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "parsesessionhelper.h"
-#include "parserequest.h"
-#include "parseerror.h"
-#include "parsesession.h"
-#include "parsereply.h"
+#ifndef CGPARSE_PARSEQUERYREQUEST_H
+#define CGPARSE_PARSEQUERYREQUEST_H
+#pragma once
 
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <QObject>
+#include <QSharedPointer>
+#include "parsequeryimpl.h"
+
+class QNetworkAccessManager;
+class QUrlQuery;
 
 namespace cg
 {
-    ParseSessionHelper::ParseSessionHelper()
-    {
-    }
+	class ParseReply;
 
-    ParseSessionHelper::~ParseSessionHelper()
-    {
-    }
+	class ParseQueryRequest : public QObject
+	{
+	public:
+		static ParseQueryRequest* get();
+
+		// ParseQuery
+		ParseReply* getObject(QSharedPointer<ParseQueryImpl> pQueryImpl, const QString& objectId, QNetworkAccessManager* pNam);
+		ParseReply* findObjects(QSharedPointer<ParseQueryImpl> pQueryImpl, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam);
+		ParseReply* countObjects(const QString& className, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam);
+
+	private slots:
+		void getObjectFinished();
+		void findObjectsFinished();
+
+	private:
+		ParseQueryRequest();
+		~ParseQueryRequest();
+
+	private:
+		static ParseQueryRequest* _instance;
+		QMap<ParseReply*, QSharedPointer<ParseQueryImpl>> _replyMap;
+	};
 }
+
+#endif // CGPARSE_PARSEQUERYREQUEST_H

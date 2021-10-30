@@ -66,7 +66,7 @@ namespace cg
         void setValues(const QVariantMap &map);
 
     private:
-        friend class ParseClientObject;
+        friend class ParseFileRequest;
         QSharedPointer<ParseFileImpl> _pImpl;
     };
 }

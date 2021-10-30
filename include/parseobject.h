@@ -48,6 +48,14 @@ namespace cg
             return ParseObject(removeNamespace(QMetaType::fromType<T>().name()));
         }
 
+        template <class T>
+        static T createWithoutData(const QString& objectId)
+        {
+            ParseObject object(removeNamespace(QMetaType::fromType<T>().name()));
+            object.setValue(Parse::ObjectIdKey, objectId);
+            return object;
+        }
+
         static ParseObject create(const QString &className);
         static ParseObject createWithoutData(const QString &className, const QString &objectId);
 
@@ -64,6 +72,7 @@ namespace cg
         bool operator==(const ParseObject& object);
 
         virtual void assign(const ParseObject& object);
+        void nullify();
 
         QString className() const;
         QString objectId() const;

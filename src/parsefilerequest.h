@@ -13,37 +13,41 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEUSERHELPER_H
-#define CGPARSE_PARSEUSERHELPER_H
+#ifndef CGPARSE_PARSEFILEREQUEST_H
+#define CGPARSE_PARSEFILEREQUEST_H
 #pragma once
 
-#include "parse.h"
-#include "parsetypes.h"
-
 #include <QObject>
-#include <QWeakPointer>
+#include "parsefile.h"
+#include "parseuser.h"
+
+class QNetworkAccessManager;
 
 namespace cg
 {
-    class ParseUser;
+	class ParseReply;
 
-    class CGPARSE_API ParseUserHelper : public QObject
-    {
-        Q_OBJECT
-    public:
-        ParseUserHelper();
-        ~ParseUserHelper();
+	class ParseFileRequest : public QObject
+	{
+	public:
+		static ParseFileRequest* get();
 
-    public slots:
-        void loginFinished();
-        void logoutFinished();
-        void signUpFinished();
-        void deleteUserFinished();
-        void becomeFinished();
+		ParseReply* saveFile(const ParseFile& file, QNetworkAccessManager* pNam = nullptr);
+		ParseReply* fetchFile(const ParseFile& file, QNetworkAccessManager* pNam = nullptr);
+		ParseReply* deleteFile(const QString& url, const QString& masterKey, QNetworkAccessManager* pNam = nullptr);
 
-    public:
-        QWeakPointer<ParseUser> _pUser;
-    };
+	private slots:
+		void saveFileFinished();
+		void fetchFileFinished();
+
+	private:
+		ParseFileRequest();
+		~ParseFileRequest();
+
+	private:
+		static ParseFileRequest* _instance;
+		QMap<ParseReply*, ParseFile> _replyFileMap;
+	};
 }
 
-#endif // CGPARSE_PARSEUSERHELPER_H
+#endif // CGPARSE_PARSEFILEREQUEST_H

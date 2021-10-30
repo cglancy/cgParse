@@ -19,7 +19,7 @@
 
 #include "parseobject.h"
 #include "parseclient.h"
-#include "parsequeryhelper.h"
+#include "parsequeryrequest.h"
 #include "parsequeryimpl.h"
 #include "parseconvert.h"
 #include <QString>
@@ -36,7 +36,7 @@ namespace cg
     class ParseReply;
 
     template <class T>
-    class ParseQuery : public QEnableSharedFromThis<ParseQuery<T>>
+    class ParseQuery
     {
     public:
 
@@ -272,7 +272,7 @@ namespace cg
             clearResults();
             _pImpl->count = 1;
             _pImpl->limit = 0;
-            ParseReply * pReply = ParseQueryHelper::get()->countObjects(_pImpl->className, urlQuery(), pNam);
+            ParseReply * pReply = ParseQueryRequest::get()->countObjects(_pImpl->className, urlQuery(), pNam);
             _pImpl->count = origCount;
             _pImpl->limit = origLimit;
             return pReply;
@@ -281,13 +281,13 @@ namespace cg
         ParseReply* get(const QString &objectId, QNetworkAccessManager* pNam = nullptr)
         {
             clearResults();
-            return ParseQueryHelper::get()->getObject(_pImpl, objectId, pNam);
+            return ParseQueryRequest::get()->getObject(_pImpl, objectId, pNam);
         }
 
         ParseReply* find(QNetworkAccessManager* pNam = nullptr)
         {
             clearResults();
-            return ParseQueryHelper::get()->findObjects(_pImpl, urlQuery(), pNam);
+            return ParseQueryRequest::get()->findObjects(_pImpl, urlQuery(), pNam);
         }
 
     private:

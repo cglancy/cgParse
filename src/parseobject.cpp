@@ -19,7 +19,7 @@
 #include "parsefile.h"
 #include "parseuser.h"
 #include "parserelation.h"
-#include "parseobjecthelper.h"
+#include "parseobjectrequest.h"
 #include "parsedatetime.h"
 
 #include <QJsonObject>
@@ -71,6 +71,11 @@ namespace cg
     void ParseObject::assign(const ParseObject& object)
     {
         _pImpl = object._pImpl;
+    }
+
+    void ParseObject::nullify()
+    {
+        _pImpl.reset();
     }
 
     ParseObject& ParseObject::operator=(const ParseObject& object)
@@ -351,11 +356,11 @@ namespace cg
 
         if (_pImpl && objectId().isEmpty())
         {
-            pReply = ParseObjectHelper::get()->createObject(*this, pNam);
+            pReply = ParseObjectRequest::get()->createObject(*this, pNam);
         }
         else if (_pImpl)
         {
-            pReply = ParseObjectHelper::get()->updateObject(*this, pNam);
+            pReply = ParseObjectRequest::get()->updateObject(*this, pNam);
         }
         
         return pReply;
@@ -363,21 +368,21 @@ namespace cg
 
     ParseReply* ParseObject::fetch(QNetworkAccessManager* pNam)
     {
-        return ParseObjectHelper::get()->fetchObject(*this, pNam);
+        return ParseObjectRequest::get()->fetchObject(*this, pNam);
     }
 
     ParseReply* ParseObject::deleteObject(QNetworkAccessManager* pNam)
     {
-        return ParseObjectHelper::get()->deleteObject(*this, pNam);
+        return ParseObjectRequest::get()->deleteObject(*this, pNam);
     }
 
     ParseReply* ParseObject::saveAll(const QList<ParseObject> &objects, QNetworkAccessManager* pNam)
     {
-        return ParseObjectHelper::get()->saveAll(objects, pNam);
+        return ParseObjectRequest::get()->saveAll(objects, pNam);
     }
 
     ParseReply* ParseObject::deleteAll(const QList<ParseObject>& objects, QNetworkAccessManager* pNam)
     {
-        return ParseObjectHelper::get()->deleteAll(objects, pNam);
+        return ParseObjectRequest::get()->deleteAll(objects, pNam);
     }
 }

@@ -15,7 +15,7 @@
 */
 #include "parseuser.h"
 #include "parseclient.h"
-#include "parseclientobject.h"
+#include "parseuserrequest.h"
 #include "parserequest.h"
 #include "parsereply.h"
 #include "parseconvert.h"
@@ -38,6 +38,8 @@ namespace cg
     {
         if (object.className() == Parse::UserClassNameKey)
             ParseObject::assign(object);
+        else
+            nullify();
     }
 
     ParseUser::~ParseUser()
@@ -54,6 +56,8 @@ namespace cg
     {
         if (object.className() == Parse::UserClassNameKey)
             ParseObject::assign(object);
+        else
+            nullify();
     }
 
     // static 
@@ -71,25 +75,25 @@ namespace cg
     // static 
     ParseReply * ParseUser::login(const QString & username, const QString & password, QNetworkAccessManager* pNam)
     {
-        return ParseClientObject::get()->login(username, password, pNam);
+        return ParseUserRequest::get()->login(username, password, pNam);
     }
 
     // static 
     ParseReply * ParseUser::logout(QNetworkAccessManager* pNam)
     {
-        return ParseClientObject::get()->logout(pNam);
+        return ParseUserRequest::get()->logout(pNam);
     }
 
     // static 
     ParseReply * ParseUser::requestPasswordReset(const QString & email, QNetworkAccessManager* pNam)
     {
-        return ParseClientObject::get()->requestPasswordReset(email, pNam);
+        return ParseUserRequest::get()->requestPasswordReset(email, pNam);
     }
 
     // static
     ParseReply * ParseUser::become(const QString & sessionToken, QNetworkAccessManager* pNam)
     {
-        return ParseClientObject::get()->become(sessionToken, pNam);
+        return ParseUserRequest::get()->become(sessionToken, pNam);
     }
 
     bool ParseUser::isAuthenticated() const
@@ -134,11 +138,11 @@ namespace cg
 
     ParseReply * ParseUser::signUp(QNetworkAccessManager* pNam)
     {
-        return ParseClientObject::get()->signUp(*this, pNam);
+        return ParseUserRequest::get()->signUp(*this, pNam);
     }
 
     ParseReply * ParseUser::deleteUser(QNetworkAccessManager* pNam)
     {
-        return ParseClientObject::get()->deleteUser(*this, pNam);
+        return ParseUserRequest::get()->deleteUser(*this, pNam);
     }
 }

@@ -14,7 +14,6 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parsesession.h"
-#include "parsesessionhelper.h"
 #include "parserequest.h"
 #include "parseuser.h"
 #include "parsereply.h"
@@ -66,6 +65,8 @@ namespace cg
     {
         if (object.className() == Parse::SessionClassNameKey)
             ParseObject::assign(object);
+        else
+            nullify();
     }
 
     ParseSession::~ParseSession()
@@ -76,6 +77,8 @@ namespace cg
     {
         if (object.className() == Parse::SessionClassNameKey)
             ParseObject::assign(object);
+        else
+            nullify();
     }
 
     ParseSession& ParseSession::operator=(const ParseSession& user)

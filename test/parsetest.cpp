@@ -68,6 +68,8 @@ TestMovie::TestMovie(const ParseObject& object)
 {
     if (object.className() == "TestMovie")
         ParseObject::assign(object);
+    else
+        nullify();
 }
 
 TestMovie::TestMovie(const QString &title)
@@ -80,6 +82,8 @@ void TestMovie::assign(const ParseObject& object)
 {
     if (object.className() == "TestMovie")
         ParseObject::assign(object);
+    else
+        nullify();
 }
 
 TestMovie& TestMovie::operator=(const TestMovie& other)
@@ -113,6 +117,8 @@ TestCharacter::TestCharacter(const ParseObject& object)
 {
     if (object.className() == "TestCharacter")
         ParseObject::assign(object);
+    else
+        nullify();
 }
 
 TestCharacter::TestCharacter(const QString &name)
@@ -125,6 +131,8 @@ void TestCharacter::assign(const ParseObject& object)
 {
     if (object.className() == "TestCharacter")
         ParseObject::assign(object);
+    else
+        nullify();
 }
 
 TestCharacter& TestCharacter::operator=(const TestCharacter& other)
@@ -181,6 +189,8 @@ TestQuote::TestQuote(const ParseObject& object)
 {
     if (object.className() == "TestQuote")
         ParseObject::assign(object);
+    else
+        nullify();
 }
 
 TestQuote::TestQuote(const TestMovie& movie, const TestCharacter& character, int rank, const QString &quote)
@@ -196,6 +206,8 @@ void TestQuote::assign(const ParseObject& object)
 {
     if (object.className() == "TestQuote")
         ParseObject::assign(object);
+    else
+        nullify();
 }
 
 TestQuote& TestQuote::operator=(const TestQuote& other)
@@ -510,13 +522,13 @@ void ParseTest::testPolygon()
 void ParseTest::testUserLogin()
 {
 #if 0
-    ParseUserPtr testUser = ParseUser::create();
-    testUser->setUsername("TestLogin");
-    testUser->setPassword("Parse123");
-    testUser->setEmail(PARSE_TEST_EMAIL);
-    QVERIFY(testUser->sessionToken().isEmpty());
+    ParseUser testUser = ParseUser::create();
+    testUser.setUsername("TestLogin");
+    testUser.setPassword("Parse123");
+    testUser.setEmail(PARSE_TEST_EMAIL);
+    QVERIFY(testUser.sessionToken().isEmpty());
 
-    ParseReply* pSignUpReply = testUser->signUp();
+    ParseReply* pSignUpReply = testUser.signUp();
     QSignalSpy signUpSpy(pSignUpReply, &ParseReply::finished);
     QVERIFY(signUpSpy.wait(SPY_WAIT));
 
@@ -555,6 +567,8 @@ void ParseTest::testUserResetPassword()
 
 void ParseTest::testUserSignUp()
 {
+    QSKIP("not expected to work now that email confirmation is required");
+
     ParseUser testUser = ParseUser();
     testUser.setUsername("testUser1");
     testUser.setPassword("pa55w0rd");

@@ -13,43 +13,47 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEQUERYHELPER_H
-#define CGPARSE_PARSEQUERYHELPER_H
+#ifndef CGPARSE_PARSEUSERREQUEST_H
+#define CGPARSE_PARSEUSERREQUEST_H
 #pragma once
 
 #include <QObject>
-#include <QSharedPointer>
-#include "parsequeryimpl.h"
+#include "parsefile.h"
+#include "parseuser.h"
 
 class QNetworkAccessManager;
-class QUrlQuery;
 
 namespace cg
 {
 	class ParseReply;
 
-	class ParseQueryHelper : public QObject
+	class ParseUserRequest : public QObject
 	{
 	public:
-		static ParseQueryHelper* get();
+		static ParseUserRequest* get();
 
-		// ParseQuery
-		ParseReply* getObject(QSharedPointer<ParseQueryImpl> pQueryImpl, const QString& objectId, QNetworkAccessManager* pNam);
-		ParseReply* findObjects(QSharedPointer<ParseQueryImpl> pQueryImpl, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam);
-		ParseReply* countObjects(const QString& className, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam);
+		ParseReply* login(const QString& username, const QString& password, QNetworkAccessManager* pNam = nullptr);
+		ParseReply* logout(QNetworkAccessManager* pNam = nullptr);
+		ParseReply* requestPasswordReset(const QString& email, QNetworkAccessManager* pNam = nullptr);
+		ParseReply* become(const QString& sessionToken, QNetworkAccessManager* pNam = nullptr);
+		ParseReply* signUp(const ParseUser& user, QNetworkAccessManager* pNam = nullptr);
+		ParseReply* deleteUser(const ParseUser& user, QNetworkAccessManager* pNam = nullptr);
 
 	private slots:
-		void getObjectFinished();
-		void findObjectsFinished();
+		void loginFinished();
+		void logoutFinished();
+		void signUpFinished();
+		void deleteUserFinished();
+		void becomeFinished();
 
 	private:
-		ParseQueryHelper();
-		~ParseQueryHelper();
+		ParseUserRequest();
+		~ParseUserRequest();
 
 	private:
-		static ParseQueryHelper* _instance;
-		QMap<ParseReply*, QSharedPointer<ParseQueryImpl>> _replyMap;
+		static ParseUserRequest* _instance;
+		QMap<ParseReply*, ParseUser> _replyUserMap;
 	};
 }
 
-#endif // CGPARSE_PARSEQUERYHELPER_H
+#endif // CGPARSE_PARSEUSERREQUEST_H

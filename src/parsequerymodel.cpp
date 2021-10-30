@@ -15,7 +15,7 @@
 */
 #include "parse.h"
 #include "parsequerymodel.h"
-#include "parsequeryhelper.h"
+#include "parsequeryrequest.h"
 #include "parsereply.h"
 
 #include <QJsonObject>
@@ -182,7 +182,7 @@ namespace cg
 
         _pQueryImpl->className = className();
 
-		ParseReply *pReply = ParseQueryHelper::get()->findObjects(_pQueryImpl, urlQuery, pNam);
+		ParseReply *pReply = ParseQueryRequest::get()->findObjects(_pQueryImpl, urlQuery, pNam);
 		connect(pReply, &ParseReply::finished, this, &ParseQueryModel::findFinished);
 		return pReply;
 	}

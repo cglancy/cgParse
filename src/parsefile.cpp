@@ -16,7 +16,7 @@
 #include "parsefile.h"
 #include "parsefileimpl.h"
 #include "parseclient.h"
-#include "parseclientobject.h"
+#include "parsefilerequest.h"
 #include "parserequest.h"
 #include "parseobject.h"
 #include "parsereply.h"
@@ -78,7 +78,7 @@ namespace cg
 
     ParseReply* ParseFile::deleteFile(const QString &urlStr, const QString &masterKey, QNetworkAccessManager *pNam)
     {
-        return ParseClientObject::get()->deleteFile(urlStr, masterKey, pNam);
+        return ParseFileRequest::get()->deleteFile(urlStr, masterKey, pNam);
     }
 
     bool ParseFile::isNull() const
@@ -156,11 +156,11 @@ namespace cg
 
     ParseReply* ParseFile::save(QNetworkAccessManager *pNam)
     {
-        return ParseClientObject::get()->saveFile(*this, pNam);
+        return ParseFileRequest::get()->saveFile(*this, pNam);
     }
 
     ParseReply* ParseFile::fetch(QNetworkAccessManager* pNam)
     {
-        return ParseClientObject::get()->fetchFile(*this, pNam);
+        return ParseFileRequest::get()->fetchFile(*this, pNam);
     }
 }

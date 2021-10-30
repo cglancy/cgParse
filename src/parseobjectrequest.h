@@ -13,8 +13,8 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEOBJECTHELPER_H
-#define CGPARSE_PARSEOBJECTHELPER_H
+#ifndef CGPARSE_PARSEOBJECTREQUEST_H
+#define CGPARSE_PARSEOBJECTREQUEST_H
 #pragma once
 
 #include "parse.h"
@@ -33,15 +33,15 @@ namespace cg
     class ParseReply;
     class ParseFile;
 
-    class CGPARSE_API ParseObjectHelper : public QObject
+    class CGPARSE_API ParseObjectRequest : public QObject
     {
         Q_OBJECT
     private:
-        ParseObjectHelper();
-        ~ParseObjectHelper();
+        ParseObjectRequest();
+        ~ParseObjectRequest();
 
     public:
-        static ParseObjectHelper* get();
+        static ParseObjectRequest* get();
 
         ParseReply* createObject(const ParseObject &object, QNetworkAccessManager* pNam);
         ParseReply* fetchObject(const ParseObject& object, QNetworkAccessManager* pNam);
@@ -64,7 +64,7 @@ namespace cg
         void collectDirtyChildren(const QVariantList &list, QList<ParseFile> &files, QList<ParseObject> &objects);
 
     private:
-        static ParseObjectHelper* _instance;
+        static ParseObjectRequest* _instance;
         QMap<ParseObject, QList<ParseObject>> _objectObjectsMap;
         QSet<ParseObject> _objectsBeingSaved;
         QMap<ParseReply*, QList<ParseObject>> _replyObjectListMap;
@@ -72,4 +72,4 @@ namespace cg
     };
 }
 
-#endif // CGPARSE_PARSEOBJECTHELPER_H
+#endif // CGPARSE_PARSEOBJECTREQUEST_H

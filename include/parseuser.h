@@ -62,7 +62,7 @@ namespace cg
         ParseReply* deleteUser(QNetworkAccessManager* pNam = nullptr);
 
     private:
-        friend class ParseClientObject;
+        friend class ParseUserRequest;
         static ParseUser _currentUser;
     };
 }

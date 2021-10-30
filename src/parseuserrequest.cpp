@@ -13,32 +13,32 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "parseclientobject.h"
+#include "parseuserrequest.h"
 #include "parserequest.h"
 #include "parsereply.h"
 #include "parsefileimpl.h"
 
 namespace cg
 {
-	ParseClientObject* ParseClientObject::_instance = nullptr;
+	ParseUserRequest* ParseUserRequest::_instance = nullptr;
 
-	ParseClientObject::ParseClientObject()
+	ParseUserRequest::ParseUserRequest()
 	{
 	}
 
-	ParseClientObject::~ParseClientObject()
+	ParseUserRequest::~ParseUserRequest()
 	{
 	}
 
-	ParseClientObject* ParseClientObject::get()
+	ParseUserRequest* ParseUserRequest::get()
 	{
 		if (!_instance)
-			_instance = new ParseClientObject;
+			_instance = new ParseUserRequest;
 
 		return _instance;
 	}
 
-	ParseReply* ParseClientObject::login(const QString& username, const QString& password, QNetworkAccessManager* pNam)
+	ParseReply* ParseUserRequest::login(const QString& username, const QString& password, QNetworkAccessManager* pNam)
 	{
 		ParseRequest request(ParseRequest::GetHttpMethod, "/login");
 		request.setHeader("X-Parse-Revocable-Session", "1");
@@ -49,11 +49,11 @@ namespace cg
 		request.setUrlQuery(query);
 
 		ParseReply* pParseReply = new ParseReply(request, pNam);
-		connect(pParseReply, &ParseReply::preFinished, this, &ParseClientObject::loginFinished);
+		connect(pParseReply, &ParseReply::preFinished, this, &ParseUserRequest::loginFinished);
 		return pParseReply;
 	}
 
-	void ParseClientObject::loginFinished()
+	void ParseUserRequest::loginFinished()
 	{
 		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
 		if (!pReply)
@@ -65,7 +65,7 @@ namespace cg
 		}
 	}
 
-	ParseReply* ParseClientObject::logout(QNetworkAccessManager* pNam)
+	ParseReply* ParseUserRequest::logout(QNetworkAccessManager* pNam)
 	{
 		QString sessionToken;
 		ParseUser user = ParseUser::currentUser();
@@ -76,11 +76,11 @@ namespace cg
 		request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
 
 		ParseReply* pParseReply = new ParseReply(request, pNam);
-		connect(pParseReply, &ParseReply::preFinished, this, &ParseClientObject::logoutFinished);
+		connect(pParseReply, &ParseReply::preFinished, this, &ParseUserRequest::logoutFinished);
 		return pParseReply;
 	}
 
-	void ParseClientObject::logoutFinished()
+	void ParseUserRequest::logoutFinished()
 	{
 		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
 		if (!pReply)
@@ -92,7 +92,7 @@ namespace cg
 		}
 	}
 
-	ParseReply* ParseClientObject::requestPasswordReset(const QString& email, QNetworkAccessManager* pNam)
+	ParseReply* ParseUserRequest::requestPasswordReset(const QString& email, QNetworkAccessManager* pNam)
 	{
 		QByteArray content;
 		QJsonObject jsonObject;
@@ -104,17 +104,17 @@ namespace cg
 		return new ParseReply(request, pNam);
 	}
 
-	ParseReply* ParseClientObject::become(const QString& sessionToken, QNetworkAccessManager* pNam)
+	ParseReply* ParseUserRequest::become(const QString& sessionToken, QNetworkAccessManager* pNam)
 	{
 		ParseRequest request(ParseRequest::GetHttpMethod, "/users/me");
 		request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
 
 		ParseReply* pParseReply = new ParseReply(request, pNam);
-		QObject::connect(pParseReply, &ParseReply::preFinished, this, &ParseClientObject::becomeFinished);
+		QObject::connect(pParseReply, &ParseReply::preFinished, this, &ParseUserRequest::becomeFinished);
 		return pParseReply;
 	}
 
-	void ParseClientObject::becomeFinished()
+	void ParseUserRequest::becomeFinished()
 	{
 		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
 		if (!pReply)
@@ -126,7 +126,7 @@ namespace cg
 		}
 	}
 
-	ParseReply* ParseClientObject::signUp(const ParseUser& user, QNetworkAccessManager* pNam)
+	ParseReply* ParseUserRequest::signUp(const ParseUser& user, QNetworkAccessManager* pNam)
 	{
 		QJsonObject object = ParseConvert::toJsonObject(user.toMap());
 		QJsonDocument doc(object);
@@ -136,12 +136,12 @@ namespace cg
 		request.setHeader("X-Parse-Revocable-Session", "1");
 
 		ParseReply* pParseReply = new ParseReply(request, pNam);
-		connect(pParseReply, &ParseReply::preFinished, this, &ParseClientObject::signUpFinished);
+		connect(pParseReply, &ParseReply::preFinished, this, &ParseUserRequest::signUpFinished);
 		_replyUserMap.insert(pParseReply, user);
 		return pParseReply;
 	}
 
-	void ParseClientObject::signUpFinished()
+	void ParseUserRequest::signUpFinished()
 	{
 		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
 		if (!pReply)
@@ -162,18 +162,18 @@ namespace cg
 		}
 	}
 
-	ParseReply* ParseClientObject::deleteUser(const ParseUser& user, QNetworkAccessManager* pNam)
+	ParseReply* ParseUserRequest::deleteUser(const ParseUser& user, QNetworkAccessManager* pNam)
 	{
 		ParseRequest request(ParseRequest::DeleteHttpMethod, "/users/" + user.objectId());
 		request.setHeader("X-Parse-Session-Token", user.sessionToken().toUtf8());
 
 		ParseReply* pParseReply = new ParseReply(request, pNam);
-		connect(pParseReply, &ParseReply::preFinished, this, &ParseClientObject::deleteUserFinished);
+		connect(pParseReply, &ParseReply::preFinished, this, &ParseUserRequest::deleteUserFinished);
 		_replyUserMap.insert(pParseReply, user);
 		return pParseReply;
 	}
 
-	void ParseClientObject::deleteUserFinished()
+	void ParseUserRequest::deleteUserFinished()
 	{
 		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
 		if (!pReply)
@@ -186,69 +186,6 @@ namespace cg
 			if (user.hasSameId(ParseUser::currentUser()))
 				ParseUser::_currentUser = ParseUser();
 		}
-	}
-
-	ParseReply* ParseClientObject::saveFile(const ParseFile& file, QNetworkAccessManager* pNam)
-	{
-		ParseRequest request(ParseRequest::PostHttpMethod, "/files/" + file.name(), file.data(), file.contentType());
-		ParseReply* pReply = new ParseReply(request, pNam);
-		connect(pReply, &ParseReply::preFinished, this, &ParseClientObject::saveFileFinished);
-		_replyFileMap.insert(pReply, file);
-		return pReply;
-	}
-
-	void ParseClientObject::saveFileFinished()
-	{
-		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
-		if (!pReply)
-			return;
-
-		ParseFile file = _replyFileMap.take(pReply);
-
-		if (!pReply->isError() && pReply->statusCode() == 201)
-		{
-			QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
-			if (doc.isObject())
-			{
-				QJsonObject obj = doc.object();
-				file.setUrl(obj.value("url").toString());
-				file.setName(obj.value("name").toString());
-			}
-		}
-
-		pReply->deleteLater();
-	}
-
-	ParseReply* ParseClientObject::fetchFile(const ParseFile& file, QNetworkAccessManager* pNam)
-	{
-		ParseRequest request(ParseRequest::GetHttpMethod, file.url());
-		ParseReply* pReply = new ParseReply(request, pNam);
-		connect(pReply, &ParseReply::preFinished, this, &ParseClientObject::fetchFileFinished);
-		_replyFileMap.insert(pReply, file);
-		return pReply;
-	}
-
-	void ParseClientObject::fetchFileFinished()
-	{
-		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
-		if (!pReply)
-			return;
-
-		ParseFile file = _replyFileMap.take(pReply);
-
-		if (!pReply->isError() && pReply->statusCode() == 200)
-		{
-			file._pImpl->data = pReply->data();
-		}
-	}
-
-	ParseReply* ParseClientObject::deleteFile(const QString& urlStr, const QString& masterKey, QNetworkAccessManager* pNam)
-	{
-		QUrl url(urlStr);
-		ParseRequest request(ParseRequest::DeleteHttpMethod, "/files/" + url.fileName());
-		request.removeHeader("X-Parse-REST-API-Key");
-		request.setHeader("X-Parse-Master-Key", masterKey.toUtf8());
-		return new ParseReply(request, pNam);
 	}
 }
 

@@ -42,6 +42,8 @@ namespace cg
     {
         if (object.className() == Parse::RoleClassNameKey)
             ParseObject::assign(object);
+        else
+            nullify();
     }
 
     ParseRole::~ParseRole()
@@ -52,6 +54,8 @@ namespace cg
     {
         if (object.className() == Parse::RoleClassNameKey)
             ParseObject::assign(object);
+        else
+            nullify();
     }
 
     ParseRole& ParseRole::operator=(const ParseRole& role)

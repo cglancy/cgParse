@@ -13,7 +13,7 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "parseobjecthelper.h"
+#include "parseobjectrequest.h"
 #include "parseobject.h"
 #include "parseuser.h"
 #include "parserequest.h"
@@ -28,25 +28,25 @@
 
 namespace cg
 {
-    ParseObjectHelper* ParseObjectHelper::_instance = nullptr;
+    ParseObjectRequest* ParseObjectRequest::_instance = nullptr;
 
-    ParseObjectHelper::ParseObjectHelper()
+    ParseObjectRequest::ParseObjectRequest()
     {
     }
 
-    ParseObjectHelper::~ParseObjectHelper()
+    ParseObjectRequest::~ParseObjectRequest()
     {
     }
 
-    ParseObjectHelper* ParseObjectHelper::get()
+    ParseObjectRequest* ParseObjectRequest::get()
     {
         if (!_instance)
-            _instance = new ParseObjectHelper();
+            _instance = new ParseObjectRequest();
 
         return _instance;
     }
 
-    bool ParseObjectHelper::collectDirtyChildren(const ParseObject& object, QList<ParseFile> &files, QList<ParseObject> &objects)
+    bool ParseObjectRequest::collectDirtyChildren(const ParseObject& object, QList<ParseFile> &files, QList<ParseObject> &objects)
     {
         for (auto & key : object.keys())
         {
@@ -67,7 +67,7 @@ namespace cg
         return files.size() > 0 || objects.size() > 0;
     }
 
-    void ParseObjectHelper::collectDirtyChildren(const QVariantMap &map, QList<ParseFile> &files, QList<ParseObject> &objects)
+    void ParseObjectRequest::collectDirtyChildren(const QVariantMap &map, QList<ParseFile> &files, QList<ParseObject> &objects)
     {
         for (auto & key : map.keys())
         {
@@ -83,7 +83,7 @@ namespace cg
         }
     }
 
-    void ParseObjectHelper::collectDirtyChildren(const QVariantList &list, QList<ParseFile> &files, QList<ParseObject> &objects)
+    void ParseObjectRequest::collectDirtyChildren(const QVariantList &list, QList<ParseFile> &files, QList<ParseObject> &objects)
     {
         for (auto & variant : list)
         {
@@ -98,7 +98,7 @@ namespace cg
         }
     }
 
-    void ParseObjectHelper::saveChildrenIfNeeded(const ParseObject& object)
+    void ParseObjectRequest::saveChildrenIfNeeded(const ParseObject& object)
     {
         _objectsBeingSaved.insert(object);
 
@@ -138,7 +138,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseObjectHelper::createObject(const ParseObject& object, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectRequest::createObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
         saveChildrenIfNeeded(object);
 
@@ -149,12 +149,12 @@ namespace cg
         ParseRequest request(ParseRequest::PostHttpMethod, "/classes/" + object.className(), content);
 
         ParseReply *pReply = new ParseReply(request, pNam);
-        connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateCreateObjectFinished);
+        connect(pReply, &ParseReply::preFinished, this, &ParseObjectRequest::privateCreateObjectFinished);
         _replyObjectMap.insert(pReply, object);
         return pReply;
     }
 
-    void ParseObjectHelper::privateCreateObjectFinished()
+    void ParseObjectRequest::privateCreateObjectFinished()
     {
         ParseReply *pReply = qobject_cast<ParseReply*>(sender());
         if (!pReply)
@@ -181,16 +181,16 @@ namespace cg
         _objectsBeingSaved.remove(object);
     }
 
-    ParseReply* ParseObjectHelper::fetchObject(const ParseObject& object, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectRequest::fetchObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
         ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + object.className() + "/" + object.objectId());
         ParseReply *pReply = new ParseReply(request, pNam);
-        connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateFetchObjectFinished);
+        connect(pReply, &ParseReply::preFinished, this, &ParseObjectRequest::privateFetchObjectFinished);
         _replyObjectMap.insert(pReply, object);
         return pReply;
     }
 
-    void ParseObjectHelper::privateFetchObjectFinished()
+    void ParseObjectRequest::privateFetchObjectFinished()
     {
         ParseReply *pReply = qobject_cast<ParseReply*>(sender());
         if (!pReply)
@@ -209,7 +209,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseObjectHelper::updateObject(const ParseObject& object, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectRequest::updateObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
         if (!object.isNull() || object.objectId().isEmpty())
         {
@@ -224,12 +224,12 @@ namespace cg
 
         ParseRequest request(ParseRequest::PutHttpMethod, "/classes/" + object.className() + "/" + object.objectId(), content);
         ParseReply *pReply = new ParseReply(request, pNam);
-        connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateUpdateObjectFinished);
+        connect(pReply, &ParseReply::preFinished, this, &ParseObjectRequest::privateUpdateObjectFinished);
         _replyObjectMap.insert(pReply, object);
         return pReply;
     }
 
-    void ParseObjectHelper::privateUpdateObjectFinished()
+    void ParseObjectRequest::privateUpdateObjectFinished()
     {
         ParseReply *pReply = qobject_cast<ParseReply*>(sender());
         if (!pReply)
@@ -256,7 +256,7 @@ namespace cg
         _objectsBeingSaved.remove(object);
     }
 
-    ParseReply* ParseObjectHelper::deleteObject(const ParseObject& object, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectRequest::deleteObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
         if (!object.isNull() || object.objectId().isEmpty())
         {
@@ -267,7 +267,7 @@ namespace cg
         return new ParseReply(request, pNam);
     }
 
-    ParseReply* ParseObjectHelper::saveAll(const QList<ParseObject>& objects, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectRequest::saveAll(const QList<ParseObject>& objects, QNetworkAccessManager* pNam)
     {
         if (objects.size() == 0)
         {
@@ -308,12 +308,12 @@ namespace cg
 
         ParseRequest request(ParseRequest::PostHttpMethod, "/batch", content);
         ParseReply *pReply = new ParseReply(request, pNam);
-        connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateSaveAllFinished);
+        connect(pReply, &ParseReply::preFinished, this, &ParseObjectRequest::privateSaveAllFinished);
         _replyObjectListMap.insert(pReply, objects);
         return pReply;
     }
 
-    void ParseObjectHelper::privateSaveAllFinished()
+    void ParseObjectRequest::privateSaveAllFinished()
     {
         ParseReply *pReply = qobject_cast<ParseReply*>(sender());
         if (!pReply)
@@ -342,7 +342,7 @@ namespace cg
         }
     }
 
-    ParseReply* ParseObjectHelper::deleteAll(const QList<ParseObject>& objects, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectRequest::deleteAll(const QList<ParseObject>& objects, QNetworkAccessManager* pNam)
     {
         if (objects.size() == 0)
         {
