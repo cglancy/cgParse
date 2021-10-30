@@ -80,23 +80,23 @@ namespace cg
 		}
 	}
 
-	void ParseLiveQueryModel::createEvent(QSharedPointer<ParseObject> pObject)
+	void ParseLiveQueryModel::createEvent(const ParseObject& object)
 	{
 		beginInsertRows(QModelIndex(), _objects.size(), _objects.size());
-		_objects.append(pObject);
+		_objects.append(object);
 		endInsertRows();
 	}
 
-	void ParseLiveQueryModel::enterEvent(QSharedPointer<ParseObject> pObject)
+	void ParseLiveQueryModel::enterEvent(const ParseObject& object)
 	{
 		beginInsertRows(QModelIndex(), _objects.size(), _objects.size());
-		_objects.append(pObject);
+		_objects.append(object);
 		endInsertRows();
 	}
 
-	void ParseLiveQueryModel::leaveEvent(QSharedPointer<ParseObject> pObject)
+	void ParseLiveQueryModel::leaveEvent(const ParseObject& object)
 	{
-		int index = indexOf(pObject);
+		int index = indexOf(object);
 		if (index >= 0 && index < _objects.size())
 		{
 			beginRemoveRows(QModelIndex(), index, index);
@@ -105,18 +105,18 @@ namespace cg
 		}
 	}
 
-	void ParseLiveQueryModel::updateEvent(QSharedPointer<ParseObject> pObject)
+	void ParseLiveQueryModel::updateEvent(const ParseObject& object)
 	{
-		int index = indexOf(pObject);
+		int index = indexOf(object);
 		if (index >= 0 && index < _objects.size())
 		{
 			emit dataChanged(createIndex(index, 0), createIndex(index, _keysList.size()));
 		}
 	}
 
-	void ParseLiveQueryModel::deleteEvent(QSharedPointer<ParseObject> pObject)
+	void ParseLiveQueryModel::deleteEvent(const ParseObject& object)
 	{
-		int index = indexOf(pObject);
+		int index = indexOf(object);
 		if (index >= 0 && index < _objects.size())
 		{
 			beginRemoveRows(QModelIndex(), index, index);
@@ -125,11 +125,11 @@ namespace cg
 		}
 	}
 
-	int ParseLiveQueryModel::indexOf(QSharedPointer<ParseObject> pObject) const
+	int ParseLiveQueryModel::indexOf(const ParseObject& object) const
 	{
 		for (int i = 0; i < _objects.size(); i++)
 		{
-			if (pObject->hasSameId(_objects.at(i)))
+			if (object.hasSameId(_objects.at(i)))
 				return i;
 		}
 

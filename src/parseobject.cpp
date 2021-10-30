@@ -14,6 +14,7 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parseobject.h"
+#include "parseobjectimpl.h"
 #include "parseclient.h"
 #include "parsefile.h"
 #include "parseuser.h"
@@ -26,65 +27,79 @@
 #include <QMetaType>
 #include <QDebug>
 
-namespace cg {
-    ParseObjectHelper * ParseObject::_pStaticHelper = nullptr;
-
-    ParseObjectHelper * ParseObject::staticHelper()
+namespace cg 
+{
+    bool operator==(const ParseObject& object1, const ParseObject& object2)
     {
-        if (!_pStaticHelper)
-            _pStaticHelper = new ParseObjectHelper();
+        return object1.objectId() == object2.objectId();
+    }
 
-        return _pStaticHelper;
+    bool operator<(const ParseObject& object1, const ParseObject& object2)
+    {
+        return object1.objectId() < object2.objectId();
+    }
+
+    uint qHash(const ParseObject& object, uint seed)
+    {
+        return qHash(object.objectId(), seed);
     }
 
     ParseObject::ParseObject()
-        : _className("ParseObject"),
-        _pHelper(new ParseObjectHelper())
     {
+        // constructs a null object
     }
 
     ParseObject::ParseObject(const ParseObject & object)
     {
-        _className = object._className;
-        _valueMap = object._valueMap; 
-        _savedValueMap = object._savedValueMap;
+        _pImpl = object._pImpl;
     }
 
     ParseObject::ParseObject(const QString &className)
-        : _className(className),
-        _pHelper(new ParseObjectHelper())
     {
+        _pImpl = QSharedPointer<ParseObjectImpl>::create(className);
     }
 
     ParseObject::~ParseObject()
     {
     }
 
-    QSharedPointer<ParseObject> ParseObject::create(const QString &className)
+    bool ParseObject::isNull() const
     {
-        QSharedPointer<ParseObject> pObject;
-
-        int id = QMetaType::type(className.toLocal8Bit());
-        if (id != QMetaType::UnknownType)
-        {
-            void *newObject = QMetaType::create(id);
-            ParseObject *pParseObject = static_cast<ParseObject*>(newObject);
-            pObject = QSharedPointer<ParseObject>(pParseObject);
-        }
-        else
-        {
-            pObject = QSharedPointer<ParseObject>::create(className);
-        }
-
-        return pObject;
+        return nullptr == _pImpl;
     }
 
-    QSharedPointer<ParseObject> ParseObject::createWithoutData(const QString &className, const QString &objectId)
+    void ParseObject::assign(const ParseObject& object)
     {
-        QSharedPointer<ParseObject> pObject = create(className);
-        if (pObject)
-            pObject->setValue(Parse::ObjectIdKey, objectId);
-        return pObject;
+        _pImpl = object._pImpl;
+    }
+
+    ParseObject& ParseObject::operator=(const ParseObject& object)
+    {
+        assign(object);
+        return *this;
+    }
+
+    bool ParseObject::operator==(const ParseObject& object)
+    {
+        return hasSameId(object);
+    }
+
+    QString ParseObject::removeNamespace(const QString& className)
+    {
+        return className.section("::", -1);
+    }
+
+    ParseObject ParseObject::create(const QString &className)
+    {
+        ParseObject object(className);
+        return object;
+    }
+
+    ParseObject ParseObject::createWithoutData(const QString &className, const QString &objectId)
+    {
+        ParseObject object(className);
+        object.setValue(Parse::ObjectIdKey, objectId);
+        return object;
     }
 
     bool ParseObject::isDirty() const
@@ -100,14 +115,17 @@ namespace cg {
 
     bool ParseObject::isDirty(const QString &key) const
     {
+        if (!_pImpl)
+            return false;
+
         bool dirty = true;
 
-        bool inValueMap = _valueMap.contains(key);
-        bool inSavedMap = _savedValueMap.contains(key);
+        bool inValueMap = _pImpl->valueMap.contains(key);
+        bool inSavedMap = _pImpl->savedValueMap.contains(key);
 
         if (inValueMap && inSavedMap)
         {
-            if (value(key) == _savedValueMap.value(key))
+            if (value(key) == _pImpl->savedValueMap.value(key))
                 dirty = false;
         }
         else if (!inValueMap && !inSavedMap)
@@ -120,27 +138,30 @@ namespace cg {
 
     void ParseObject::revert()
     {
-        _valueMap = _savedValueMap;
+        if (_pImpl)
+            _pImpl->valueMap = _pImpl->savedValueMap;
     }
 
     void ParseObject::revert(const QString &key)
     {
-        _valueMap.insert(key, _savedValueMap.value(key));
+        if (_pImpl)
+            _pImpl->valueMap.insert(key, _pImpl->savedValueMap.value(key));
     }
 
     void ParseObject::clearDirtyState()
     {
-        _savedValueMap = _valueMap;
+        if (_pImpl)
+            _pImpl->savedValueMap = _pImpl->valueMap;
     }
 
-    bool ParseObject::hasSameId(QSharedPointer<ParseObject> pObject) const
+    bool ParseObject::hasSameId(const ParseObject& object) const
     {
-        return pObject && pObject->value(Parse::ObjectIdKey) == value(Parse::ObjectIdKey);
+        return value(Parse::ObjectIdKey) == object.value(Parse::ObjectIdKey);
     }
 
     QString ParseObject::className() const
     {
-        return _className;
+        return _pImpl ? _pImpl->className : QString();
     }
 
     QString ParseObject::objectId() const
@@ -160,12 +181,13 @@ namespace cg {
 
     QVariant ParseObject::value(const QString &key) const
     {
-        return _valueMap.value(key);
+        return _pImpl ? _pImpl->valueMap.value(key) : QVariant();
     }
 
     void ParseObject::setValue(const QString &key, const QVariant &variant)
     {
-        _valueMap.insert(key, variant);
+        if (_pImpl)
+            _pImpl->valueMap.insert(key, variant);
     }
 
     void ParseObject::remove(const QString & key)
@@ -226,26 +248,25 @@ namespace cg {
         setValue(key, map);
     }
 
-    QSharedPointer<ParseFile> ParseObject::file(const QString &key) const
+    ParseFile ParseObject::file(const QString &key) const
     {
-        return _valueMap.value(key).value<QSharedPointer<ParseFile>>();
+        return _pImpl ? _pImpl->valueMap.value(key).value<ParseFile>() : ParseFile();
     }
 
-    void ParseObject::setFile(const QString &key, QSharedPointer<ParseFile> pFile)
+    void ParseObject::setFile(const QString &key, const ParseFile& file)
     {
-        setValue(key, QVariant::fromValue(pFile));
+        setValue(key, QVariant::fromValue(file));
     }
 
-    QSharedPointer<ParseUser> ParseObject::user(const QString & key) const
+    ParseUser ParseObject::user(const QString & key) const
     {
-        QSharedPointer<ParseObject> pBaseObject = value(key).value<QSharedPointer<ParseObject>>();
-        return pBaseObject.staticCast<ParseUser>();
+        ParseObject object = value(key).value<ParseObject>();
+        return static_cast<ParseUser>(object);
     }
 
-    void ParseObject::setUser(const QString & key, QSharedPointer<ParseUser> pUser)
+    void ParseObject::setUser(const QString & key, const ParseUser& user)
     {
-        QSharedPointer<ParseObject> pBaseObject = pUser.staticCast<ParseObject>();
-        setValue(key, QVariant::fromValue(pBaseObject));
+        setValue(key, QVariant::fromValue(user));
     }
 
     QDateTime ParseObject::dateTime(const QString & key) const
@@ -286,7 +307,7 @@ namespace cg {
 
     QStringList ParseObject::keys() const
     {
-        return _valueMap.keys();
+        return _pImpl ? _pImpl->valueMap.keys() : QStringList();
     }
 
     bool ParseObject::isUserValue(const QString &key)
@@ -297,22 +318,30 @@ namespace cg {
             !key.startsWith('_');
     }
 
+    bool ParseObject::valueMapHasKey(const QString& key) const
+    {
+        return _pImpl->valueMap.contains(key);
+    }
+
     ParseObjectPointer ParseObject::toPointer() const
     {
-        return ParseObjectPointer(_className, objectId());
+        return _pImpl ? ParseObjectPointer(_pImpl->className, objectId()) : ParseObjectPointer();
     }
 
     QVariantMap ParseObject::toMap() const
     {
-        return _valueMap;
+        return _pImpl ? _pImpl->valueMap : QVariantMap();
     }
 
     void ParseObject::setValues(const QVariantMap &variantMap)
     {
+        if (!_pImpl)
+            return;
+
         for (auto& key : variantMap.keys())
         {
             if (key != Parse::TypeKey)
-                _valueMap.insert(key, variantMap.value(key));
+                _pImpl->valueMap.insert(key, variantMap.value(key));
         }
     }
 
@@ -320,13 +349,13 @@ namespace cg {
     {
         ParseReply *pReply = nullptr;
 
-        if (objectId().isEmpty())
+        if (_pImpl && objectId().isEmpty())
         {
-            pReply = _pHelper->createObject(sharedFromThis(), pNam);
+            pReply = ParseObjectHelper::get()->createObject(*this, pNam);
         }
-        else
+        else if (_pImpl)
         {
-            pReply = _pHelper->updateObject(sharedFromThis(), pNam);
+            pReply = ParseObjectHelper::get()->updateObject(*this, pNam);
         }
         
         return pReply;
@@ -334,21 +363,21 @@ namespace cg {
 
     ParseReply* ParseObject::fetch(QNetworkAccessManager* pNam)
     {
-        return _pHelper->fetchObject(sharedFromThis(), pNam);
+        return ParseObjectHelper::get()->fetchObject(*this, pNam);
     }
 
     ParseReply* ParseObject::deleteObject(QNetworkAccessManager* pNam)
     {
-        return _pHelper->deleteObject(sharedFromThis(), pNam);
+        return ParseObjectHelper::get()->deleteObject(*this, pNam);
     }
 
-    ParseReply* ParseObject::saveAll(const QList<QSharedPointer<ParseObject>> &objects, QNetworkAccessManager* pNam)
+    ParseReply* ParseObject::saveAll(const QList<ParseObject> &objects, QNetworkAccessManager* pNam)
     {
-        return staticHelper()->saveAll(objects, pNam);
+        return ParseObjectHelper::get()->saveAll(objects, pNam);
     }
 
-    ParseReply* ParseObject::deleteAll(const QList<QSharedPointer<ParseObject>>& objects, QNetworkAccessManager* pNam)
+    ParseReply* ParseObject::deleteAll(const QList<ParseObject>& objects, QNetworkAccessManager* pNam)
     {
-        return staticHelper()->deleteAll(objects, pNam);
+        return ParseObjectHelper::get()->deleteAll(objects, pNam);
     }
 }

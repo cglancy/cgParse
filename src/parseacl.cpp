@@ -31,35 +31,25 @@ namespace cg
 
         if (withAccessForCurrentUser)
         {
-            QSharedPointer<ParseUser> pCurrentUser = ParseUser::currentUser();
-            if (pCurrentUser)
+            ParseUser currentUser = ParseUser::currentUser();
+            if (!currentUser.isNull())
             {
-                _defaultACL.setReadAccess(pCurrentUser, true);
-                _defaultACL.setWriteAccess(pCurrentUser, true);
+                _defaultACL.setReadAccess(currentUser, true);
+                _defaultACL.setWriteAccess(currentUser, true);
             }
         }
-    }
-
-    QSharedPointer<ParseACL> ParseACL::create()
-    {
-        return QSharedPointer<ParseACL>::create();
-    }
-
-    QSharedPointer<ParseACL> ParseACL::create(QSharedPointer<ParseUser> pUser)
-    {
-        return QSharedPointer<ParseACL>::create(pUser);
     }
 
     ParseACL::ParseACL()
     {
     }
 
-    ParseACL::ParseACL(QSharedPointer<ParseUser> pUser)
+    ParseACL::ParseACL(const ParseUser& user)
     {
-        if (pUser)
+        if (!user.isNull())
         {
-            setReadAccess(pUser, true);
-            setWriteAccess(pUser, true);
+            setReadAccess(user, true);
+            setWriteAccess(user, true);
         }
     }
 
@@ -98,12 +88,12 @@ namespace cg
         return writeAllowed;
     }
 
-    bool ParseACL::readAccess(QSharedPointer<ParseUser> pUser) const
+    bool ParseACL::readAccess(const ParseUser& user) const
     {
-        if (!pUser)
+        if (!user.isNull())
             return false;
 
-        return readAccess(pUser->objectId());
+        return readAccess(user.objectId());
     }
 
     bool ParseACL::readAccess(const QString & userId) const
@@ -119,12 +109,12 @@ namespace cg
         return readAllowed;
     }
 
-    bool ParseACL::writeAccess(QSharedPointer<ParseUser> pUser) const
+    bool ParseACL::writeAccess(const ParseUser& user) const
     {
-        if (!pUser)
+        if (!user.isNull())
             return false;
 
-        return writeAccess(pUser->objectId());
+        return writeAccess(user.objectId());
     }
 
     bool ParseACL::writeAccess(const QString & userId) const
@@ -170,10 +160,10 @@ namespace cg
         }
     }
 
-    void ParseACL::setReadAccess(QSharedPointer<ParseUser> pUser, bool allowed)
+    void ParseACL::setReadAccess(const ParseUser& user, bool allowed)
     {
-        if (pUser)
-            setReadAccess(pUser->objectId(), allowed);
+        if (!user.isNull())
+            setReadAccess(user.objectId(), allowed);
     }
 
     void ParseACL::setReadAccess(const QString & userId, bool allowed)
@@ -191,10 +181,10 @@ namespace cg
         }
     }
 
-    void ParseACL::setWriteAccess(QSharedPointer<ParseUser> pUser, bool allowed)
+    void ParseACL::setWriteAccess(const ParseUser& user, bool allowed)
     {
-        if (pUser)
-            setWriteAccess(pUser->objectId(), allowed);
+        if (!user.isNull())
+            setWriteAccess(user.objectId(), allowed);
     }
 
     void ParseACL::setWriteAccess(const QString & userId, bool allowed)

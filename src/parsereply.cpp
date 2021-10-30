@@ -140,34 +140,33 @@ namespace cg
         return count;
     }
 
-    QSharedPointer<ParseUser> ParseReply::user() const
+    ParseUser ParseReply::user() const
     {
-        QSharedPointer<ParseUser> pUser;
+        ParseUser user;
 
         QJsonDocument doc = QJsonDocument::fromJson(constData());
         if (doc.isObject())
         {
-            pUser = QSharedPointer<ParseUser>::create();
-            pUser->setValues(ParseConvert::toVariantMap(doc.object()));
-            pUser->clearDirtyState();
+            user.setValues(ParseConvert::toVariantMap(doc.object()));
+            user.clearDirtyState();
         }
 
-        return pUser;
+        return user;
     }
 
-    QSharedPointer<ParseSession> ParseReply::session() const
+    ParseSession ParseReply::session() const
     {
-        QSharedPointer<ParseSession> pSession;
+        ParseSession session;
 
         QJsonDocument doc = QJsonDocument::fromJson(constData());
         if (doc.isObject())
         {
-            pSession = QSharedPointer<ParseSession>::create();
-            pSession->setValues(ParseConvert::toVariantMap(doc.object()));
-            pSession->clearDirtyState();
+            session = ParseSession::create();
+            session.setValues(ParseConvert::toVariantMap(doc.object()));
+            session.clearDirtyState();
         }
 
-        return pSession;
+        return session;
     }
 
     bool ParseReply::isError(int status)

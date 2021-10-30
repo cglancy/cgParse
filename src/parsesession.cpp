@@ -21,27 +21,15 @@
 
 namespace cg
 {
-    ParseSessionHelper * ParseSession::_pStaticHelper = nullptr;
-
     // static
-    ParseSessionHelper * ParseSession::staticHelper()
+    ParseSession ParseSession::create()
     {
-        if (!_pStaticHelper)
-            _pStaticHelper = new ParseSessionHelper();
-
-        return _pStaticHelper;
+        return ParseObject(Parse::SessionClassNameKey);
     }
 
-    // static
-    QSharedPointer<ParseSession> ParseSession::create()
+    ParseQuery<ParseSession> ParseSession::query()
     {
-        return QSharedPointer<ParseSession>::create();
-    }
-
-    // static
-    QSharedPointer<ParseQuery<ParseSession>> ParseSession::query()
-    {
-        return QSharedPointer<ParseQuery<ParseSession>>::create();
+        return ParseQuery<ParseSession>();
     }
 
     // static
@@ -55,22 +43,45 @@ namespace cg
     // static
     ParseReply* ParseSession::currentSession(QNetworkAccessManager* pNam)
     {
-        QSharedPointer<ParseUser> pCurrentUser = ParseUser::currentUser();
-        if (pCurrentUser.isNull())
+        ParseUser currentUser = ParseUser::currentUser();
+        if (currentUser.isNull())
             return new ParseReply(ParseError::UnknownError);
 
         ParseRequest request(ParseRequest::GetHttpMethod, "parse/sessions/me");
-        request.setHeader("X-Parse-Session-Token", pCurrentUser->sessionToken().toUtf8());
+        request.setHeader("X-Parse-Session-Token", currentUser.sessionToken().toUtf8());
         return new ParseReply(request, pNam);
     }
 
     ParseSession::ParseSession()
-        : ParseObject("_Session")
     {
+        // constructs null object
+    }
+
+    ParseSession::ParseSession(const ParseSession& session)
+        : ParseObject(session)
+    {
+    }
+
+    ParseSession::ParseSession(const ParseObject& object)
+    {
+        if (object.className() == Parse::SessionClassNameKey)
+            ParseObject::assign(object);
     }
 
     ParseSession::~ParseSession()
     {
+    }
+
+    void ParseSession::assign(const ParseObject& object)
+    {
+        if (object.className() == Parse::SessionClassNameKey)
+            ParseObject::assign(object);
+    }
+
+    ParseSession& ParseSession::operator=(const ParseSession& user)
+    {
+        ParseObject::operator=(user);
+        return *this;
     }
 
     QString ParseSession::sessionToken() const

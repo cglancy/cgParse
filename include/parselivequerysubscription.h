@@ -36,11 +36,11 @@ namespace cg
 
     signals:
         void subscribed();
-        void createEvent(QSharedPointer<ParseObject> pObject);
-        void enterEvent(QSharedPointer<ParseObject> pObject);
-        void leaveEvent(QSharedPointer<ParseObject> pObject);
-        void updateEvent(QSharedPointer<ParseObject> pObject);
-        void deleteEvent(QSharedPointer<ParseObject> pObject);
+        void createEvent(const ParseObject& object);
+        void enterEvent(const ParseObject& object);
+        void leaveEvent(const ParseObject& object);
+        void updateEvent(const ParseObject& object);
+        void deleteEvent(const ParseObject& object);
 
     private:
         int _id;

@@ -31,25 +31,24 @@ namespace cg
     class CGPARSE_API ParseSession : public ParseObject
     {
     public:
-        static QSharedPointer<ParseSession> create();
-        static QSharedPointer<ParseQuery<ParseSession>> query();
+        static ParseSession create();
+        static ParseQuery<ParseSession> query();
 
         static ParseReply* currentSession(QNetworkAccessManager* pNam = nullptr);
         static ParseReply* deleteSession(const QString &sessionToken, QNetworkAccessManager* pNam = nullptr);
 
     public:
         ParseSession();
+        ParseSession(const ParseSession& session);
+        ParseSession(const ParseObject& object);
         ~ParseSession();
 
-        QString sessionToken() const;
+        void assign(const ParseObject& object) override;
+        ParseSession& operator=(const ParseSession& user);
 
-    private:
-        static ParseSessionHelper * staticHelper();
-        static ParseSessionHelper *_pStaticHelper;
+        QString sessionToken() const;
     };
 }
 
 Q_DECLARE_METATYPE(cg::ParseSession);
-Q_DECLARE_METATYPE(QSharedPointer<cg::ParseSession>);
-
 #endif // CGPARSE_PARSESESSION_H

@@ -38,14 +38,14 @@ namespace cg
 		void subscribed();
 
 	private slots:
-		void createEvent(QSharedPointer<ParseObject> pObject);
-		void enterEvent(QSharedPointer<ParseObject> pObject);
-		void leaveEvent(QSharedPointer<ParseObject> pObject);
-		void updateEvent(QSharedPointer<ParseObject> pObject);
-		void deleteEvent(QSharedPointer<ParseObject> pObject);
+		void createEvent(const ParseObject& object);
+		void enterEvent(const ParseObject& object);
+		void leaveEvent(const ParseObject& object);
+		void updateEvent(const ParseObject& object);
+		void deleteEvent(const ParseObject& object);
 
 	private:
-		int indexOf(QSharedPointer<ParseObject> pObject) const;
+		int indexOf(const ParseObject& object) const;
 
     private:
 		ParseLiveQuerySubscription *m_pSubscription;

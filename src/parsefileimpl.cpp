@@ -13,34 +13,23 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEFILEHELPER_H
-#define CGPARSE_PARSEFILEHELPER_H
-#pragma once
+#include "parsefileimpl.h"
+#include "parseobject.h"
+#include "parsefile.h"
+#include "parserequest.h"
+#include "parsereply.h"
 
-#include "parse.h"
-#include "parsetypes.h"
-
-#include <QObject>
-#include <QWeakPointer>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 namespace cg
 {
-    class ParseFile;
-
-    class CGPARSE_API ParseFileHelper : public QObject
+    ParseFileImpl::ParseFileImpl()
+        : contentType("unknown/unknown")
     {
-        Q_OBJECT
-    public:
-        ParseFileHelper();
-        ~ParseFileHelper();
+    }
 
-    public slots:
-        void saveFileFinished();
-        void fetchFileFinished();
-
-    public:
-        QWeakPointer<ParseFile> _pFile;
-    };
+    ParseFileImpl::~ParseFileImpl()
+    {
+    }
 }
-
-#endif // CGPARSE_PARSEFILEHELPER_H

@@ -14,9 +14,10 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "parsefile.h"
+#include "parsefileimpl.h"
 #include "parseclient.h"
+#include "parseclientobject.h"
 #include "parserequest.h"
-#include "parsefilehelper.h"
 #include "parseobject.h"
 #include "parsereply.h"
 
@@ -26,154 +27,140 @@
 
 namespace cg
 {
-    QSharedPointer<ParseFile> ParseFile::create()
-    {
-        return QSharedPointer<ParseFile>::create();
-    }
-
-    QSharedPointer<ParseFile> ParseFile::create(const QString &localPath)
-    {
-        return QSharedPointer<ParseFile>::create(localPath);
-    }
-
-    QSharedPointer<ParseFile> ParseFile::create(const QString &name, const QByteArray &data, const QString &contentType)
-    {
-        return QSharedPointer<ParseFile>::create(name, data, contentType);
-    }
-
-    QSharedPointer<ParseQuery<ParseFile>> ParseFile::query()
-    {
-        return QSharedPointer<ParseQuery<ParseFile>>::create();
-    }
-
     ParseFile::ParseFile()
-        : _pHelper(new ParseFileHelper())
     {
-    }
-
-    ParseFile::ParseFile(const ParseFile& file)
-    {
-        _name = file._name;
-        _url = file._url;
-        _contentType = file._contentType;
-        _data = file._data;
+        // construct null object
     }
 
     ParseFile::ParseFile(const QString &path)
-        : _contentType("unknown/unknown"),
-        _pHelper(new ParseFileHelper())
     {
+        _pImpl = QSharedPointer<ParseFileImpl>::create();
+
         QFileInfo fi(path);
-        _name = fi.fileName();
+        _pImpl->name = fi.fileName();
         QString extension = fi.suffix();
         if (extension == "jpg" || extension == "jpeg")
-            _contentType = "image/jpeg";
+            _pImpl->contentType = "image/jpeg";
         else if (extension == "png")
-            _contentType = "image/png";
+            _pImpl->contentType = "image/png";
 
         QFile file(path);
         if (file.open(QIODevice::ReadOnly))
         {
-            _data = file.readAll();
+            _pImpl->data = file.readAll();
             file.close();
         }
     }
 
     ParseFile::ParseFile(const QString &name, const QByteArray &data, const QString &contentType)
-        : _name(name),
-        _contentType(contentType),
-        _data(data),
-        _pHelper(new ParseFileHelper())
     {
+        _pImpl = QSharedPointer<ParseFileImpl>::create();
+        
+        _pImpl->name = name;
+        _pImpl->data = data;
+        _pImpl->contentType = contentType;
+    }
+
+    ParseFile::ParseFile(const ParseFile& file)
+    {
+        _pImpl = file._pImpl;
     }
 
     ParseFile::~ParseFile()
     {
     }
 
+    ParseFile& ParseFile::operator=(const ParseFile& file)
+    {
+        _pImpl = file._pImpl;
+        return *this;
+    }
+
     ParseReply* ParseFile::deleteFile(const QString &urlStr, const QString &masterKey, QNetworkAccessManager *pNam)
     {
-        QUrl url(urlStr);
-        ParseRequest request(ParseRequest::DeleteHttpMethod, "/files/" + url.fileName());
-        request.removeHeader("X-Parse-REST-API-Key");
-        request.setHeader("X-Parse-Master-Key", masterKey.toUtf8());
-        return new ParseReply(request, pNam);
+        return ParseClientObject::get()->deleteFile(urlStr, masterKey, pNam);
+    }
+
+    bool ParseFile::isNull() const
+    {
+        return nullptr == _pImpl;
     }
 
     bool ParseFile::isDirty() const
     {
-        return _url.isEmpty();
+        return _pImpl ? _pImpl->url.isEmpty() : false;
     }
 
     QString ParseFile::name() const
     {
-        return _name;
+        return _pImpl ? _pImpl->name : QString();
     }
 
     void ParseFile::setName(const QString &name)
     {
-        _name = name;
+        if (_pImpl)
+            _pImpl->name = name;
     }
 
     QString ParseFile::url() const
     {
-        return _url;
+        return _pImpl ? _pImpl->url : QString();
     }
 
     void ParseFile::setUrl(const QString &url)
     {
-        _url = url;
+        if (_pImpl)
+            _pImpl->url = url;
     }
 
     QString ParseFile::contentType() const
     {
-        return _contentType;
+        return _pImpl ? _pImpl->contentType : QString("unknown/unknown");
     }
 
     void ParseFile::setContentType(const QString &contentType)
     {
-        _contentType = contentType;
+        if (_pImpl)
+            _pImpl->contentType = contentType;
     }
 
     QByteArray ParseFile::data() const
     {
-        return _data;
+        return _pImpl ? _pImpl->data : QByteArray();
     }
 
     QVariantMap ParseFile::toMap() const
     {
+        if (!_pImpl)
+            return QVariantMap();
+
         QVariantMap map;
         map.insert(Parse::TypeKey, Parse::FileValue);
-        map.insert("name", _name);
-        if (_url.isEmpty())
-            map.insert("url", _url);
+        map.insert("name", _pImpl->name);
+        if (_pImpl->url.isEmpty())
+            map.insert("url", _pImpl->url);
         return map;
     }
 
     void ParseFile::setValues(const QVariantMap &map)
     {
-        if (map.contains("name"))
-            _name = map.value("name").toString();
+        if (_pImpl)
+        {
+            if (map.contains("name"))
+                _pImpl->name = map.value("name").toString();
 
-        if (map.contains("url"))
-            _url = map.value("url").toString();
+            if (map.contains("url"))
+                _pImpl->url = map.value("url").toString();
+        }
     }
 
     ParseReply* ParseFile::save(QNetworkAccessManager *pNam)
     {
-        _pHelper->_pFile = sharedFromThis();
-        ParseRequest request(ParseRequest::PostHttpMethod, "/files/" + name(), data(), contentType());
-        ParseReply *pReply = new ParseReply(request, pNam);
-        QObject::connect(pReply, &ParseReply::preFinished, _pHelper.data(), &ParseFileHelper::saveFileFinished);
-        return pReply;
+        return ParseClientObject::get()->saveFile(*this, pNam);
     }
 
     ParseReply* ParseFile::fetch(QNetworkAccessManager* pNam)
     {
-        _pHelper->_pFile = sharedFromThis();
-        ParseRequest request(ParseRequest::GetHttpMethod, url());
-        ParseReply* pReply = new ParseReply(request, pNam);
-        QObject::connect(pReply, &ParseReply::preFinished, _pHelper.data(), &ParseFileHelper::fetchFileFinished);
-        return pReply;
+        return ParseClientObject::get()->fetchFile(*this, pNam);
     }
 }

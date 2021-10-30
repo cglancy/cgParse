@@ -39,11 +39,11 @@ namespace cg
 //            return QSharedPointer<ParseQuery<T>>::create(_objectClassName, _objectId, _objectKey);
 //        }
 
-        void add(QSharedPointer<T> pObject) { _addList.append(pObject); }
-        void remove(QSharedPointer<T> pObject) { _removeList.append(pObject); }
+        void add(const T& object) { _addList.append(object); }
+        void remove(const T& object) { _removeList.append(object); }
 
-        const QList<QSharedPointer<T>> & addList() const { return _addList; }
-        const QList<QSharedPointer<T>> & removeList() const { return _removeList; }
+        const QList<T> & addList() const { return _addList; }
+        const QList<T> & removeList() const { return _removeList; }
 
         void setValues(const QVariantMap &map)
         {
@@ -52,8 +52,8 @@ namespace cg
                 QVariantList list = map.value("objects").toList();
                 for (auto & variant : list)
                 {
-                    QSharedPointer<ParseObject> pBaseObject = variant.value<QSharedPointer<ParseObject>>();
-                    _addList.append(pBaseObject.template staticCast<T>());
+                    ParseObject baseObject = variant.value<ParseObject>();
+                    _addList.append(static_cast<T>(baseObject));
                 }
             }
             else if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::RemoveRelationValue)
@@ -61,8 +61,8 @@ namespace cg
                 QVariantList list = map.value("objects").toList();
                 for (auto & variant : list)
                 {
-                    QSharedPointer<ParseObject> pBaseObject = variant.value<QSharedPointer<ParseObject>>();
-                    _removeList.append(pBaseObject.template staticCast<T>());
+                    ParseObject baseObject = variant.value<ParseObject>();
+                    _removeList.append(static_cast<T>(baseObject));
                 }
             }
         }
@@ -74,10 +74,9 @@ namespace cg
 
             if (_addList.size() > 0)
             {
-                for (auto & pObject : _addList)
+                for (auto & object : _addList)
                 {
-                    QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
-                    list.append(QVariant::fromValue(pBaseObject));
+                    list.append(QVariant::fromValue(object));
                 }
 
                 map.insert(Parse::OperatorKey, Parse::AddRelationValue);
@@ -85,10 +84,9 @@ namespace cg
             }
             else if (_removeList.size() > 0)
             {
-                for (auto & pObject : _removeList)
+                for (auto & object : _removeList)
                 {
-                    QSharedPointer<ParseObject> pBaseObject = pObject.template staticCast<ParseObject>();
-                    list.append(QVariant::fromValue(pBaseObject));
+                    list.append(QVariant::fromValue(object));
                 }
 
                 map.insert(Parse::OperatorKey, Parse::RemoveRelationValue);
@@ -100,7 +98,7 @@ namespace cg
 
     private:
         QString _objectClassName, _objectId, _objectKey;
-        QList<QSharedPointer<T>> _addList, _removeList;
+        QList<T> _addList, _removeList;
     };
 }
 

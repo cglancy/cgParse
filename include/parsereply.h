@@ -56,13 +56,13 @@ namespace cg
         const QByteArray & constData() const;
 
         int count() const;
-        QSharedPointer<ParseUser> user() const;
-        QSharedPointer<ParseSession> session() const;
+        ParseUser user() const;
+        ParseSession session() const;
 
         template <class T>
-        QList<QSharedPointer<T>> objects() const
+        QList<T> objects() const
         {
-            QList<QSharedPointer<T>> list;
+            QList<T> list;
 
             QJsonDocument doc = QJsonDocument::fromJson(constData());
             if (doc.isObject())
@@ -78,19 +78,27 @@ namespace cg
                         QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
                         if (!objectId.isEmpty())
                         {
-                            QSharedPointer<T> pObject = QSharedPointer<T>::create();
-                            if (pObject)
-                            {
-                                pObject->setValues(ParseConvert::toVariantMap(jsonObject));
-                                pObject->clearDirtyState();
-                                list.append(pObject);
-                            }
+                            T object = ParseObject::create<T>();
+                            object.setValues(ParseConvert::toVariantMap(jsonObject));
+                            object.clearDirtyState();
+                            list.append(object);
                         }
                     }
                 }
             }
 
             return list;
+        }
+
+        template <class T>
+        T first()
+        {
+            QList<T> list = objects<T>();
+
+            if (list.size() > 0)
+                return list.first();
+
+            return T();
         }
 
     signals:

@@ -28,6 +28,8 @@
 
 namespace cg
 {
+    ParseObjectHelper* ParseObjectHelper::_instance = nullptr;
+
     ParseObjectHelper::ParseObjectHelper()
     {
     }
@@ -36,17 +38,25 @@ namespace cg
     {
     }
 
-    bool ParseObjectHelper::collectDirtyChildren(QSharedPointer<ParseObject> pObject, QList<QSharedPointer<ParseFile>> &files, QList<QSharedPointer<ParseObject>> &objects)
+    ParseObjectHelper* ParseObjectHelper::get()
     {
-        for (auto & key : pObject->keys())
+        if (!_instance)
+            _instance = new ParseObjectHelper();
+
+        return _instance;
+    }
+
+    bool ParseObjectHelper::collectDirtyChildren(const ParseObject& object, QList<ParseFile> &files, QList<ParseObject> &objects)
+    {
+        for (auto & key : object.keys())
         {
-            if (pObject->isDirty(key))
+            if (object.isDirty(key))
             {
-                QVariant variant = pObject->value(key);
-                if (variant.canConvert<QSharedPointer<ParseObject>>())
-                    objects.append(variant.value<QSharedPointer<ParseObject>>());
-                else if (variant.canConvert<QSharedPointer<ParseFile>>())
-                    files.append(variant.value<QSharedPointer<ParseFile>>());
+                QVariant variant = object.value(key);
+                if (variant.canConvert<ParseObject>())
+                    objects.append(variant.value<ParseObject>());
+                else if (variant.canConvert<ParseFile>())
+                    files.append(variant.value<ParseFile>());
                 else if (variant.canConvert<QVariantMap>())
                     collectDirtyChildren(variant.toMap(), files, objects);
                 else if (variant.canConvert<QVariantList>())
@@ -57,15 +67,15 @@ namespace cg
         return files.size() > 0 || objects.size() > 0;
     }
 
-    void ParseObjectHelper::collectDirtyChildren(const QVariantMap &map, QList<QSharedPointer<ParseFile>> &files, QList<QSharedPointer<ParseObject>> &objects)
+    void ParseObjectHelper::collectDirtyChildren(const QVariantMap &map, QList<ParseFile> &files, QList<ParseObject> &objects)
     {
         for (auto & key : map.keys())
         {
             QVariant variant = map.value(key);
-            if (variant.canConvert<QSharedPointer<ParseObject>>())
-                objects.append(variant.value<QSharedPointer<ParseObject>>());
-            else if (variant.canConvert<QSharedPointer<ParseFile>>())
-                files.append(variant.value<QSharedPointer<ParseFile>>());
+            if (variant.canConvert<ParseObject>())
+                objects.append(variant.value<ParseObject>());
+            else if (variant.canConvert<ParseFile>())
+                files.append(variant.value<ParseFile>());
             else if (variant.canConvert<QVariantMap>())
                 collectDirtyChildren(variant.toMap(), files, objects);
             else if (variant.canConvert<QVariantList>())
@@ -73,14 +83,14 @@ namespace cg
         }
     }
 
-    void ParseObjectHelper::collectDirtyChildren(const QVariantList &list, QList<QSharedPointer<ParseFile>> &files, QList<QSharedPointer<ParseObject>> &objects)
+    void ParseObjectHelper::collectDirtyChildren(const QVariantList &list, QList<ParseFile> &files, QList<ParseObject> &objects)
     {
         for (auto & variant : list)
         {
-            if (variant.canConvert<QSharedPointer<ParseObject>>())
-                objects.append(variant.value<QSharedPointer<ParseObject>>());
-            else if (variant.canConvert<QSharedPointer<ParseFile>>())
-                files.append(variant.value<QSharedPointer<ParseFile>>());
+            if (variant.canConvert<ParseObject>())
+                objects.append(variant.value<ParseObject>());
+            else if (variant.canConvert<ParseFile>())
+                files.append(variant.value<ParseFile>());
             else if (variant.canConvert<QVariantMap>())
                 collectDirtyChildren(variant.toMap(), files, objects);
             else if (variant.canConvert<QVariantList>())
@@ -88,59 +98,59 @@ namespace cg
         }
     }
 
-    void ParseObjectHelper::saveChildrenIfNeeded(QSharedPointer<ParseObject> pObject)
+    void ParseObjectHelper::saveChildrenIfNeeded(const ParseObject& object)
     {
-        _objectsBeingSaved.insert(pObject);
+        _objectsBeingSaved.insert(object);
 
-        QList<QSharedPointer<ParseFile>> files;
-        QList<QSharedPointer<ParseObject>> objects;
-        collectDirtyChildren(pObject, files, objects);
+        QList<ParseFile> files;
+        QList<ParseObject> objects;
+        collectDirtyChildren(object, files, objects);
 
-        QList<QSharedPointer<ParseFile>> filesToSave;
-        QList<QSharedPointer<ParseObject>> objectsToSave;
+        QList<ParseFile> filesToSave;
+        QList<ParseObject> objectsToSave;
 
         // prevent infinite recursion
-        for (auto & pDirtyObject : objects)
+        for (auto & dirtyObject : objects)
         {
-            if (pDirtyObject && !_objectsBeingSaved.contains(pDirtyObject) && pDirtyObject->className() != "_User")
+            if (!_objectsBeingSaved.contains(dirtyObject) && dirtyObject.className() != "_User")
             {
-                _objectsBeingSaved.insert(pDirtyObject);
-                objectsToSave.append(pDirtyObject);
+                _objectsBeingSaved.insert(dirtyObject);
+                objectsToSave.append(dirtyObject);
             }
         }
 
-        _objectObjectsMap.insert(pObject, objectsToSave);
+        _objectObjectsMap.insert(object, objectsToSave);
 
-        for (auto & pFile : filesToSave)
+        for (auto & file : filesToSave)
         {
             QEventLoop loop;
-            ParseReply *pFileReply = pFile->save();
+            ParseReply *pFileReply = file.save();
             connect(pFileReply, &ParseReply::finished, &loop, &QEventLoop::quit);
             loop.exec();
         }
 
-        for (auto & pObject : objectsToSave)
+        for (auto & object : objectsToSave)
         {
             QEventLoop loop;
-            ParseReply *pObjectReply = pObject->save();
+            ParseReply *pObjectReply = object.save();
             connect(pObjectReply, &ParseReply::finished, &loop, &QEventLoop::quit);
             loop.exec();
         }
     }
 
-    ParseReply* ParseObjectHelper::createObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectHelper::createObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
-        saveChildrenIfNeeded(pObject);
+        saveChildrenIfNeeded(object);
 
-        _pObject = pObject;
-        QJsonObject object = ParseConvert::toJsonObject(pObject->toMap());
-        QJsonDocument doc(object);
+        QJsonObject jsonObject = ParseConvert::toJsonObject(object.toMap());
+        QJsonDocument doc(jsonObject);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
-        ParseRequest request(ParseRequest::PostHttpMethod, "/classes/" + pObject->className(), content);
+        ParseRequest request(ParseRequest::PostHttpMethod, "/classes/" + object.className(), content);
 
         ParseReply *pReply = new ParseReply(request, pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateCreateObjectFinished);
+        _replyObjectMap.insert(pReply, object);
         return pReply;
     }
 
@@ -150,33 +160,33 @@ namespace cg
         if (!pReply)
             return;
 
-        QSharedPointer<ParseObject> pObject = _pObject.lock();
+        ParseObject object = _replyObjectMap.take(pReply);
 
-        if (!pReply->isError() && pObject)
+        if (!pReply->isError() && !object.isNull())
         {
             QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
             if (doc.isObject())
             {
-                pObject->setValues(ParseConvert::toVariantMap(doc.object()));
-                pObject->clearDirtyState();
+                object.setValues(ParseConvert::toVariantMap(doc.object()));
+                object.clearDirtyState();
             }
         }
 
-        QList<QSharedPointer<ParseObject>> savedObjects = _objectObjectsMap.take(pObject);
-        for (auto & pSavedObject : savedObjects)
+        QList<ParseObject> savedObjects = _objectObjectsMap.take(object);
+        for (auto & savedObject : savedObjects)
         {
-            _objectsBeingSaved.remove(pSavedObject);
+            _objectsBeingSaved.remove(savedObject);
         }
 
-        _objectsBeingSaved.remove(pObject);
+        _objectsBeingSaved.remove(object);
     }
 
-    ParseReply* ParseObjectHelper::fetchObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectHelper::fetchObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
-        _pObject = pObject;
-        ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pObject->className() + "/" + pObject->objectId());
+        ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + object.className() + "/" + object.objectId());
         ParseReply *pReply = new ParseReply(request, pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateFetchObjectFinished);
+        _replyObjectMap.insert(pReply, object);
         return pReply;
     }
 
@@ -186,36 +196,36 @@ namespace cg
         if (!pReply)
             return;
 
-        QSharedPointer<ParseObject> pObject = _pObject.lock();
+        ParseObject object = _replyObjectMap.take(pReply);
 
-        if (!pReply->isError() && pObject)
+        if (!pReply->isError() && !object.isNull())
         {
             QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
             if (doc.isObject())
             {
-                pObject->setValues(ParseConvert::toVariantMap(doc.object()));
-                pObject->clearDirtyState();
+                object.setValues(ParseConvert::toVariantMap(doc.object()));
+                object.clearDirtyState();
             }
         }
     }
 
-    ParseReply* ParseObjectHelper::updateObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectHelper::updateObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
-        if (!pObject || pObject->objectId().isEmpty())
+        if (!object.isNull() || object.objectId().isEmpty())
         {
             return new ParseReply(ParseError::UnknownError);
         }
 
-        saveChildrenIfNeeded(pObject);
+        saveChildrenIfNeeded(object);
 
-        _pObject = pObject;
-        QJsonObject object = ParseConvert::toJsonObject(pObject->toMap());
-        QJsonDocument doc(object);
+        QJsonObject jsonObject = ParseConvert::toJsonObject(object.toMap());
+        QJsonDocument doc(jsonObject);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
-        ParseRequest request(ParseRequest::PutHttpMethod, "/classes/" + pObject->className() + "/" + pObject->objectId(), content);
+        ParseRequest request(ParseRequest::PutHttpMethod, "/classes/" + object.className() + "/" + object.objectId(), content);
         ParseReply *pReply = new ParseReply(request, pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectHelper::privateUpdateObjectFinished);
+        _replyObjectMap.insert(pReply, object);
         return pReply;
     }
 
@@ -225,40 +235,39 @@ namespace cg
         if (!pReply)
             return;
 
-        QSharedPointer<ParseObject> pObject = _pObject.lock();
+        ParseObject object = _replyObjectMap.take(pReply);
 
-        if (!pReply->isError() && pObject)
+        if (!pReply->isError() && !object.isNull())
         {
             QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
             if (doc.isObject())
             {
-                pObject->setValues(ParseConvert::toVariantMap(doc.object()));
-                pObject->clearDirtyState();
+                object.setValues(ParseConvert::toVariantMap(doc.object()));
+                object.clearDirtyState();
             }
         }
 
-        QList<QSharedPointer<ParseObject>> savedObjects = _objectObjectsMap.take(pObject);
-        for (auto & pSavedObject : savedObjects)
+        QList<ParseObject> savedObjects = _objectObjectsMap.take(object);
+        for (auto & savedObject : savedObjects)
         {
-            _objectsBeingSaved.remove(pSavedObject);
+            _objectsBeingSaved.remove(savedObject);
         }
 
-        _objectsBeingSaved.remove(pObject);
+        _objectsBeingSaved.remove(object);
     }
 
-    ParseReply* ParseObjectHelper::deleteObject(QSharedPointer<ParseObject> pObject, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectHelper::deleteObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
-        if (!pObject || pObject->objectId().isEmpty())
+        if (!object.isNull() || object.objectId().isEmpty())
         {
             return new ParseReply(ParseError::UnknownError);
         }
 
-        _pObject = pObject;
-        ParseRequest request(ParseRequest::DeleteHttpMethod, "/classes/" + pObject->className() + "/" + pObject->objectId());
+        ParseRequest request(ParseRequest::DeleteHttpMethod, "/classes/" + object.className() + "/" + object.objectId());
         return new ParseReply(request, pNam);
     }
 
-    ParseReply* ParseObjectHelper::saveAll(const QList<QSharedPointer<ParseObject>>& objects, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectHelper::saveAll(const QList<ParseObject>& objects, QNetworkAccessManager* pNam)
     {
         if (objects.size() == 0)
         {
@@ -268,26 +277,26 @@ namespace cg
         QString pathStr = "/classes/";
         QJsonArray requestsArray;
 
-        for (auto & pObject : objects)
+        for (auto & object : objects)
         {
-            saveChildrenIfNeeded(pObject);
+            saveChildrenIfNeeded(object);
 
             QJsonObject requestObject;
 
-            if (pObject->objectId().isEmpty())
+            if (object.objectId().isEmpty())
             {
-                QString apiPath = pathStr + pObject->className();
+                QString apiPath = pathStr + object.className();
                 requestObject.insert("method", "POST");
                 requestObject.insert("path", apiPath);
             }
             else
             {
-                QString apiPath = pathStr + pObject->className() + "/" + pObject->objectId();
+                QString apiPath = pathStr + object.className() + "/" + object.objectId();
                 requestObject.insert("method", "PUT");
                 requestObject.insert("path", apiPath);
             }
 
-            QJsonObject bodyObject = ParseConvert::toJsonObject(pObject->toMap());
+            QJsonObject bodyObject = ParseConvert::toJsonObject(object.toMap());
             requestObject.insert("body", bodyObject);
             requestsArray.append(requestObject);
         }
@@ -310,7 +319,7 @@ namespace cg
         if (!pReply)
             return;
 
-        QList<QSharedPointer<ParseObject>> objects = _replyObjectListMap.take(pReply);
+        QList<ParseObject> objects = _replyObjectListMap.take(pReply);
 
         if (!pReply->isError())
         {
@@ -324,16 +333,16 @@ namespace cg
                     if (arrayObject.contains("success"))
                     {
                         QJsonObject successObject = arrayObject.value("success").toObject();
-                        QSharedPointer<ParseObject> pObject = objects.at(i);
-                        pObject->setValues(ParseConvert::toVariantMap(successObject));
-                        pObject->clearDirtyState();
+                        ParseObject object = objects.at(i);
+                        object.setValues(ParseConvert::toVariantMap(successObject));
+                        object.clearDirtyState();
                     }
                 }
             }
         }
     }
 
-    ParseReply* ParseObjectHelper::deleteAll(const QList<QSharedPointer<ParseObject>>& objects, QNetworkAccessManager* pNam)
+    ParseReply* ParseObjectHelper::deleteAll(const QList<ParseObject>& objects, QNetworkAccessManager* pNam)
     {
         if (objects.size() == 0)
         {
@@ -343,9 +352,9 @@ namespace cg
         QString pathStr = "/classes/";
         QJsonArray requestsArray;
 
-        for (auto & pObject : objects)
+        for (auto & object : objects)
         {
-            QString apiPath = pathStr + pObject->className() + "/" + pObject->objectId();
+            QString apiPath = pathStr + object.className() + "/" +object.objectId();
             QJsonObject requestObject;
             requestObject.insert("method", "DELETE");
             requestObject.insert("path", apiPath);

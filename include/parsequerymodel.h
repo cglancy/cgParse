@@ -18,10 +18,10 @@
 #pragma once
 
 #include "parseobject.h"
-#include "parsequeryhelper.h"
+#include "parsequeryimpl.h"
 
 #include <QAbstractListModel>
-#include <QScopedPointer>
+#include <QSharedPointer>
 #include <QVariant>
 #include <QHash>
 
@@ -74,8 +74,8 @@ namespace cg
         QStringList _keysList;
         QVariantMap _queryMap;
         QHash<int, QByteArray> _roleHash;
-        QList<QSharedPointer<ParseObject>> _objects;
-		QScopedPointer<ParseQueryHelper> _pHelper;
+        QList<ParseObject> _objects;
+		QSharedPointer<ParseQueryImpl> _pQueryImpl;
     };
 }
 

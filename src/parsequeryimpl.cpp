@@ -13,56 +13,35 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "parsefilehelper.h"
-#include "parseobject.h"
-#include "parsefile.h"
+#include "parsequeryimpl.h"
 #include "parserequest.h"
 #include "parsereply.h"
 
+#include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
+#include <QMetaType>
+#include <QDebug>
 
 namespace cg
 {
-    ParseFileHelper::ParseFileHelper()
+    ParseQueryImpl::ParseQueryImpl()
+        : limit(-1)
+        , skip(0)
+        , count(0)
     {
     }
 
-    ParseFileHelper::~ParseFileHelper()
+    ParseQueryImpl::ParseQueryImpl(const QString& classNameArg)
+        : className(classNameArg)
+        , limit(-1)
+        , skip(0)
+        , count(0)
     {
     }
 
-    void ParseFileHelper::saveFileFinished()
+    ParseQueryImpl::~ParseQueryImpl()
     {
-        ParseReply *pReply = qobject_cast<ParseReply*>(sender());
-        if (!pReply)
-            return;
-
-        QSharedPointer<ParseFile> pFile = _pFile.lock();
-
-        if (!pReply->isError() && pReply->statusCode() == 201 && pFile)
-        {
-            QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
-            if (doc.isObject())
-            {
-                QJsonObject obj = doc.object();
-                pFile->setUrl(obj.value("url").toString());
-                pFile->setName(obj.value("name").toString());
-            }
-        }
-    }
-
-    void ParseFileHelper::fetchFileFinished()
-    {
-        ParseReply* pReply = qobject_cast<ParseReply*>(sender());
-        if (!pReply)
-            return;
-
-        QSharedPointer<ParseFile> pFile = _pFile.lock();
-
-        if (!pReply->isError() && pReply->statusCode() == 200 && pFile)
-        {
-            pFile->_data = pReply->data();
-        }
     }
 }

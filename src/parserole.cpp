@@ -18,23 +18,46 @@
 
 namespace cg
 {
-    QSharedPointer<ParseRole> ParseRole::create()
+    ParseRole ParseRole::create()
     {
-        return QSharedPointer<ParseRole>::create();
+        return ParseObject(Parse::RoleClassNameKey);
     }
 
-    QSharedPointer<ParseQuery<ParseRole>> ParseRole::query()
+    ParseQuery<ParseRole> ParseRole::query()
     {
-        return QSharedPointer<ParseQuery<ParseRole>>::create();
+        return ParseQuery<ParseRole>();
     }
 
     ParseRole::ParseRole()
-        : ParseObject("_Role")
     {
+        // constructs null object
+    }
+
+    ParseRole::ParseRole(const ParseRole& role)
+        : ParseObject(role)
+    {
+    }
+
+    ParseRole::ParseRole(const ParseObject& object)
+    {
+        if (object.className() == Parse::RoleClassNameKey)
+            ParseObject::assign(object);
     }
 
     ParseRole::~ParseRole()
     {
+    }
+
+    void ParseRole::assign(const ParseObject& object)
+    {
+        if (object.className() == Parse::RoleClassNameKey)
+            ParseObject::assign(object);
+    }
+
+    ParseRole& ParseRole::operator=(const ParseRole& role)
+    {
+        ParseObject::operator=(role);
+        return *this;
     }
 
     QString ParseRole::name() const
@@ -47,14 +70,14 @@ namespace cg
         setValue("name", name);
     }
 
-    QSharedPointer<ParseRelation<ParseRole>> ParseRole::roles()
+    ParseRelation<ParseRole> ParseRole::roles()
     {
-        return QSharedPointer<ParseRelation<ParseRole>>::create(className(), objectId(), "roles");
+        return ParseRelation<ParseRole>(className(), objectId(), "roles");
     }
 
-    QSharedPointer<ParseRelation<ParseUser>> ParseRole::users()
+    ParseRelation<ParseUser> ParseRole::users()
     {
-        return QSharedPointer<ParseRelation<ParseUser>>::create(className(), objectId(), "users");
+        return ParseRelation<ParseUser>(className(), objectId(), "users");
     }
 
 }

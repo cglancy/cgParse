@@ -18,38 +18,34 @@
 #pragma once
 
 #include "parse.h"
-#include "parsequery.h"
-#include <QEnableSharedFromThis>
 #include <QString>
 #include <QByteArray>
 #include <QVariant>
-#include <QScopedPointer>
 #include <QSharedPointer>
 
 class QFile;
+class QNetworkAccessManager;
 
 namespace cg
 {
-    class ParseFileHelper;
+    class ParseFileImpl;
     class ParseReply;
 
-    class CGPARSE_API ParseFile : public QEnableSharedFromThis<ParseFile>
+    class CGPARSE_API ParseFile
     {
     public:
-        static QSharedPointer<ParseFile> create();
-        static QSharedPointer<ParseFile> create(const QString &localPath);
-        static QSharedPointer<ParseFile> create(const QString &name, const QByteArray &data, const QString &contentType);
-        static QSharedPointer<ParseQuery<ParseFile>> query();
-
         static ParseReply* deleteFile(const QString &url, const QString &masterKey, QNetworkAccessManager *pNam = nullptr);
 
     public:
         ParseFile();
-        ParseFile(const ParseFile& file);
         ParseFile(const QString &localPath);
         ParseFile(const QString &name, const QByteArray &data, const QString &contentType);
+        ParseFile(const ParseFile& file);
         ~ParseFile();
 
+        ParseFile& operator=(const ParseFile& file);
+
+        bool isNull() const;
         bool isDirty() const;
 
         QString name() const;
@@ -65,19 +61,16 @@ namespace cg
         ParseReply* fetch(QNetworkAccessManager* pNam = nullptr);
 
         QByteArray data() const;
+
         QVariantMap toMap() const;
         void setValues(const QVariantMap &map);
 
     private:
-        QString _name, _url, _contentType;
-        QByteArray _data;
-
-        friend class ParseFileHelper;
-        QScopedPointer<ParseFileHelper> _pHelper;
+        friend class ParseClientObject;
+        QSharedPointer<ParseFileImpl> _pImpl;
     };
 }
 
 Q_DECLARE_METATYPE(cg::ParseFile);
-Q_DECLARE_METATYPE(QSharedPointer<cg::ParseFile>);
 
 #endif // CGPARSE_PARSEFILE_H

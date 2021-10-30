@@ -174,7 +174,7 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    QSharedPointer<ParseObject> pObject = createObject(jsonObject);
+                    ParseObject pObject = createObject(jsonObject);
                     emit pSubscription->createEvent(pObject);
                 }
             }
@@ -186,7 +186,7 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    QSharedPointer<ParseObject> pObject = createObject(jsonObject);
+                    ParseObject pObject = createObject(jsonObject);
                     emit pSubscription->enterEvent(pObject);
                 }
             }
@@ -198,7 +198,7 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    QSharedPointer<ParseObject> pObject = createObject(jsonObject);
+                    ParseObject pObject = createObject(jsonObject);
                     emit pSubscription->leaveEvent(pObject);
                 }
             }
@@ -210,7 +210,7 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    QSharedPointer<ParseObject> pObject = createObject(jsonObject);
+                    ParseObject pObject = createObject(jsonObject);
                     emit pSubscription->updateEvent(pObject);
                 }
             }
@@ -222,22 +222,22 @@ namespace cg {
                 if (pSubscription)
                 {
                     QJsonObject jsonObject = messageObject.value("object").toObject();
-                    QSharedPointer<ParseObject> pObject = createObject(jsonObject);
+                    ParseObject pObject = createObject(jsonObject);
                     emit pSubscription->deleteEvent(pObject);
                 }
             }
         }
     }
 
-    QSharedPointer<ParseObject> ParseLiveQueryClient::createObject(const QJsonObject &jsonObject)
+    ParseObject ParseLiveQueryClient::createObject(const QJsonObject &jsonObject)
     {
         QString className = jsonObject.value(Parse::ClassNameKey).toString();
         QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
         QVariantMap map = ParseConvert::toVariantMap(jsonObject);
 
-        QSharedPointer<ParseObject> pObject = ParseObject::createWithoutData(className, objectId);
-        pObject->setValues(map);
+        ParseObject object = ParseObject::createWithoutData(className, objectId);
+        object.setValues(map);
 
-        return pObject;
+        return object;
     }
 }

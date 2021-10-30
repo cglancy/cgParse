@@ -27,22 +27,26 @@ namespace cg
     class CGPARSE_API ParseRole : public ParseObject
     {
     public:
-        static QSharedPointer<ParseRole> create();
-        static QSharedPointer<ParseQuery<ParseRole>> query();
+        static ParseRole create();
+        static ParseQuery<ParseRole> query();
 
     public:
         ParseRole();
+        ParseRole(const ParseRole& role);
+        ParseRole(const ParseObject& object);
         ~ParseRole();
+
+        void assign(const ParseObject& object) override;
+        ParseRole& operator=(const ParseRole& role);
 
         QString name() const;
         void setName(const QString &name);
 
-        QSharedPointer<ParseRelation<ParseRole>> roles();
-        QSharedPointer<ParseRelation<ParseUser>> users();
+        ParseRelation<ParseRole> roles();
+        ParseRelation<ParseUser> users();
     };
 }
 
 Q_DECLARE_METATYPE(cg::ParseRole);
-Q_DECLARE_METATYPE(QSharedPointer<cg::ParseRole>);
 
 #endif // CGPARSE_PARSEROLE_H

@@ -20,15 +20,14 @@
 #include "parseobject.h"
 #include "parseclient.h"
 #include "parsequeryhelper.h"
+#include "parsequeryimpl.h"
 #include "parseconvert.h"
-#include <QEnableSharedFromThis>
 #include <QString>
 #include <QSharedPointer>
 #include <QList>
 #include <QUrlQuery>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QScopedPointer>
 #include <QMetaType>
 
 
@@ -40,40 +39,28 @@ namespace cg
     class ParseQuery : public QEnableSharedFromThis<ParseQuery<T>>
     {
     public:
-        static QSharedPointer<ParseQuery<T>> create()
-        {
-            return QSharedPointer<ParseQuery<T>>::create();
-        }
 
-        static QSharedPointer<ParseQuery<T>> orQuery(const QList<QSharedPointer<ParseQuery<T>>> &queries)
+        static ParseQuery<T> orQuery(const QList<ParseQuery<T>> &queries)
         {
-            QSharedPointer<ParseQuery<T>> pQuery = create();
+            ParseQuery<T> query;
             QJsonArray jsonArray;
 
-            for (auto & pSubQuery : queries)
-                jsonArray.append(pSubQuery->_whereObject);
+            for (auto & subQuery : queries)
+                jsonArray.append(subQuery._pImpl->whereObject);
 
-            pQuery->_whereObject.insert("$or", jsonArray);
-            return pQuery;
+            query._pImpl->whereObject.insert("$or", jsonArray);
+            return query;
         }
 
     public:
         ParseQuery()
-            : _pHelper(new ParseQueryHelper()),
-            _limit(-1),
-            _skip(0),
-            _count(0)
         {
-            _className = removeNamespace(QMetaType::fromType<T>().name());
+            _pImpl = QSharedPointer<ParseQueryImpl>::create(ParseObject::removeNamespace(QMetaType::fromType<T>().name()));
         }
 
         ParseQuery(const QString &relationClassName, const QString &relationObjectId, const QString &relationKey)
-            : _pHelper(new ParseQueryHelper()),
-            _limit(-1),
-            _skip(0), 
-            _count(0)
-        {
-            _className = removeNamespace(QMetaType::fromType<T>().name());
+         {
+            _pImpl = QSharedPointer<ParseQueryImpl>::create(ParseObject::removeNamespace(QMetaType::fromType<T>().name()));
 
             QJsonObject pointerObject;
             pointerObject.insert(Parse::TypeKey, Parse::PointerValue);
@@ -84,185 +71,196 @@ namespace cg
             relatedToObject.insert("object", pointerObject);
             relatedToObject.insert("key", relationKey);
 
-            _whereObject.insert("$relatedTo", relatedToObject);
+            _pImpl->whereObject.insert("$relatedTo", relatedToObject);
+        }
+
+        ParseQuery(const ParseQuery& query)
+            : _pImpl(query._pImpl)
+        {
         }
 
         ~ParseQuery() 
         { 
-            clearResults(); 
+            clearResults();
         }
 
-        void clearResults() 
-        { 
-            while (_pHelper->jsonArray.count())
-                _pHelper->jsonArray.pop_back();
+        void clearResults()
+        {
+            while (_pImpl->jsonArray.count())
+                _pImpl->jsonArray.pop_back();
 
             _results.clear();
         }
 
-        QString className() const { return _className; }
-
-        QSharedPointer<ParseQuery<T>> orderByAscending(const QString &key)
+        ParseQuery& operator=(const ParseQuery& query)
         {
-            _orderList.clear();
-            _orderList.append(key);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImpl = query._pImpl;
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> orderByDescending(const QString &key)
+        QString className() const { return _pImpl->className; }
+
+        ParseQuery<T>& orderByAscending(const QString &key)
         {
-            _orderList.clear();
-            _orderList.append("-" + key);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImpl->orderList.clear();
+            _pImpl->orderList.append(key);
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> addAscendingOrder(const QString &key)
+        ParseQuery<T>& orderByDescending(const QString &key)
         {
-            _orderList.append(key);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImpl->orderList.clear();
+            _pImpl->orderList.append("-" + key);
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> addDescendingOrder(const QString &key)
+        ParseQuery<T>& addAscendingOrder(const QString &key)
         {
-            _orderList.append("-" + key);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImpl->orderList.append(key);
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> setLimit(int limit)
+        ParseQuery<T>& addDescendingOrder(const QString &key)
         {
-            _limit = limit;
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImpl->orderList.append("-" + key);
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> setSkip(int skip)
+        ParseQuery<T>& setLimit(int limit)
         {
-            _skip = skip;
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImp->limit = limit;
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> selectKeys(const QStringList &keys)
+        ParseQuery<T>& setSkip(int skip)
         {
-            _keysList = keys;
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImpl->skip = skip;
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> include(const QString &key)
+        ParseQuery<T>& selectKeys(const QStringList &keys)
         {
-            _includeList.append(key);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImpl->keysList = keys;
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> whereEqualTo(const QString &key, const QVariant &value)
+        ParseQuery<T>& include(const QString &key)
         {
-            _whereObject.insert(key, QJsonValue::fromVariant(value));
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImpl->includeList.append(key);
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> whereEqualTo(const QString &key, QSharedPointer<ParseObject> pObject)
+        ParseQuery<T>& whereEqualTo(const QString &key, const QVariant &value)
         {
-            _whereObject.insert(key, QJsonValue::fromVariant(ParseConvert::toVariantMap(pObject)));
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImpl->whereObject.insert(key, QJsonValue::fromVariant(value));
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> whereNotEqualTo(const QString &key, const QVariant &value)
+        ParseQuery<T>& whereEqualTo(const QString &key, const ParseObject& object)
+        {
+            _pImpl->whereObject.insert(key, QJsonValue::fromVariant(ParseConvert::toVariantMap(object)));
+            return *this;
+        }
+
+        ParseQuery<T>& whereNotEqualTo(const QString &key, const QVariant &value)
         {
             addConstraint(key, "$ne", value);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> whereGreaterThan(const QString &key, const QVariant &value)
+        ParseQuery<T>& whereGreaterThan(const QString &key, const QVariant &value)
         {
             addConstraint(key, "$gt", value);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> whereGreaterThanOrEqualTo(const QString &key, const QVariant &value)
+        ParseQuery<T>& whereGreaterThanOrEqualTo(const QString &key, const QVariant &value)
         {
             addConstraint(key, "$gte", value);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> whereLessThan(const QString &key, const QVariant &value)
+        ParseQuery<T>& whereLessThan(const QString &key, const QVariant &value)
         {
             addConstraint(key, "$lt", value);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> whereLessThanOrEqualTo(const QString &key, const QVariant &value)
+        ParseQuery<T>& whereLessThanOrEqualTo(const QString &key, const QVariant &value)
         {
             addConstraint(key, "$lte", value);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> whereExists(const QString &key)
+        ParseQuery<T>& whereExists(const QString &key)
         {
             addConstraint(key, "$exists", true);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> whereDoesNotExists(const QString &key)
+        ParseQuery<T>& whereDoesNotExists(const QString &key)
         {
             addConstraint(key, "$exists", false);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            return *this;
         }
 
-        QSharedPointer<ParseQuery<T>> whereFullText(const QString &key, const QString &text)
+        ParseQuery<T>& whereFullText(const QString &key, const QString &text)
         {
             QJsonObject termObject, searchObject, textObject;
             termObject.insert("$term", text);
             searchObject.insert("$search", termObject);
             textObject.insert("$text", searchObject);
-            _whereObject.insert(key, textObject);
-            return QEnableSharedFromThis<ParseQuery<T>>::sharedFromThis();
+            _pImpl->whereObject.insert(key, textObject);
+            return *this;
         }
 
         void clear(const QString &key)
         {
-            _whereObject.remove(key);
+            _pImp->whereObject.remove(key);
         }
 
         QUrlQuery urlQuery() const
         {
             QUrlQuery urlQuery;
 
-            if (!_whereObject.isEmpty())
+            if (!_pImpl->whereObject.isEmpty())
             {
-                QJsonDocument doc(_whereObject);
+                QJsonDocument doc(_pImpl->whereObject);
                 urlQuery.addQueryItem("where", doc.toJson(QJsonDocument::Compact));
             }
 
-            if (!_orderList.isEmpty())
-                urlQuery.addQueryItem("order", _orderList.join(','));
+            if (!_pImpl->orderList.isEmpty())
+                urlQuery.addQueryItem("order", _pImpl->orderList.join(','));
 
-            if (_count > 0)
-                urlQuery.addQueryItem("count", QString::number(_count));
+            if (_pImpl->count > 0)
+                urlQuery.addQueryItem("count", QString::number(_pImpl->count));
 
-            if (_limit >= 0)
-                urlQuery.addQueryItem("limit", QString::number(_limit));
+            if (_pImpl->limit >= 0)
+                urlQuery.addQueryItem("limit", QString::number(_pImpl->limit));
 
-            if (_skip > 0)
-                urlQuery.addQueryItem("skip", QString::number(_skip));
+            if (_pImpl->skip > 0)
+                urlQuery.addQueryItem("skip", QString::number(_pImpl->skip));
 
-            if (!_keysList.isEmpty())
-                urlQuery.addQueryItem("keys", _keysList.join(','));
+            if (!_pImpl->keysList.isEmpty())
+                urlQuery.addQueryItem("keys", _pImpl->keysList.join(','));
 
-            if (!_includeList.isEmpty())
-                urlQuery.addQueryItem("include", _includeList.join(','));
+            if (!_pImpl->includeList.isEmpty())
+                urlQuery.addQueryItem("include", _pImpl->includeList.join(','));
 
             return urlQuery;
         }
 
-        QSharedPointer<T> first()
+        T first()
         {
             createResults();
 
             if (_results.size() > 0)
                 return _results.first();
 
-            return QSharedPointer<T>();
+            return T();
         }
 
-        const QList<QSharedPointer<T>> & results()
+        const QList<T> & results()
         {
             createResults();
             return _results;
@@ -270,34 +268,34 @@ namespace cg
 
         ParseReply* count(QNetworkAccessManager* pNam = nullptr)
         {
-            int origCount = _count, origLimit = _limit;
+            int origCount = _pImpl->count, origLimit = _pImpl->limit;
             clearResults();
-            _count = 1;
-            _limit = 0;
-            ParseReply * pReply = _pHelper->countObjects(_className, urlQuery(), pNam);
-            _count = origCount;
-            _limit = origLimit;
+            _pImpl->count = 1;
+            _pImpl->limit = 0;
+            ParseReply * pReply = ParseQueryHelper::get()->countObjects(_pImpl->className, urlQuery(), pNam);
+            _pImpl->count = origCount;
+            _pImpl->limit = origLimit;
             return pReply;
         }
 
         ParseReply* get(const QString &objectId, QNetworkAccessManager* pNam = nullptr)
         {
             clearResults();
-            return _pHelper->getObject(_className, objectId, pNam);
+            return ParseQueryHelper::get()->getObject(_pImpl, objectId, pNam);
         }
 
         ParseReply* find(QNetworkAccessManager* pNam = nullptr)
         {
             clearResults();
-            return _pHelper->findObjects(_className, urlQuery(), pNam);
+            return ParseQueryHelper::get()->findObjects(_pImpl, urlQuery(), pNam);
         }
 
     private:
         void createResults()
         {
-            if (_pHelper->jsonArray.size() > 0 && _results.isEmpty())
+            if (_pImpl->jsonArray.size() > 0 && _results.isEmpty())
             {
-                for (auto jsonValue : _pHelper->jsonArray)
+                for (auto jsonValue : _pImpl->jsonArray)
                 {
                     if (jsonValue.isObject())
                     {
@@ -305,12 +303,12 @@ namespace cg
                         QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
                         if (!objectId.isEmpty())
                         {
-                            QSharedPointer<T> pObject = QSharedPointer<T>::create();
-                            if (pObject)
+                            T object = ParseObject::create<T>();
+                            if (!object.isNull())
                             {
-                                pObject->setValues(ParseConvert::toVariantMap(jsonObject));
-                                pObject->clearDirtyState();
-                                _results.append(pObject);
+                                object.setValues(ParseConvert::toVariantMap(jsonObject));
+                                object.clearDirtyState();
+                                _results.append(object);
                             }
                         }
                     }
@@ -320,35 +318,26 @@ namespace cg
 
         void addConstraint(const QString &key, const QString &constraintKey, const QVariant &value)
         {
-            if (_whereObject.contains(key))
+            if (_pImpl->whereObject.contains(key))
             {
-                if (_whereObject.value(key).isObject())
+                if (_pImpl->whereObject.value(key).isObject())
                 {
-                    QJsonObject constraintObject = _whereObject.value(key).toObject();
+                    QJsonObject constraintObject = _pImpl->whereObject.value(key).toObject();
                     constraintObject.insert(constraintKey, QJsonValue::fromVariant(value));
-                    _whereObject.insert(key, constraintObject);
+                    _pImpl->whereObject.insert(key, constraintObject);
                 }
             }
             else
             {
                 QJsonObject constraintObject;
                 constraintObject.insert(constraintKey, QJsonValue::fromVariant(value));
-                _whereObject.insert(key, constraintObject);
+                _pImpl->whereObject.insert(key, constraintObject);
             }
         }
 
-        static QString removeNamespace(const QString& className)
-        {
-            return className.section("::", -1);
-        }
-
     private:
-        QScopedPointer<ParseQueryHelper> _pHelper;
-        QString _className;
-        QJsonObject _whereObject;
-        int _limit, _skip, _count;
-        QStringList _keysList, _orderList, _includeList;
-        QList<QSharedPointer<T>> _results;
+        QSharedPointer<ParseQueryImpl> _pImpl;
+        QList<T> _results;
     };
 }
 

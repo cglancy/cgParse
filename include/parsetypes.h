@@ -14,33 +14,26 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
-#include <QSharedPointer>
 #include <QList>
 
 namespace cg
 {
     class ParseObject;
-    typedef QSharedPointer<ParseObject> ParseObjectPtr;
-    typedef QList<ParseObjectPtr> ParseObjectList;
+    typedef QList<ParseObject> ParseObjectList;
 
     class ParseFile;
-    typedef QSharedPointer<ParseFile> ParseFilePtr;
-    typedef QList<ParseFilePtr> ParseFileList;
+    typedef QList<ParseFile> ParseFileList;
 
     class ParseUser;
-    typedef QSharedPointer<ParseUser> ParseUserPtr;
-    typedef QList<ParseUserPtr> ParseUserList;
+    typedef QList<ParseUser> ParseUserList;
 
     class ParseACL;
-    typedef QSharedPointer<ParseACL> ParseACLPtr;
-    typedef QList<ParseACLPtr> ParseACLList;
+    typedef QList<ParseACL> ParseACLList;
 
     class ParseRole;
-    typedef QSharedPointer<ParseRole> ParseRolePtr;
-    typedef QList<ParseRolePtr> ParseRoleList;
+    typedef QList<ParseRole> ParseRoleList;
 
     class ParseSession;
-    typedef QSharedPointer<ParseSession> ParseSessionPtr;
-    typedef QList<ParseSessionPtr> ParseSessionList;
+    typedef QList<ParseSession> ParseSessionList;
 }
 

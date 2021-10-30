@@ -52,6 +52,9 @@ namespace cg
         CGPARSE_API extern const QString OperatorKey;
         CGPARSE_API extern const QString EmailVerifiedKey;
         CGPARSE_API extern const QString PerishableTokenKey;
+        CGPARSE_API extern const QString UserClassNameKey;
+        CGPARSE_API extern const QString SessionClassNameKey;
+        CGPARSE_API extern const QString RoleClassNameKey;
 
         CGPARSE_API extern const QString PointerValue;
         CGPARSE_API extern const QString ObjectValue;

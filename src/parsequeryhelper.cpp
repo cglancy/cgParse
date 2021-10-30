@@ -17,101 +17,112 @@
 #include "parserequest.h"
 #include "parsereply.h"
 
-#include <QNetworkReply>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QMetaType>
-#include <QDebug>
-
 namespace cg
 {
-    ParseQueryHelper::ParseQueryHelper()
-    {
-    }
+	ParseQueryHelper* ParseQueryHelper::_instance = nullptr;
 
-    ParseQueryHelper::~ParseQueryHelper()
-    {
-    }
+	ParseQueryHelper::ParseQueryHelper()
+	{
+	}
 
-    ParseReply* ParseQueryHelper::getObject(const QString &className, const QString &objectId, QNetworkAccessManager* pNam)
-    {
-        if (className.isEmpty() || objectId.isEmpty())
-        {
-            return new ParseReply(ParseError::UnknownError);
-        }
+	ParseQueryHelper::~ParseQueryHelper()
+	{
+	}
 
-        QString queryStr = QString("where={\"objectId\":\"%1\"}").arg(objectId);
-        QUrlQuery urlQuery;
-        urlQuery.setQuery(queryStr);
+	ParseQueryHelper* ParseQueryHelper::get()
+	{
+		if (!_instance)
+			_instance = new ParseQueryHelper;
 
-        ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
-        request.setUrlQuery(urlQuery);
+		return _instance;
+	}
 
-        ParseReply *pReply = new ParseReply(request, pNam);
-        connect(pReply, &ParseReply::preFinished, this, &ParseQueryHelper::getObjectFinished);
-        return pReply;
-    }
+	ParseReply* ParseQueryHelper::getObject(QSharedPointer<ParseQueryImpl> pQueryImpl, const QString& objectId, QNetworkAccessManager* pNam)
+	{
+		if (!pQueryImpl || pQueryImpl->className.isEmpty() || objectId.isEmpty())
+		{
+			return new ParseReply(ParseError::UnknownError);
+		}
 
-    void ParseQueryHelper::getObjectFinished()
-    {
-        ParseReply *pReply = qobject_cast<ParseReply*>(sender());
-        if (!pReply)
-            return;
+		QString queryStr = QString("where={\"objectId\":\"%1\"}").arg(objectId);
+		QUrlQuery urlQuery;
+		urlQuery.setQuery(queryStr);
 
-        if (!pReply->isError())
-        {
-            QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
-            if (doc.isObject())
-            {
-                QJsonObject obj = doc.object();
-                jsonArray = obj.value("results").toArray();
-            }
-        }
-    }
+		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pQueryImpl->className);
+		request.setUrlQuery(urlQuery);
 
-    ParseReply* ParseQueryHelper::findObjects(const QString & className, const QUrlQuery & urlQuery, QNetworkAccessManager* pNam)
-    {
-        if (className.isEmpty())
-        {
-            return new ParseReply(ParseError::UnknownError);
-        }
+		ParseReply* pReply = new ParseReply(request, pNam);
+		connect(pReply, &ParseReply::finished, this, &ParseQueryHelper::getObjectFinished);
+		_replyMap.insert(pReply, pQueryImpl);
+		return pReply;
+	}
 
-        ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
-        request.setUrlQuery(urlQuery);
+	void ParseQueryHelper::getObjectFinished()
+	{
+		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
+		if (!pReply)
+			return;
 
-        ParseReply *pReply = new ParseReply(request, pNam);
-        connect(pReply, &ParseReply::preFinished, this, &ParseQueryHelper::findObjectsFinished);
-        return pReply;
-    }
+		auto pImpl = _replyMap.take(pReply);
 
-    void ParseQueryHelper::findObjectsFinished()
-    {
-        ParseReply *pReply = qobject_cast<ParseReply*>(sender());
-        if (!pReply)
-            return;
+		if (!pReply->isError())
+		{
+			QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
+			if (doc.isObject())
+			{
+				QJsonObject obj = doc.object();
+				pImpl->jsonArray = obj.value("results").toArray();
+			}
+		}
+	}
 
-        if (!pReply->isError())
-        {
-            QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
-            if (doc.isObject())
-            {
-                QJsonObject obj = doc.object();
-                jsonArray = obj.value("results").toArray();
-            }
-        }
-    }
+	ParseReply* ParseQueryHelper::findObjects(QSharedPointer<ParseQueryImpl> pQueryImpl, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam)
+	{
+		if (!pQueryImpl || pQueryImpl->className.isEmpty())
+		{
+			return new ParseReply(ParseError::UnknownError);
+		}
 
-    ParseReply* ParseQueryHelper::countObjects(const QString & className, const QUrlQuery & urlQuery, QNetworkAccessManager* pNam)
-    {
-        if (className.isEmpty())
-        {
-            return new ParseReply(ParseError::UnknownError);
-        }
+		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pQueryImpl->className);
+		request.setUrlQuery(urlQuery);
 
-        ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
-        request.setUrlQuery(urlQuery);
+		ParseReply* pReply = new ParseReply(request, pNam);
+		connect(pReply, &ParseReply::finished, this, &ParseQueryHelper::findObjectsFinished);
+		_replyMap.insert(pReply, pQueryImpl);
+		return pReply;
+	}
 
-        return new ParseReply(request, pNam);
-    }
+	void ParseQueryHelper::findObjectsFinished()
+	{
+		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
+		if (!pReply)
+			return;
+
+		auto pImpl = _replyMap.take(pReply);
+
+		if (!pReply->isError())
+		{
+			QJsonDocument doc = QJsonDocument::fromJson(pReply->data());
+			if (doc.isObject())
+			{
+				QJsonObject obj = doc.object();
+				pImpl->jsonArray = obj.value("results").toArray();
+			}
+		}
+	}
+
+	ParseReply* ParseQueryHelper::countObjects(const QString& className, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam)
+	{
+		if (className.isEmpty())
+		{
+			return new ParseReply(ParseError::UnknownError);
+		}
+
+		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
+		request.setUrlQuery(urlQuery);
+
+		return new ParseReply(request, pNam);
+	}
+
 }
+

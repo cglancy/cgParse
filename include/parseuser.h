@@ -23,15 +23,12 @@
 namespace cg
 {
     class ParseReply;
-    class ParseUserHelper;
 
     class CGPARSE_API ParseUser : public ParseObject
     {
     public:
-        static QSharedPointer<ParseUser> create();
-        static QSharedPointer<ParseQuery<ParseUser>> query();
-
-        static QSharedPointer<ParseUser> currentUser();
+        static ParseUser create();
+        static ParseUser currentUser();
 
         static ParseReply* login(const QString &username, const QString &password, QNetworkAccessManager* pNam = nullptr);
         static ParseReply* logout(QNetworkAccessManager* pNam = nullptr);
@@ -41,7 +38,12 @@ namespace cg
     public:
         ParseUser();
         ParseUser(const ParseUser &user);
+        ParseUser(const ParseObject& object);
         ~ParseUser();
+
+        ParseUser& operator=(const ParseUser& user);
+
+        void assign(const ParseObject& object) override;
 
         bool isAuthenticated() const;
 
@@ -60,13 +62,8 @@ namespace cg
         ParseReply* deleteUser(QNetworkAccessManager* pNam = nullptr);
 
     private:
-        static ParseUserHelper * staticHelper();
-
-    private:
-        friend class ParseUserHelper;
-        static QSharedPointer<ParseUser> _pCurrentUser;
-        QScopedPointer<ParseUserHelper> _pHelper;
-        static ParseUserHelper *_pStaticHelper;
+        friend class ParseClientObject;
+        static ParseUser _currentUser;
     };
 }
 

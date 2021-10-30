@@ -60,7 +60,7 @@ namespace cg
         ~ParseLiveQueryClient();
 
         void sendJsonObject(const QJsonObject &jsonObject);
-        QSharedPointer<ParseObject> createObject(const QJsonObject &jsonObject);
+        ParseObject createObject(const QJsonObject &jsonObject);
 
     private:
         static ParseLiveQueryClient *_pInstance;

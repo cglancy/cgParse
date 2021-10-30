@@ -15,6 +15,7 @@
 */
 #include "parse.h"
 #include "parsequerymodel.h"
+#include "parsequeryhelper.h"
 #include "parsereply.h"
 
 #include <QJsonObject>
@@ -24,7 +25,7 @@ namespace cg
 {
     ParseQueryModel::ParseQueryModel(QObject *parent)
         : QAbstractListModel(parent),
-		_pHelper(new ParseQueryHelper())
+		_pQueryImpl(new ParseQueryImpl())
     {
         _keysList << Parse::ObjectIdKey;
         _keysList << Parse::CreatedAtKey;
@@ -47,6 +48,7 @@ namespace cg
 
         _objects.clear();
         _className = className;
+        _pQueryImpl->className = className;
 
         endResetModel();
 
@@ -108,8 +110,8 @@ namespace cg
         if (index.row() < 0 || index.row() >= _objects.size())
             return QVariant();
 
-        QSharedPointer<ParseObject> pObject = _objects.at(index.row());
-        QVariant variant = pObject->value(key);
+        ParseObject object = _objects.at(index.row());
+        QVariant variant = object.value(key);
 
         return variant;
     }
@@ -178,7 +180,9 @@ namespace cg
 			urlQuery.addQueryItem("include", includeList.join(','));
 		}
 
-		ParseReply *pReply = _pHelper->findObjects(className(), urlQuery, pNam);
+        _pQueryImpl->className = className();
+
+		ParseReply *pReply = ParseQueryHelper::get()->findObjects(_pQueryImpl, urlQuery, pNam);
 		connect(pReply, &ParseReply::finished, this, &ParseQueryModel::findFinished);
 		return pReply;
 	}
@@ -189,7 +193,7 @@ namespace cg
 		if (!pReply)
 			return;
 
-        QList<QSharedPointer<ParseObject>> objects = pReply->objects<ParseObject>();
+        QList<ParseObject> objects = pReply->objects<ParseObject>();
 		if (objects.size() > 0)
 		{
 			if (_objects.size() > 0)
