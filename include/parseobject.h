@@ -43,13 +43,13 @@ namespace cg
         template <class T>
         static T create()
         {
-            return ParseObject(removeNamespace(QMetaType::fromType<T>().name()));
+            return ParseObject(classNameFromType<T>());
         }
 
         template <class T>
         static T createWithoutData(const QString& objectId)
         {
-            ParseObject object(removeNamespace(QMetaType::fromType<T>().name()));
+            ParseObject object(classNameFromType<T>());
             object.setValue(Parse::ObjectIdKey, objectId);
             return object;
         }
@@ -60,7 +60,7 @@ namespace cg
         static ParseReply* saveAll(const QList<ParseObject> &objects, QNetworkAccessManager* pNam = nullptr);
         static ParseReply* deleteAll(const QList<ParseObject> &objects, QNetworkAccessManager* pNam = nullptr);
 
-    public:
+    public: 
         ParseObject();
         explicit ParseObject(const QString &className);
         ParseObject(const ParseObject &object);

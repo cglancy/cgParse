@@ -36,15 +36,18 @@ namespace cg
 		// ParseQuery
 		ParseReply* getObject(QSharedPointer<ParseQueryImpl> pQueryImpl, const QString& objectId, QNetworkAccessManager* pNam);
 		ParseReply* findObjects(QSharedPointer<ParseQueryImpl> pQueryImpl, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam);
-		ParseReply* countObjects(const QString& className, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam);
+		ParseReply* countObjects(QSharedPointer<ParseQueryImpl> pQueryImpl, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam);
 
 	private slots:
 		void getObjectFinished();
 		void findObjectsFinished();
+		void countObjectsFinished();
 
 	private:
 		ParseQueryRequest();
 		~ParseQueryRequest();
+
+		void setResults(QSharedPointer<ParseQueryImpl>, const QJsonArray& jsonArray);
 
 	private:
 		static ParseQueryRequest* _instance;

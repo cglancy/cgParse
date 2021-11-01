@@ -16,6 +16,7 @@
 #include "parsequeryimpl.h"
 #include "parserequest.h"
 #include "parsereply.h"
+#include "parseobject.h"
 
 #include <QNetworkReply>
 #include <QJsonDocument>
@@ -30,6 +31,7 @@ namespace cg
         : limit(-1)
         , skip(0)
         , count(0)
+        , countResult(0)
     {
     }
 
@@ -38,6 +40,7 @@ namespace cg
         , limit(-1)
         , skip(0)
         , count(0)
+        , countResult(0)
     {
     }
 

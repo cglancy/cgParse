@@ -50,9 +50,4 @@ namespace cg
         CGPARSE_API const QString AddRelationValue = QStringLiteral("AddRelation");
         CGPARSE_API const QString RemoveRelationValue = QStringLiteral("RemoveRelation");
     }
-
-    QString removeNamespace(const QString& className)
-    {
-        return className.section("::", -1);
-    }
 }

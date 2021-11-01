@@ -19,12 +19,12 @@
 
 #include "parse.h"
 
-#include <QJsonArray>
+#include <QString>
 #include <QJsonObject>
 
 namespace cg
 {
-    class ParseReply;
+    class ParseObject;
 
     class CGPARSE_API ParseQueryImpl
     {
@@ -38,7 +38,8 @@ namespace cg
         QJsonObject whereObject;
         int limit, skip, count;
         QStringList keysList, orderList, includeList;
-        QJsonArray jsonArray;
+        int countResult;
+        QList<ParseObject> results;
     };
 }
 

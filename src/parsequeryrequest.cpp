@@ -44,6 +44,8 @@ namespace cg
 			return new ParseReply(ParseError::UnknownError);
 		}
 
+		pQueryImpl->results.clear();
+
 		QString queryStr = QString("where={\"objectId\":\"%1\"}").arg(objectId);
 		QUrlQuery urlQuery;
 		urlQuery.setQuery(queryStr);
@@ -52,7 +54,7 @@ namespace cg
 		request.setUrlQuery(urlQuery);
 
 		ParseReply* pReply = new ParseReply(request, pNam);
-		connect(pReply, &ParseReply::finished, this, &ParseQueryRequest::getObjectFinished);
+		connect(pReply, &ParseReply::preFinished, this, &ParseQueryRequest::getObjectFinished);
 		_replyMap.insert(pReply, pQueryImpl);
 		return pReply;
 	}
@@ -71,7 +73,8 @@ namespace cg
 			if (doc.isObject())
 			{
 				QJsonObject obj = doc.object();
-				pImpl->jsonArray = obj.value("results").toArray();
+				QJsonArray jsonArray = obj.value("results").toArray();
+				setResults(pImpl, jsonArray);
 			}
 		}
 	}
@@ -83,11 +86,13 @@ namespace cg
 			return new ParseReply(ParseError::UnknownError);
 		}
 
+		pQueryImpl->results.clear();
+
 		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pQueryImpl->className);
 		request.setUrlQuery(urlQuery);
 
 		ParseReply* pReply = new ParseReply(request, pNam);
-		connect(pReply, &ParseReply::finished, this, &ParseQueryRequest::findObjectsFinished);
+		connect(pReply, &ParseReply::preFinished, this, &ParseQueryRequest::findObjectsFinished);
 		_replyMap.insert(pReply, pQueryImpl);
 		return pReply;
 	}
@@ -106,22 +111,66 @@ namespace cg
 			if (doc.isObject())
 			{
 				QJsonObject obj = doc.object();
-				pImpl->jsonArray = obj.value("results").toArray();
+				QJsonArray jsonArray = obj.value("results").toArray();
+				setResults(pImpl, jsonArray);
 			}
 		}
 	}
 
-	ParseReply* ParseQueryRequest::countObjects(const QString& className, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam)
+	ParseReply* ParseQueryRequest::countObjects(QSharedPointer<ParseQueryImpl> pQueryImpl, const QUrlQuery& urlQuery, QNetworkAccessManager* pNam)
 	{
-		if (className.isEmpty())
+		if (!pQueryImpl || pQueryImpl->className.isEmpty())
 		{
 			return new ParseReply(ParseError::UnknownError);
 		}
 
-		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + className);
+		pQueryImpl->results.clear();
+		pQueryImpl->countResult = 0;
+
+		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pQueryImpl->className);
 		request.setUrlQuery(urlQuery);
 
-		return new ParseReply(request, pNam);
+		ParseReply* pReply = new ParseReply(request, pNam);
+		connect(pReply, &ParseReply::preFinished, this, &ParseQueryRequest::countObjectsFinished);
+		_replyMap.insert(pReply, pQueryImpl);
+		return pReply;
+	}
+
+	void ParseQueryRequest::countObjectsFinished()
+	{
+		ParseReply* pReply = qobject_cast<ParseReply*>(sender());
+		if (!pReply)
+			return;
+
+		auto pQueryImpl = _replyMap.take(pReply);
+
+		if (pQueryImpl)
+			pQueryImpl->countResult = pReply->count();
+	}
+
+	void ParseQueryRequest::setResults(QSharedPointer<ParseQueryImpl> pImpl, const QJsonArray& jsonArray)
+	{
+		if (!pImpl)
+			return;
+
+		pImpl->results.clear();
+
+		for (auto jsonValue : jsonArray)
+		{
+			if (jsonValue.isObject())
+			{
+				QJsonObject jsonObject = jsonValue.toObject();
+				QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
+
+				if (!objectId.isEmpty())
+				{
+					ParseObject object = ParseObject::create(pImpl->className);
+					object.setValues(ParseConvert::toVariantMap(jsonObject));
+					object.clearDirtyState();
+					pImpl->results.append(object);
+				}
+			}
+		}
 	}
 
 }

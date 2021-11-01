@@ -32,6 +32,7 @@
 #endif // CGPARSE_DLL
 
 #include <QString>
+#include <QMetaType>
 
 namespace cg
 {
@@ -69,7 +70,14 @@ namespace cg
         CGPARSE_API extern const QString RemoveRelationValue;
     }
 
-    extern QString removeNamespace(const QString& className);
+    template <class T>
+    QString classNameFromType()
+    {
+        QString className = QMetaType::fromType<T>().name();
+
+        // remove namespace
+        return className.section("::", -1);
+    }
 }
 
 #endif // CGPARSE_H

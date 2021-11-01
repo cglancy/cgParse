@@ -53,12 +53,12 @@ namespace cg
     public:
         ParseQuery()
         {
-            _pImpl = QSharedPointer<ParseQueryImpl>::create(removeNamespace(QMetaType::fromType<T>().name()));
+            _pImpl = QSharedPointer<ParseQueryImpl>::create(classNameFromType<T>());
         }
 
         ParseQuery(const QString &relationClassName, const QString &relationObjectId, const QString &relationKey)
          {
-            _pImpl = QSharedPointer<ParseQueryImpl>::create(removeNamespace(QMetaType::fromType<T>().name()));
+            _pImpl = QSharedPointer<ParseQueryImpl>::create(classNameFromType<T>());
 
             QJsonObject pointerObject;
             pointerObject.insert(Parse::TypeKey, Parse::PointerValue);
@@ -79,15 +79,6 @@ namespace cg
 
         ~ParseQuery() 
         { 
-            clearResults();
-        }
-
-        void clearResults()
-        {
-            while (_pImpl->jsonArray.count())
-                _pImpl->jsonArray.pop_back();
-
-            _results.clear();
         }
 
         ParseQuery& operator=(const ParseQuery& query)
@@ -248,71 +239,51 @@ namespace cg
             return urlQuery;
         }
 
-        T first()
-        {
-            if (_results.size() > 0)
-                return _results.first();
-
-            return T();
-        }
-
-        const QList<T> & results()
-        {
-            return _results;
-        }
-
         ParseReply* count(QNetworkAccessManager* pNam = nullptr)
         {
             int origCount = _pImpl->count, origLimit = _pImpl->limit;
-            clearResults();
             _pImpl->count = 1;
             _pImpl->limit = 0;
-            ParseReply * pReply = ParseQueryRequest::get()->countObjects(_pImpl->className, urlQuery(), pNam);
+            ParseReply * pReply = ParseQueryRequest::get()->countObjects(_pImpl, urlQuery(), pNam);
             _pImpl->count = origCount;
             _pImpl->limit = origLimit;
             return pReply;
         }
 
+        int countResult() const
+        {
+            return _pImpl->countResult;
+        }
+
         ParseReply* get(const QString &objectId, QNetworkAccessManager* pNam = nullptr)
         {
-            clearResults();
             return ParseQueryRequest::get()->getObject(_pImpl, objectId, pNam);
         }
 
         ParseReply* find(QNetworkAccessManager* pNam = nullptr)
         {
-            clearResults();
             return ParseQueryRequest::get()->findObjects(_pImpl, urlQuery(), pNam);
         }
 
-    private:
-#if 0
-        void createResults()
+        T first()
         {
-            if (_pImpl->jsonArray.size() > 0 && _results.isEmpty())
-            {
-                for (auto jsonValue : _pImpl->jsonArray)
-                {
-                    if (jsonValue.isObject())
-                    {
-                        QJsonObject jsonObject = jsonValue.toObject();
-                        QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
-                        if (!objectId.isEmpty())
-                        {
-                            T object = ParseObject::create<T>();
-                            if (!object.isNull())
-                            {
-                                object.setValues(ParseConvert::toVariantMap(jsonObject));
-                                object.clearDirtyState();
-                                _results.append(object);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-#endif
+            if (_pImpl->results.size() > 0)
+                return _pImpl->results.first();
 
+            return T();
+        }
+
+        QList<T> results()
+        {
+            QList<T> list;
+
+            for (auto const& object : _pImpl->results)
+                list.append(object);
+
+            return list;
+        }
+
+    private:
         void addConstraint(const QString &key, const QString &constraintKey, const QVariant &value)
         {
             if (_pImpl->whereObject.contains(key))
@@ -334,7 +305,6 @@ namespace cg
 
     private:
         QSharedPointer<ParseQueryImpl> _pImpl;
-        QList<T> _results;
     };
 }
 
