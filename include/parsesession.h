@@ -18,7 +18,6 @@
 #pragma once
 
 #include "parseobject.h"
-#include "parsetypes.h"
 #include "parsequery.h"
 
 class QNetworkAccessManager;

@@ -18,7 +18,6 @@
 #pragma once
 
 #include "parse.h"
-#include "parsetypes.h"
 #include "parseobjectpointer.h"
 
 #include <QObject>
@@ -32,6 +31,7 @@ namespace cg
 {
     class ParseReply;
     class ParseFile;
+    class ParseObject;
 
     class CGPARSE_API ParseObjectRequest : public QObject
     {

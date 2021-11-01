@@ -20,7 +20,6 @@
 #include "parseobject.h"
 #include "parsequery.h"
 #include "parserelation.h"
-#include "parsetypes.h"
 
 namespace cg
 {

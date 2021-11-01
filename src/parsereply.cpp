@@ -19,6 +19,7 @@
 #include "parsesession.h"
 #include "parseconvert.h"
 #include "parserequest.h"
+#include "parseclient.h"
 
 #include <QNetworkReply>
 #include <QJsonDocument>

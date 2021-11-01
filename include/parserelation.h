@@ -17,14 +17,12 @@
 #define CGPARSE_PARSERELATION_H
 #pragma once
 
-#include "parsetypes.h"
+#include "parse.h"
 #include "parsequery.h"
 #include <QVariant>
 
 namespace cg
 {
-    class ParseObject;
-
     template <class T>
     class ParseRelation
     {
@@ -34,38 +32,16 @@ namespace cg
         {
         }
 
-//        QSharedPointer<ParseQuery<T>> query()
-//        {
-//            return QSharedPointer<ParseQuery<T>>::create(_objectClassName, _objectId, _objectKey);
-//        }
+        QSharedPointer<ParseQuery<T>> query()
+        {
+            return QSharedPointer<ParseQuery<T>>::create(_objectClassName, _objectId, _objectKey);
+        }
 
         void add(const T& object) { _addList.append(object); }
         void remove(const T& object) { _removeList.append(object); }
 
         const QList<T> & addList() const { return _addList; }
         const QList<T> & removeList() const { return _removeList; }
-
-        void setValues(const QVariantMap &map)
-        {
-            if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::AddRelationValue)
-            {
-                QVariantList list = map.value("objects").toList();
-                for (auto & variant : list)
-                {
-                    ParseObject baseObject = variant.value<ParseObject>();
-                    _addList.append(static_cast<T>(baseObject));
-                }
-            }
-            else if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::RemoveRelationValue)
-            {
-                QVariantList list = map.value("objects").toList();
-                for (auto & variant : list)
-                {
-                    ParseObject baseObject = variant.value<ParseObject>();
-                    _removeList.append(static_cast<T>(baseObject));
-                }
-            }
-        }
 
         QVariantMap toMap() const
         {

@@ -40,8 +40,6 @@ namespace cg
     class CGPARSE_API ParseObject
     {
     public:
-        static QString removeNamespace(const QString& className);
-
         template <class T>
         static T create()
         {
@@ -130,7 +128,25 @@ namespace cg
 
             if (valueMapHasKey(key) && value(key).canConvert<QVariantMap>())
             {
-                relation.setValues(value(key).toMap());
+                QVariantMap map = value(key).toMap();
+                if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::AddRelationValue)
+                {
+                    QVariantList list = map.value("objects").toList();
+                    for (auto & variant : list)
+                    {
+                        ParseObject baseObject = variant.value<ParseObject>();
+                        relation.add(static_cast<T>(baseObject));
+                    }
+                }
+                else if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::RemoveRelationValue)
+                {
+                    QVariantList list = map.value("objects").toList();
+                    for (auto & variant : list)
+                    {
+                        ParseObject baseObject = variant.value<ParseObject>();
+                        relation.remove(static_cast<T>(baseObject));
+                    }
+                }
             }
 
             return relation;

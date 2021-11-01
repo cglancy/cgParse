@@ -17,8 +17,6 @@
 #define CGPARSE_PARSEQUERY_H
 #pragma once
 
-#include "parseobject.h"
-#include "parseclient.h"
 #include "parsequeryrequest.h"
 #include "parsequeryimpl.h"
 #include "parseconvert.h"
@@ -55,12 +53,12 @@ namespace cg
     public:
         ParseQuery()
         {
-            _pImpl = QSharedPointer<ParseQueryImpl>::create(ParseObject::removeNamespace(QMetaType::fromType<T>().name()));
+            _pImpl = QSharedPointer<ParseQueryImpl>::create(removeNamespace(QMetaType::fromType<T>().name()));
         }
 
         ParseQuery(const QString &relationClassName, const QString &relationObjectId, const QString &relationKey)
          {
-            _pImpl = QSharedPointer<ParseQueryImpl>::create(ParseObject::removeNamespace(QMetaType::fromType<T>().name()));
+            _pImpl = QSharedPointer<ParseQueryImpl>::create(removeNamespace(QMetaType::fromType<T>().name()));
 
             QJsonObject pointerObject;
             pointerObject.insert(Parse::TypeKey, Parse::PointerValue);
@@ -128,7 +126,7 @@ namespace cg
 
         ParseQuery<T>& setLimit(int limit)
         {
-            _pImp->limit = limit;
+            _pImpl->limit = limit;
             return *this;
         }
 
@@ -216,7 +214,7 @@ namespace cg
 
         void clear(const QString &key)
         {
-            _pImp->whereObject.remove(key);
+            _pImpl->whereObject.remove(key);
         }
 
         QUrlQuery urlQuery() const
@@ -252,8 +250,6 @@ namespace cg
 
         T first()
         {
-            createResults();
-
             if (_results.size() > 0)
                 return _results.first();
 
@@ -262,7 +258,6 @@ namespace cg
 
         const QList<T> & results()
         {
-            createResults();
             return _results;
         }
 
@@ -291,6 +286,7 @@ namespace cg
         }
 
     private:
+#if 0
         void createResults()
         {
             if (_pImpl->jsonArray.size() > 0 && _results.isEmpty())
@@ -315,6 +311,7 @@ namespace cg
                 }
             }
         }
+#endif
 
         void addConstraint(const QString &key, const QString &constraintKey, const QVariant &value)
         {

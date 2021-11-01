@@ -74,11 +74,6 @@ namespace cg
         return hasSameId(object);
     }
 
-    QString ParseObject::removeNamespace(const QString& className)
-    {
-        return className.section("::", -1);
-    }
-
     ParseObject ParseObject::create(const QString &className)
     {
         ParseObject object(className);

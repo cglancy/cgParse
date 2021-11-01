@@ -68,6 +68,8 @@ namespace cg
         CGPARSE_API extern const QString AddRelationValue;
         CGPARSE_API extern const QString RemoveRelationValue;
     }
+
+    extern QString removeNamespace(const QString& className);
 }
 
 #endif // CGPARSE_H

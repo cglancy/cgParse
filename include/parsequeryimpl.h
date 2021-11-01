@@ -18,7 +18,6 @@
 #pragma once
 
 #include "parse.h"
-#include "parsetypes.h"
 
 #include <QJsonArray>
 #include <QJsonObject>

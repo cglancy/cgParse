@@ -33,7 +33,6 @@ HEADERS +=  \
 	../include/parsereply.h \
 	../include/parserole.h \
 	../include/parsesession.h \
-	../include/parsetypes.h \
 	../include/parseuser.h \
 	parsefileimpl.h \
 	parsefilerequest.h \

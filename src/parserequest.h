@@ -17,8 +17,6 @@
 #define CGPARSE_PARSEREQUEST_H
 #pragma once
 
-#include "parsetypes.h"
-
 #include <QVariant>
 #include <QByteArray>
 #include <QUrlQuery>
