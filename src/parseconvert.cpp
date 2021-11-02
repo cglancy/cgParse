@@ -16,7 +16,7 @@ namespace cg
 
     QVariantMap ParseConvert::toVariantMap(const ParseObject& object)
     {
-        return object.toPointer().toMap();
+        return object.toPointer().toMap(); 
     }
 
     QVariantMap ParseConvert::convertMap(const QVariantMap &map, bool toJson)
@@ -92,7 +92,7 @@ namespace cg
         {
             if (isObject(variant) || isPointer(variant))
             {
-                ParseObject object = objectFromVariant(variant);
+                ParseObject object = toObject(variant);
                 convertedVariant = QVariant::fromValue(object);
             }
             else if (isFile(variant))
@@ -105,7 +105,7 @@ namespace cg
         return convertedVariant;
     }
 
-    ParseObject ParseConvert::objectFromVariant(const QVariant &variant)
+    ParseObject ParseConvert::toObject(const QVariant &variant)
     {
         ParseObject object;
 

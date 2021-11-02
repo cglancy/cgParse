@@ -468,6 +468,21 @@ void ParseTest::deleteTestObjects()
         QVERIFY(delete4Spy.wait(SPY_WAIT));
         pDelete4Reply->deleteLater();
     }
+
+    auto gameScoreQuery = ParseQuery<ParseObject>("TestGameScore");
+    ParseReply* pFind4Reply = gameScoreQuery.find();
+    QSignalSpy find4Spy(pFind4Reply, &ParseReply::finished);
+    QVERIFY(find4Spy.wait(SPY_WAIT));
+    pFind4Reply->deleteLater();
+
+    QList<ParseObject> scores = pFind4Reply->objects<ParseObject>();
+    if (scores.size() > 0)
+    {
+        ParseReply* pDelete5Reply = ParseObject::deleteAll(scores);
+        QSignalSpy delete5Spy(pDelete5Reply, &ParseReply::finished);
+        QVERIFY(delete5Spy.wait(SPY_WAIT));
+        pDelete5Reply->deleteLater();
+    }
 }
 
 void ParseTest::testVariant()
@@ -703,20 +718,24 @@ void ParseTest::testObjectRelation()
     charactersInEpisode4.add(obiwan);
     charactersInEpisode4.add(han);
     episode4.setRelation("characters", charactersInEpisode4);
+    QCOMPARE(charactersInEpisode4.addList().size(), 6);
+
+    auto charactersToTest = episode4.relation<TestCharacter>("characters");
+    QCOMPARE(charactersToTest.addList().size(), 6);
 
     ParseReply *pSaveReply = episode4.save();
     QSignalSpy saveSpy(pSaveReply, &ParseReply::finished);
     QVERIFY(saveSpy.wait(SPY_WAIT));
     pSaveReply->deleteLater();
 
-//    auto charactersQuery = charactersInEpisode4->query();
-//    ParseReply *pFindReply = charactersQuery->find();
-//    QSignalSpy findSpy(pFindReply, &ParseReply::finished);
-//    QVERIFY(findSpy.wait(SPY_WAIT));
-//    pFindReply->deleteLater();
+    auto charactersQuery = charactersInEpisode4.query();
+    ParseReply *pFindReply = charactersQuery.find();
+    QSignalSpy findSpy(pFindReply, &ParseReply::finished);
+    QVERIFY(findSpy.wait(SPY_WAIT));
+    pFindReply->deleteLater();
 
-//    QList<TestCharacterPtr> characters = charactersQuery->results();
-//    QCOMPARE(characters.size(), 6);
+    QList<TestCharacter> characters = charactersQuery.results();
+    QCOMPARE(characters.size(), 6);
 }
 
 void ParseTest::testObjectPointerHash()

@@ -53,7 +53,7 @@ namespace cg
 		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pQueryImpl->className);
 		request.setUrlQuery(urlQuery);
 
-		ParseReply* pReply = new ParseReply(request, pNam);
+		ParseReply* pReply = new ParseReply(request, pQueryImpl->className, pNam);
 		connect(pReply, &ParseReply::preFinished, this, &ParseQueryRequest::getObjectFinished);
 		_replyMap.insert(pReply, pQueryImpl);
 		return pReply;
@@ -91,7 +91,7 @@ namespace cg
 		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pQueryImpl->className);
 		request.setUrlQuery(urlQuery);
 
-		ParseReply* pReply = new ParseReply(request, pNam);
+		ParseReply* pReply = new ParseReply(request, pQueryImpl->className, pNam);
 		connect(pReply, &ParseReply::preFinished, this, &ParseQueryRequest::findObjectsFinished);
 		_replyMap.insert(pReply, pQueryImpl);
 		return pReply;
@@ -130,7 +130,7 @@ namespace cg
 		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pQueryImpl->className);
 		request.setUrlQuery(urlQuery);
 
-		ParseReply* pReply = new ParseReply(request, pNam);
+		ParseReply* pReply = new ParseReply(request, pQueryImpl->className, pNam);
 		connect(pReply, &ParseReply::preFinished, this, &ParseQueryRequest::countObjectsFinished);
 		_replyMap.insert(pReply, pQueryImpl);
 		return pReply;

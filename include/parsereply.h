@@ -42,11 +42,13 @@ namespace cg
         Q_OBJECT
     public:
         ParseReply(int error = NoError);
-        ParseReply(const ParseRequest &request, QNetworkAccessManager* pNam);
+        ParseReply(const ParseRequest& request, QNetworkAccessManager* pNam);
+        ParseReply(const ParseRequest &request, const QString& className, QNetworkAccessManager* pNam);
         virtual ~ParseReply();
 
         void sendRequest(const ParseRequest &request, QNetworkAccessManager* pNam);
 
+        QString className() const;
         bool isError() const;
         int statusCode() const;
         int errorCode() const;
@@ -78,7 +80,7 @@ namespace cg
                         QString objectId = jsonObject.value(Parse::ObjectIdKey).toString();
                         if (!objectId.isEmpty())
                         {
-                            T object = ParseObject::create<T>();
+                            ParseObject object = ParseObject(_className);
                             object.setValues(ParseConvert::toVariantMap(jsonObject));
                             object.clearDirtyState();
                             list.append(object);
@@ -116,6 +118,7 @@ namespace cg
 
     private:
         QNetworkReply *_pReply;
+        QString _className;
         int _statusCode, _errorCode;
         QString _errorMessage;
         QByteArray _data;

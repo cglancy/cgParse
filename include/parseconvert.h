@@ -32,6 +32,7 @@ namespace cg
         static QJsonObject toJsonObject(const QVariantMap &map);
         static QVariantMap toVariantMap(const QJsonObject &object);
         static QVariantMap toVariantMap(const ParseObject& object);
+        static ParseObject toObject(const QVariant &variant);
 
         static bool isPointer(const QVariant &variant);
         static bool isObject(const QVariant &variant);
@@ -42,7 +43,6 @@ namespace cg
         static bool canConvert(const QVariant &variant, bool toJson);
         static QVariant convertVariant(const QVariant &variant, bool toJson);
 
-        static ParseObject objectFromVariant(const QVariant &variant);
 
         static bool isFile(const QVariant &variant);
         static ParseFile fileFromVariant(const QVariant &variant);

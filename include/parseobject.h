@@ -22,6 +22,7 @@
 #include "parseerror.h"
 #include "parseobjectpointer.h"
 #include "parsegeopoint.h"
+#include "parseconvert.h"
 
 #include <QString>
 #include <QDateTime>
@@ -134,8 +135,8 @@ namespace cg
                     QVariantList list = map.value("objects").toList();
                     for (auto & variant : list)
                     {
-                        ParseObject baseObject = variant.value<ParseObject>();
-                        relation.add(static_cast<T>(baseObject));
+                        ParseObject baseObject = ParseConvert::toObject(variant);
+                        relation.add(baseObject);
                     }
                 }
                 else if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::RemoveRelationValue)
@@ -143,8 +144,8 @@ namespace cg
                     QVariantList list = map.value("objects").toList();
                     for (auto & variant : list)
                     {
-                        ParseObject baseObject = variant.value<ParseObject>();
-                        relation.remove(static_cast<T>(baseObject));
+                        ParseObject baseObject = ParseConvert::toObject(variant);
+                        relation.remove(baseObject);
                     }
                 }
             }
@@ -155,7 +156,7 @@ namespace cg
         template <class T>
         void setRelation(const QString &key, const ParseRelation<T>& relation)
         {
-            setValue(key, relation.toMap());
+            setValue(key, toMap(relation));
         }
 
         template <class T>
@@ -281,6 +282,36 @@ namespace cg
 
     private:
         bool valueMapHasKey(const QString& key) const;
+
+        template <class T>
+        QVariantMap toMap(const ParseRelation<T>& relation) const
+        {
+            QVariantMap map;
+            QVariantList list;
+
+            if (relation.addList().size() > 0)
+            {
+                for (auto const& object : relation.addList())
+                {
+                    list.append(object.toPointer().toMap());
+                }
+
+                map.insert(Parse::OperatorKey, Parse::AddRelationValue);
+                map.insert("objects", list);
+            }
+            else if (relation.removeList().size() > 0)
+            {
+                for (auto const& object : relation.removeList())
+                {
+                    list.append(object.toPointer().toMap());
+                }
+
+                map.insert(Parse::OperatorKey, Parse::RemoveRelationValue);
+                map.insert("objects", list);
+            }
+
+            return map;
+        }
 
     private:
         QSharedPointer<ParseObjectImpl> _pImpl;

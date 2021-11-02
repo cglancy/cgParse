@@ -33,17 +33,26 @@ namespace cg
     // ParseReply
     //
     ParseReply::ParseReply(int error)
-        : _pReply(nullptr),
-        _statusCode(0),
-        _errorCode(error)
+        : _pReply(nullptr)
+        , _statusCode(0)
+        , _errorCode(error)
     {
         QTimer::singleShot(200, this, &ParseReply::finished);
     }
 
-    ParseReply::ParseReply(const ParseRequest &request, QNetworkAccessManager* pNam)
-        : _pReply(nullptr),
-        _statusCode(0),
-        _errorCode(NoError)
+    ParseReply::ParseReply(const ParseRequest& request, QNetworkAccessManager* pNam)
+        : _pReply(nullptr)
+        , _statusCode(0)
+        , _errorCode(NoError)
+    {
+        sendRequest(request, pNam);
+    }
+
+    ParseReply::ParseReply(const ParseRequest &request, const QString& className, QNetworkAccessManager* pNam)
+        : _className(className)
+        , _pReply(nullptr)
+        , _statusCode(0)
+        , _errorCode(NoError)
     {
         sendRequest(request, pNam);
     }
@@ -65,6 +74,11 @@ namespace cg
     bool ParseReply::isError() const 
     { 
         return _errorCode != ParseError::NoError; 
+    }
+
+    QString ParseReply::className() const
+    {
+        return _className;
     }
 
     int ParseReply::statusCode() const 

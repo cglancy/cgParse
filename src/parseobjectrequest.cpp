@@ -148,7 +148,7 @@ namespace cg
 
         ParseRequest request(ParseRequest::PostHttpMethod, "/classes/" + object.className(), content);
 
-        ParseReply *pReply = new ParseReply(request, pNam);
+        ParseReply *pReply = new ParseReply(request, object.className(), pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectRequest::privateCreateObjectFinished);
         _replyObjectMap.insert(pReply, object);
         return pReply;
@@ -184,7 +184,7 @@ namespace cg
     ParseReply* ParseObjectRequest::fetchObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
         ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + object.className() + "/" + object.objectId());
-        ParseReply *pReply = new ParseReply(request, pNam);
+        ParseReply *pReply = new ParseReply(request, object.className(), pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectRequest::privateFetchObjectFinished);
         _replyObjectMap.insert(pReply, object);
         return pReply;
@@ -211,7 +211,7 @@ namespace cg
 
     ParseReply* ParseObjectRequest::updateObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
-        if (!object.isNull() || object.objectId().isEmpty())
+        if (object.isNull() || object.objectId().isEmpty())
         {
             return new ParseReply(ParseError::UnknownError);
         }
@@ -223,7 +223,7 @@ namespace cg
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
         ParseRequest request(ParseRequest::PutHttpMethod, "/classes/" + object.className() + "/" + object.objectId(), content);
-        ParseReply *pReply = new ParseReply(request, pNam);
+        ParseReply *pReply = new ParseReply(request, object.className(), pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectRequest::privateUpdateObjectFinished);
         _replyObjectMap.insert(pReply, object);
         return pReply;
@@ -264,7 +264,7 @@ namespace cg
         }
 
         ParseRequest request(ParseRequest::DeleteHttpMethod, "/classes/" + object.className() + "/" + object.objectId());
-        return new ParseReply(request, pNam);
+        return new ParseReply(request, object.className(), pNam);
     }
 
     ParseReply* ParseObjectRequest::saveAll(const QList<ParseObject>& objects, QNetworkAccessManager* pNam)

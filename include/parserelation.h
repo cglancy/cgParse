@@ -32,9 +32,9 @@ namespace cg
         {
         }
 
-        QSharedPointer<ParseQuery<T>> query()
+        ParseQuery<T> query()
         {
-            return QSharedPointer<ParseQuery<T>>::create(_objectClassName, _objectId, _objectKey);
+            return ParseQuery<T>(_objectClassName, _objectId, _objectKey);
         }
 
         void add(const T& object) { _addList.append(object); }
@@ -42,35 +42,6 @@ namespace cg
 
         const QList<T> & addList() const { return _addList; }
         const QList<T> & removeList() const { return _removeList; }
-
-        QVariantMap toMap() const
-        {
-            QVariantMap map;
-            QVariantList list;
-
-            if (_addList.size() > 0)
-            {
-                for (auto & object : _addList)
-                {
-                    list.append(QVariant::fromValue(object));
-                }
-
-                map.insert(Parse::OperatorKey, Parse::AddRelationValue);
-                map.insert("objects", list);
-            }
-            else if (_removeList.size() > 0)
-            {
-                for (auto & object : _removeList)
-                {
-                    list.append(QVariant::fromValue(object));
-                }
-
-                map.insert(Parse::OperatorKey, Parse::RemoveRelationValue);
-                map.insert("objects", list);
-            }
-
-            return map;
-        }
 
     private:
         QString _objectClassName, _objectId, _objectKey;

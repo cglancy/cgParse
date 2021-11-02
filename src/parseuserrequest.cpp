@@ -48,7 +48,7 @@ namespace cg
 		query.addQueryItem("password", password);
 		request.setUrlQuery(query);
 
-		ParseReply* pParseReply = new ParseReply(request, pNam);
+		ParseReply* pParseReply = new ParseReply(request, Parse::UserClassNameKey, pNam);
 		connect(pParseReply, &ParseReply::preFinished, this, &ParseUserRequest::loginFinished);
 		return pParseReply;
 	}
@@ -75,7 +75,7 @@ namespace cg
 		ParseRequest request(ParseRequest::PostHttpMethod, "/logout");
 		request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
 
-		ParseReply* pParseReply = new ParseReply(request, pNam);
+		ParseReply* pParseReply = new ParseReply(request, Parse::UserClassNameKey, pNam);
 		connect(pParseReply, &ParseReply::preFinished, this, &ParseUserRequest::logoutFinished);
 		return pParseReply;
 	}
@@ -109,7 +109,7 @@ namespace cg
 		ParseRequest request(ParseRequest::GetHttpMethod, "/users/me");
 		request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
 
-		ParseReply* pParseReply = new ParseReply(request, pNam);
+		ParseReply* pParseReply = new ParseReply(request, Parse::UserClassNameKey, pNam);
 		QObject::connect(pParseReply, &ParseReply::preFinished, this, &ParseUserRequest::becomeFinished);
 		return pParseReply;
 	}
@@ -135,7 +135,7 @@ namespace cg
 		ParseRequest request(ParseRequest::PostHttpMethod, "/users", content);
 		request.setHeader("X-Parse-Revocable-Session", "1");
 
-		ParseReply* pParseReply = new ParseReply(request, pNam);
+		ParseReply* pParseReply = new ParseReply(request, Parse::UserClassNameKey, pNam);
 		connect(pParseReply, &ParseReply::preFinished, this, &ParseUserRequest::signUpFinished);
 		_replyUserMap.insert(pParseReply, user);
 		return pParseReply;
@@ -167,7 +167,7 @@ namespace cg
 		ParseRequest request(ParseRequest::DeleteHttpMethod, "/users/" + user.objectId());
 		request.setHeader("X-Parse-Session-Token", user.sessionToken().toUtf8());
 
-		ParseReply* pParseReply = new ParseReply(request, pNam);
+		ParseReply* pParseReply = new ParseReply(request, Parse::UserClassNameKey, pNam);
 		connect(pParseReply, &ParseReply::preFinished, this, &ParseUserRequest::deleteUserFinished);
 		_replyUserMap.insert(pParseReply, user);
 		return pParseReply;

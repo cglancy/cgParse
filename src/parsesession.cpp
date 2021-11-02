@@ -36,7 +36,7 @@ namespace cg
     {
         ParseRequest request(ParseRequest::PostHttpMethod, "/logout");
         request.setHeader("X-Parse-Session-Token", sessionToken.toUtf8());
-        return new ParseReply(request, pNam);
+        return new ParseReply(request, Parse::SessionClassNameKey, pNam);
     }
 
     // static
@@ -48,7 +48,7 @@ namespace cg
 
         ParseRequest request(ParseRequest::GetHttpMethod, "parse/sessions/me");
         request.setHeader("X-Parse-Session-Token", currentUser.sessionToken().toUtf8());
-        return new ParseReply(request, pNam);
+        return new ParseReply(request, Parse::SessionClassNameKey, pNam);
     }
 
     ParseSession::ParseSession()

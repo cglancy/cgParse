@@ -51,9 +51,12 @@ namespace cg
         }
 
     public:
-        ParseQuery()
+        ParseQuery(const QString& className = QString())
         {
-            _pImpl = QSharedPointer<ParseQueryImpl>::create(classNameFromType<T>());
+            if (!className.isEmpty())
+                _pImpl = QSharedPointer<ParseQueryImpl>::create(className);
+            else
+                _pImpl = QSharedPointer<ParseQueryImpl>::create(classNameFromType<T>());
         }
 
         ParseQuery(const QString &relationClassName, const QString &relationObjectId, const QString &relationKey)
