@@ -119,7 +119,7 @@ namespace cg
 
         void setObject(const QString &key, const ParseObject& object)
         {
-            setValue(key, QVariant::fromValue(object));
+            setValue(key, QVariant::fromValue<ParseObject>(object));
         }
 
         template <class T>

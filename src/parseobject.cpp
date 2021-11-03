@@ -245,12 +245,12 @@ namespace cg
 
     ParseUser ParseObject::user(const QString & key) const
     {
-        return value(key).value<ParseUser>();
+        return value(key).value<ParseObject>();
     }
 
     void ParseObject::setUser(const QString & key, const ParseUser& user)
     {
-        setValue(key, QVariant::fromValue(user));
+        setValue(key, QVariant::fromValue<ParseObject>(user));
     }
 
     QDateTime ParseObject::dateTime(const QString & key) const
