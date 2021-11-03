@@ -492,8 +492,14 @@ void ParseTest::testVariant()
 
     QVariant variant = QVariant::fromValue(object);
     ParseObject object2 = variant.value<ParseObject>();
-    QVERIFY(object == object2);
     QCOMPARE(object2.value("name").toString(), QString("testObject1"));
+
+    ParseUser user = ParseUser::create();
+    user.setUsername("testUser");
+
+    QVariant userVariant = QVariant::fromValue(user);
+    ParseUser user2 = userVariant.value<ParseUser>();
+    QCOMPARE(user2.username(), QString("testUser"));
 }
 
 void ParseTest::testDateTime()
@@ -616,15 +622,20 @@ void ParseTest::testObject()
     ParseDateTime pdt(dateTime);
     ParseGeoPoint portland(45.5122, -122.6587);
 
+    ParseUser user = ParseUser::create();
+    user.setUsername("testUser");
+
     ParseObject gameScore = ParseObject("TestGameScore");
     gameScore.setValue("score", 1337);
     gameScore.setValue("playerName", "Sean Plott");
     gameScore.setDateTime("date", dateTime);
     gameScore.setGeoPoint("location", portland);
+    gameScore.setUser("user", user);
 
     QVERIFY(gameScore.objectId().isEmpty());
     QCOMPARE(gameScore.isDirty(), true);
     QCOMPARE(gameScore.value("score").toInt(), 1337);
+    QCOMPARE(gameScore.user("user").username(), "testUser");
 
     ParseReply *pSave1Reply = gameScore.save();
     QSignalSpy save1Spy(pSave1Reply, &ParseReply::finished);
@@ -638,6 +649,7 @@ void ParseTest::testObject()
     QCOMPARE(gameScore.value("score").toInt(), 1337);
     QCOMPARE(gameScore.value("playerName").toString(), QString("Sean Plott"));
     QCOMPARE(gameScore.dateTime("date"), dateTime);
+    QCOMPARE(gameScore.user("user").username(), "testUser");
 
     ParseGeoPoint location = gameScore.geoPoint("location");
     QVERIFY(portland.distanceInMilesTo(location) < 1.e-6);

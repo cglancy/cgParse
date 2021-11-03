@@ -235,7 +235,7 @@ namespace cg
 
     ParseFile ParseObject::file(const QString &key) const
     {
-        return _pImpl ? _pImpl->valueMap.value(key).value<ParseFile>() : ParseFile();
+        return value(key).value<ParseFile>();
     }
 
     void ParseObject::setFile(const QString &key, const ParseFile& file)
@@ -245,8 +245,7 @@ namespace cg
 
     ParseUser ParseObject::user(const QString & key) const
     {
-        ParseObject object = value(key).value<ParseObject>();
-        return static_cast<ParseUser>(object);
+        return value(key).value<ParseUser>();
     }
 
     void ParseObject::setUser(const QString & key, const ParseUser& user)
