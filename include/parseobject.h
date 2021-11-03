@@ -200,56 +200,6 @@ namespace cg
             return list;
         }
 
-        void addObject(const QString &key, const ParseObject& object)
-        {
-            add(key, QVariant::fromValue(object));
-        }
-
-        void addUniqueObject(const QString &key, const ParseObject& object)
-        {
-            addUnique(key, QVariant::fromValue(object));
-        }
-
-        template <class T>
-        void addAllObjects(const QString &key, const QList<T> &objectList)
-        {
-            QVariantList variantList;
-            for (auto & object : objectList)
-            {
-                variantList.append(QVariant::fromValue(object));
-            }
-            addAll(key, variantList);
-        }
-
-        template <class T>
-        void addAllUniqueObjects(const QString &key, const QList<T> &objectList)
-        {
-            QVariantList variantList;
-            for (auto & object : objectList)
-            {
-                variantList.append(QVariant::fromValue(object));
-            }
-            addAllUnique(key, variantList);
-        }
-
-        void removeObject(const QString& key, const ParseObject& object)
-        {
-            QVariantList variantList;
-            variantList.append(QVariant::fromValue(object));
-            removeAll(key, variantList);
-        }
-
-        template <class T>
-        void removeAllObjects(const QString &key, const QList<T> &objectList)
-        {
-            QVariantList variantList;
-            for (auto & object : objectList)
-            {
-                variantList.append(QVariant::fromValue(object));
-            }
-            removeAll(key, variantList);
-        }
-
         template <class T>
         QList<T> objects(const QString &key) const
         {

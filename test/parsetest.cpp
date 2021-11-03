@@ -779,8 +779,12 @@ void ParseTest::testObjectReferenceSave()
     QVERIFY(delete3Spy.wait(SPY_WAIT));
 }
 
-void ParseTest::testObjectArraySave()
+
+void ParseTest::testObjectSetObject()
 {
+    episode4.setObject("villian", vader);
+    TestCharacter villian = episode4.object<TestCharacter>("villian");
+    QVERIFY(vader == villian);
 }
 
 void ParseTest::testQueryNamespace()

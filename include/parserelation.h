@@ -38,7 +38,13 @@ namespace cg
         }
 
         void add(const T& object) { _addList.append(object); }
+        void addAll(const QList<T>& objects) { _addList.append(objects); }
         void remove(const T& object) { _removeList.append(object); }
+        void removeAll(const QList<T>& objects)
+        {
+            for (auto const& object : objects)
+                _removeList.removeOne(object);
+        }
 
         const QList<T> & addList() const { return _addList; }
         const QList<T> & removeList() const { return _removeList; }
