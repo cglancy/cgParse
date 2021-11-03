@@ -52,6 +52,21 @@ namespace cg
         }
     }
 
+    ParseFile::ParseFile(const QString& name, const QString& url)
+    {
+        _pImpl = QSharedPointer<ParseFileImpl>::create();
+
+        _pImpl->name = name;
+        _pImpl->url = url;
+
+        QFileInfo fi(name);
+        QString extension = fi.suffix();
+        if (extension == "jpg" || extension == "jpeg")
+            _pImpl->contentType = "image/jpeg";
+        else if (extension == "png")
+            _pImpl->contentType = "image/png";
+    }
+
     ParseFile::ParseFile(const QString &name, const QByteArray &data, const QString &contentType)
     {
         _pImpl = QSharedPointer<ParseFileImpl>::create();

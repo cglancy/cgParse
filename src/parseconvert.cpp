@@ -180,11 +180,12 @@ namespace cg
             QVariantMap map = variant.toMap();
             if (map.contains(Parse::TypeKey) && map.value(Parse::TypeKey).toString() == Parse::FileValue)
             {
-                if (map.contains("name"))
-                    file.setName(map.value("name").toString());
-
-                if (map.contains("url"))
-                    file.setUrl(map.value("url").toString());
+                if (map.contains("name") && map.contains("url"))
+                {
+                    QString name = map.value("name").toString();
+                    QString url = map.value("url").toString();
+                    file = ParseFile(name, url);
+                }
             }
         }
 

@@ -39,6 +39,7 @@ namespace cg
     public:
         ParseFile();
         ParseFile(const QString &localPath);
+        ParseFile(const QString& name, const QString& url);
         ParseFile(const QString &name, const QByteArray &data, const QString &contentType);
         ParseFile(const ParseFile& file);
         ~ParseFile();

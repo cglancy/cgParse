@@ -51,6 +51,9 @@ namespace cg
 
     ParseGeoPoint::ParseGeoPoint()
     {
+        insert(Parse::TypeKey, Parse::GeoPointValue);
+        insert(Parse::LatitudeKey, 0.);
+        insert(Parse::LongitudeKey, 0.);
     }
 
     ParseGeoPoint::ParseGeoPoint(double latitude, double longitude)
