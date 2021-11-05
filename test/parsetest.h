@@ -165,6 +165,8 @@ private slots:
     void testLiveQueryClient();
 	void testLiveQueryModel();
 
+    void testGraphQL();
+
 private:
     TestMovie episode1, episode2, episode3, episode4, episode5, episode6, episode7, episode8, rogue1;
     TestCharacter leia, han, obiwan, yoda, luke, palpatine, anakin, vader, quigon, nute, 

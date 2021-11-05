@@ -19,6 +19,7 @@ HEADERS +=  \
 	../include/parseerror.h \
 	../include/parsefile.h \
 	../include/parsegeopoint.h \
+	../include/parsegraphql.h \
 	../include/parselivequeryclient.h \
 	../include/parselivequerymodel.h \
 	../include/parselivequerysubscription.h \
@@ -50,6 +51,7 @@ SOURCES += parse.cpp \
 	parsefileimpl.cpp \
 	parsefilerequest.cpp \
 	parsegeopoint.cpp \
+	parsegraphql.cpp \
 	parselivequeryclient.cpp \
 	parselivequerymodel.cpp \
 	parselivequerysubscription.cpp \

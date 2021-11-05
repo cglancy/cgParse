@@ -28,6 +28,7 @@
 #include "parselivequerysubscription.h"
 #include "parsequerymodel.h"
 #include "parselivequerymodel.h"
+#include "parsegraphql.h"
 
 #include <QTimer>
 #include <QFile>
@@ -281,7 +282,7 @@ void ParseTest::initTestCase()
     QCoreApplication::setApplicationName("ParseTest");
     QCoreApplication::setApplicationVersion("0.1");
 
-    ParseClient::get()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, PARSE_SERVER_URL);
+    ParseClient::get()->initialize(PARSE_APPLICATION_ID, PARSE_CLIENT_API_KEY, PARSE_MASTER_KEY, PARSE_SERVER_URL);
 
     QByteArray testDir = qgetenv("CGPARSE_TEST_DIR");
     QVERIFY(!testDir.isEmpty());
@@ -1101,5 +1102,21 @@ void ParseTest::testLiveQueryModel()
 	QSignalSpy deleteEventSpy(pQueryModel.data(), &ParseLiveQueryModel::rowsRemoved);
 	QVERIFY(deleteEventSpy.wait(SPY_WAIT));
 #endif
+}
+
+void ParseTest::testGraphQL()
+{
+    ParseGraphQL query("query FindTestMovie { testMovies { count } }");
+    ParseReply* reply = new ParseReply(query);
+
+    QSignalSpy querySpy(reply, &ParseReply::finished);
+    QVERIFY(querySpy.wait(SPY_WAIT));
+
+    QVariantMap result = reply->graphQLResult();
+    QVariantMap dataMap = result.value("data").toMap();
+    QVariantMap moviesMap = dataMap.value("testMovies").toMap();
+    int count = moviesMap.value("count").toInt();
+
+    QCOMPARE(count, 9);
 }
 

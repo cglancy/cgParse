@@ -13,41 +13,55 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSECLIENT_H
-#define CGPARSE_PARSECLIENT_H
+#ifndef CGPARSE_PARSEGRAPHQL_H
+#define CGPARSE_PARSEGRAPHQL_H
 #pragma once
 
-#include "parse.h"
+#include <QVariant>
 #include <QByteArray>
+#include <QUrlQuery>
+#include <QNetworkRequest>
 
+class QNetworkReply;
 class QNetworkAccessManager;
 
 namespace cg
 {
-    class CGPARSE_API ParseClient
+    class ParseGraphQL
     {
     public:
-        static ParseClient * get();
-        static QNetworkAccessManager* networkAccessManager();
+        static const QString JsonContentType;
+        static QByteArray userAgent();
 
     public:
-        void initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &masterKey, const QByteArray &serverUrl);
-        QByteArray applicationId() const;
-        QByteArray clientKey() const;
-        QByteArray masterKey() const;
-        QByteArray serverUrl() const;
-        bool isLoggingEnabled() const;
-        void setLoggingEnabled(bool enabled);
+        ParseGraphQL(const QString& queryStr, const QString& operationStr = QString(), const QVariantMap& variables = QVariantMap());
+        ParseGraphQL(const ParseGraphQL&request);
+
+        ParseGraphQL& operator=(const ParseGraphQL&request);
+
+        QString contentType() const;
+        void setContentType(const QString &contentType);
+
+        QByteArray content() const;
+
+        QByteArray header(const QByteArray &header) const;
+        void setHeader(const QByteArray &header, const QByteArray &value);
+        void removeHeader(const QByteArray &header);
+
+        QNetworkReply * sendRequest(QNetworkAccessManager *pNam) const;
 
     private:
-        ParseClient();
-        ~ParseClient();
+        void init();
+        QString fullUrl() const;
+        void logRequest() const;
+        QNetworkRequest networkRequest() const;
 
-        static ParseClient *_pInstance;
-        static QNetworkAccessManager *_pNetworkAccessManager;
-        QByteArray _appId, _clientKey, _masterKey, _serverUrl;
-        bool _loggingEnabled;
+    private:
+        QString _contentType;
+        QString _query, _operation;
+        QVariantMap _variableMap;
+        QMap<QByteArray, QByteArray> _headers;
     };
 }
 
-#endif // CGPARSE_PARSECLIENT_H
+#endif // CGPARSE_PARSEGRAPHQL_H

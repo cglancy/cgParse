@@ -20,6 +20,7 @@
 #include "parseconvert.h"
 #include "parserequest.h"
 #include "parseclient.h"
+#include "parsegraphql.h"
 
 #include <QNetworkReply>
 #include <QJsonDocument>
@@ -57,6 +58,14 @@ namespace cg
         sendRequest(request, pNam);
     }
 
+    ParseReply::ParseReply(const ParseGraphQL& graphQL, QNetworkAccessManager* pNam)
+        : _pReply(nullptr)
+        , _statusCode(0)
+        , _errorCode(NoError)
+    {
+        sendRequest(graphQL, pNam);
+    }
+
     ParseReply::~ParseReply()
     {
     }
@@ -66,6 +75,13 @@ namespace cg
         if (request.isNull())
             return;
 
+        _pReply = request.sendRequest(pNam);
+        if (_pReply)
+            connect(_pReply, &QNetworkReply::finished, this, &ParseReply::replyFinished);
+    }
+
+    void ParseReply::sendRequest(const ParseGraphQL& request, QNetworkAccessManager* pNam)
+    {
         _pReply = request.sendRequest(pNam);
         if (_pReply)
             connect(_pReply, &QNetworkReply::finished, this, &ParseReply::replyFinished);
@@ -187,6 +203,20 @@ namespace cg
     bool ParseReply::isError(int status)
     {
         return status >= 400 && status < 500;
+    }
+
+    QVariantMap ParseReply::graphQLResult() const
+    {
+        QVariantMap resultMap;
+
+        QJsonDocument doc = QJsonDocument::fromJson(constData());
+        if (doc.isObject())
+        {
+            QJsonObject obj = doc.object();
+            resultMap = obj.toVariantMap();
+        }
+
+        return resultMap;
     }
 
     int ParseReply::statusCode(QNetworkReply *pReply)

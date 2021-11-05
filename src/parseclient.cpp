@@ -48,10 +48,11 @@ namespace cg {
         return _pNetworkAccessManager;
     }
 
-    void ParseClient::initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray &serverUrl)
+    void ParseClient::initialize(const QByteArray &appId, const QByteArray &clientKey, const QByteArray& masterKey, const QByteArray &serverUrl)
     {
         _appId = appId;
         _clientKey = clientKey;
+        _masterKey = masterKey;
         _serverUrl = serverUrl;
     }
 
@@ -63,6 +64,11 @@ namespace cg {
     QByteArray ParseClient::clientKey() const
     {
         return _clientKey;
+    }
+
+    QByteArray ParseClient::masterKey() const
+    {
+        return _masterKey;
     }
 
     QByteArray ParseClient::serverUrl() const
