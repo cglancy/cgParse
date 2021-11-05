@@ -15,6 +15,7 @@
 */
 #include "parsegraphql.h"
 #include "parseclient.h"
+#include "parsereply.h"
 
 #include <QCoreApplication>
 #include <QNetworkAccessManager>
@@ -26,6 +27,11 @@
 namespace cg
 {
     const QString ParseGraphQL::JsonContentType = QStringLiteral("application/json");
+
+    ParseReply* ParseGraphQL::request(const QString& queryStr, const QString& operationStr, const QVariantMap& variables)
+    {
+        return new ParseReply(ParseGraphQL(queryStr, operationStr, variables));
+    }
 
     ParseGraphQL::ParseGraphQL(const QString& queryStr, const QString& operationStr, const QVariantMap& variableMap)
         : _query(queryStr)

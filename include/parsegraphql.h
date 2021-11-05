@@ -27,11 +27,15 @@ class QNetworkAccessManager;
 
 namespace cg
 {
+    class ParseReply;
+
     class ParseGraphQL
     {
     public:
         static const QString JsonContentType;
         static QByteArray userAgent();
+
+        static ParseReply* request(const QString& queryStr, const QString& operationStr = QString(), const QVariantMap& variables = QVariantMap());
 
     public:
         ParseGraphQL(const QString& queryStr, const QString& operationStr = QString(), const QVariantMap& variables = QVariantMap());
