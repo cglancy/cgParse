@@ -13,6 +13,7 @@ INCLUDEPATH += ../include
 HEADERS +=  \
 	../include/parse.h \
 	../include/parseacl.h \
+	../include/parseanalytics.h \
 	../include/parseclient.h \
 	../include/parseconvert.h \
 	../include/parsedatetime.h \
@@ -44,6 +45,7 @@ HEADERS +=  \
 	
 SOURCES += parse.cpp \
 	parseacl.cpp \
+	parseanalytics.cpp \
 	parseclient.cpp \
 	parseconvert.cpp \
 	parsedatetime.cpp \

@@ -1,7 +1,7 @@
-set QTDIR=C:\Qt\5.15.2\msvc2019_64
+set QTDIR=C:\Qt\5.15.8\msvc2019_64
 set VSDIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional
 
-set PARSE_ROOT=C:\Users\cglancy\Documents\Bitbucket\cgParse
+set PARSE_ROOT=C:\Users\cglancy\GitHub\cgParse
 set PARSE_DEBUG_DIR=%PARSE_ROOT%\build\Windows\src\debug
 set PARSE_RELEASE_DIR=%PARSE_ROOT%\build\Windows\src\release
 set CGPARSE_TEST_DIR=%PARSE_ROOT%\test

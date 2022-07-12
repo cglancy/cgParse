@@ -29,6 +29,7 @@
 #include "parsequerymodel.h"
 #include "parselivequerymodel.h"
 #include "parsegraphql.h"
+#include "parseanalytics.h"
 
 #include <QTimer>
 #include <QFile>
@@ -1117,5 +1118,30 @@ void ParseTest::testGraphQL()
     int count = moviesMap.value("count").toInt();
 
     QCOMPARE(count, 9);
+}
+
+void ParseTest::testAnalytics()
+{
+    ParseReply *reply1 = ParseAnalytics::trackAppOpened();
+
+    QSignalSpy querySpy1(reply1, &ParseReply::finished);
+    QVERIFY(querySpy1.wait(SPY_WAIT));
+    QVERIFY(!reply1->isError());
+
+    QVariantMap variantMap;
+    variantMap.insert("test", "value");
+    QDateTime dateTime(QDate(2022, 2, 2), QTime(2, 22, 22));
+    ParseReply *reply2 = ParseAnalytics::trackEvent("event1", variantMap, dateTime);
+
+    QSignalSpy querySpy2(reply2, &ParseReply::finished);
+    QVERIFY(querySpy2.wait(SPY_WAIT));
+    QVERIFY(!reply2->isError());
+
+    int errorCode = 1;
+    ParseReply *reply3 = ParseAnalytics::trackError(errorCode);
+
+    QSignalSpy querySpy3(reply3, &ParseReply::finished);
+    QVERIFY(querySpy3.wait(SPY_WAIT));
+    QVERIFY(!reply3->isError());
 }
 

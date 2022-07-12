@@ -13,14 +13,14 @@
 * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef CGPARSE_PARSEGRAPHQL_H
-#define CGPARSE_PARSEGRAPHQL_H
+#ifndef CGPARSE_PARSEANALYTICS_H
+#define CGPARSE_PARSEANALYTICS_H
 #pragma once
 
-#include <QVariant>
+#include <QVariantMap>
 #include <QByteArray>
-#include <QUrlQuery>
 #include <QNetworkRequest>
+#include <QDateTime>
 
 class QNetworkReply;
 class QNetworkAccessManager;
@@ -29,18 +29,25 @@ namespace cg
 {
     class ParseReply;
 
-    class ParseGraphQL
+    class ParseAnalytics
     {
     public:
         static const QString JsonContentType;
+        static const QString AppOpenedEvent;
+        static const QString ErrorEvent;
+        static const int MaxDimensions;
+        static const int NoError;
 
-        static ParseReply* request(const QString& queryStr, const QString& operationStr = QString(), const QVariantMap& variables = QVariantMap());
+        static ParseReply* trackAppOpened(const QVariantMap& map = QVariantMap(), const QDateTime& dateTime = QDateTime());
+        static ParseReply* trackEvent(const QString& eventName, const QVariantMap& map = QVariantMap(), const QDateTime& dateTime = QDateTime());
+        static ParseReply* trackError(int errorCode, const QVariantMap& map = QVariantMap(), const QDateTime& dateTime = QDateTime());
 
     public:
-        ParseGraphQL(const QString& queryStr, const QString& operationStr = QString(), const QVariantMap& variables = QVariantMap());
-        ParseGraphQL(const ParseGraphQL&request);
+        ParseAnalytics(const QString& eventName, const QVariantMap& map, const QDateTime& dateTime);
+        ParseAnalytics(int errorCode, const QVariantMap& map, const QDateTime& dateTime);
+        ParseAnalytics(const ParseAnalytics &pa);
 
-        ParseGraphQL& operator=(const ParseGraphQL&request);
+        ParseAnalytics& operator=(const ParseAnalytics &pa);
 
         QString contentType() const;
         void setContentType(const QString &contentType);
@@ -51,7 +58,7 @@ namespace cg
         void setHeader(const QByteArray &header, const QByteArray &value);
         void removeHeader(const QByteArray &header);
 
-        QNetworkReply * sendRequest(QNetworkAccessManager *pNam) const;
+        QNetworkReply* sendRequest(QNetworkAccessManager *pNam) const;
 
     private:
         void init();
@@ -61,10 +68,12 @@ namespace cg
 
     private:
         QString _contentType;
-        QString _query, _operation;
+        QString _eventName;
+        int _errorCode;
         QVariantMap _variableMap;
+        QDateTime _dateTime;
         QMap<QByteArray, QByteArray> _headers;
     };
 }
 
-#endif // CGPARSE_PARSEGRAPHQL_H
+#endif // CGPARSE_PARSEANALYTICS_H

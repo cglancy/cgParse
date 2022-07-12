@@ -37,6 +37,7 @@ namespace cg
     class ParseUser;
     class ParseSession;
     class ParseGraphQL;
+    class ParseAnalytics;
 
     class CGPARSE_API ParseReply : public QObject
     {
@@ -46,10 +47,12 @@ namespace cg
         ParseReply(const ParseRequest& request, QNetworkAccessManager* pNam);
         ParseReply(const ParseRequest &request, const QString& className, QNetworkAccessManager* pNam);
         ParseReply(const ParseGraphQL& graphQL, QNetworkAccessManager* pNam = nullptr);
+        ParseReply(const ParseAnalytics& analytics, QNetworkAccessManager* pNam = nullptr);
         virtual ~ParseReply();
 
         void sendRequest(const ParseRequest &request, QNetworkAccessManager* pNam);
         void sendRequest(const ParseGraphQL& request, QNetworkAccessManager* pNam);
+        void sendRequest(const ParseAnalytics& request, QNetworkAccessManager* pNam);
 
         QString className() const;
         bool isError() const;

@@ -16,6 +16,7 @@
 #include "parsegraphql.h"
 #include "parseclient.h"
 #include "parsereply.h"
+#include "parserequest.h"
 
 #include <QCoreApplication>
 #include <QNetworkAccessManager>
@@ -63,7 +64,7 @@ namespace cg
 
     void ParseGraphQL::init()
     {
-        _headers.insert("User-Agent", userAgent());
+        _headers.insert("User-Agent", ParseRequest::userAgent());
         _headers.insert("X-Parse-Application-Id", ParseClient::get()->applicationId());
         _headers.insert("X-Parse-Master-Key", ParseClient::get()->masterKey());
         _headers.insert("X-Parse-Client-Key", ParseClient::get()->clientKey());
@@ -72,11 +73,6 @@ namespace cg
     QString ParseGraphQL::fullUrl() const
     {
         return ParseClient::get()->serverUrl() + "graphql";
-    }
-
-    QByteArray ParseGraphQL::userAgent()
-    {
-        return QString("%1 %2").arg(QCoreApplication::applicationName(), QCoreApplication::applicationVersion()).toUtf8();
     }
 
     QString ParseGraphQL::contentType() const

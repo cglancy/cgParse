@@ -21,6 +21,7 @@
 #include "parserequest.h"
 #include "parseclient.h"
 #include "parsegraphql.h"
+#include "parseanalytics.h"
 
 #include <QNetworkReply>
 #include <QJsonDocument>
@@ -66,6 +67,11 @@ namespace cg
         sendRequest(graphQL, pNam);
     }
 
+    ParseReply::ParseReply(const ParseAnalytics& analytics, QNetworkAccessManager* pNam)
+    {
+        sendRequest(analytics, pNam);
+    }
+
     ParseReply::~ParseReply()
     {
     }
@@ -81,6 +87,13 @@ namespace cg
     }
 
     void ParseReply::sendRequest(const ParseGraphQL& request, QNetworkAccessManager* pNam)
+    {
+        _pReply = request.sendRequest(pNam);
+        if (_pReply)
+            connect(_pReply, &QNetworkReply::finished, this, &ParseReply::replyFinished);
+    }
+
+    void ParseReply::sendRequest(const ParseAnalytics& request, QNetworkAccessManager* pNam)
     {
         _pReply = request.sendRequest(pNam);
         if (_pReply)
