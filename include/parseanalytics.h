@@ -17,22 +17,16 @@
 #define CGPARSE_PARSEANALYTICS_H
 #pragma once
 
-#include <QVariantMap>
-#include <QByteArray>
-#include <QNetworkRequest>
+#include "parserequest.h"
 #include <QDateTime>
-
-class QNetworkReply;
-class QNetworkAccessManager;
 
 namespace cg
 {
     class ParseReply;
 
-    class ParseAnalytics
+    class ParseAnalytics : public ParseRequest
     {
     public:
-        static const QString JsonContentType;
         static const QString AppOpenedEvent;
         static const QString ErrorEvent;
         static const int MaxDimensions;
@@ -42,37 +36,8 @@ namespace cg
         static ParseReply* trackEvent(const QString& eventName, const QVariantMap& map = QVariantMap(), const QDateTime& dateTime = QDateTime());
         static ParseReply* trackError(int errorCode, const QVariantMap& map = QVariantMap(), const QDateTime& dateTime = QDateTime());
 
-    public:
-        ParseAnalytics(const QString& eventName, const QVariantMap& map, const QDateTime& dateTime);
-        ParseAnalytics(int errorCode, const QVariantMap& map, const QDateTime& dateTime);
-        ParseAnalytics(const ParseAnalytics &pa);
-
-        ParseAnalytics& operator=(const ParseAnalytics &pa);
-
-        QString contentType() const;
-        void setContentType(const QString &contentType);
-
-        QByteArray content() const;
-
-        QByteArray header(const QByteArray &header) const;
-        void setHeader(const QByteArray &header, const QByteArray &value);
-        void removeHeader(const QByteArray &header);
-
-        QNetworkReply* sendRequest(QNetworkAccessManager *pNam) const;
-
     private:
-        void init();
-        QString fullUrl() const;
-        void logRequest() const;
-        QNetworkRequest networkRequest() const;
-
-    private:
-        QString _contentType;
-        QString _eventName;
-        int _errorCode;
-        QVariantMap _variableMap;
-        QDateTime _dateTime;
-        QMap<QByteArray, QByteArray> _headers;
+        ParseAnalytics(const QString& eventName, int errorCode, const QVariantMap& map, const QDateTime& dateTime);
     };
 }
 

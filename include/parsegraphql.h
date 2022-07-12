@@ -17,53 +17,19 @@
 #define CGPARSE_PARSEGRAPHQL_H
 #pragma once
 
-#include <QVariant>
-#include <QByteArray>
-#include <QUrlQuery>
-#include <QNetworkRequest>
-
-class QNetworkReply;
-class QNetworkAccessManager;
+#include "parserequest.h"
 
 namespace cg
 {
     class ParseReply;
 
-    class ParseGraphQL
+    class ParseGraphQL : public ParseRequest
     {
     public:
-        static const QString JsonContentType;
+        static ParseReply* query(const QString& queryStr, const QString& operationStr = QString(), const QVariantMap& variables = QVariantMap());
 
-        static ParseReply* request(const QString& queryStr, const QString& operationStr = QString(), const QVariantMap& variables = QVariantMap());
-
-    public:
+    private:
         ParseGraphQL(const QString& queryStr, const QString& operationStr = QString(), const QVariantMap& variables = QVariantMap());
-        ParseGraphQL(const ParseGraphQL&request);
-
-        ParseGraphQL& operator=(const ParseGraphQL&request);
-
-        QString contentType() const;
-        void setContentType(const QString &contentType);
-
-        QByteArray content() const;
-
-        QByteArray header(const QByteArray &header) const;
-        void setHeader(const QByteArray &header, const QByteArray &value);
-        void removeHeader(const QByteArray &header);
-
-        QNetworkReply * sendRequest(QNetworkAccessManager *pNam) const;
-
-    private:
-        void init();
-        QString fullUrl() const;
-        void logRequest() const;
-        QNetworkRequest networkRequest() const;
-
-    private:
-        QString _contentType;
-        QString _query, _operation;
-        QVariantMap _variableMap;
-        QMap<QByteArray, QByteArray> _headers;
     };
 }
 

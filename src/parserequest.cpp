@@ -131,6 +131,11 @@ namespace cg
         return _content;
     }
 
+    void ParseRequest::setContent(const QByteArray& content)
+    {
+        _content = content;
+    }
+
     QByteArray ParseRequest::header(const QByteArray & header) const
     {
         return _headers.value(header);

@@ -1107,7 +1107,7 @@ void ParseTest::testLiveQueryModel()
 
 void ParseTest::testGraphQL()
 {
-    ParseReply* reply = ParseGraphQL::request("query FindTestMovie { testMovies { count } }");
+    ParseReply* reply = ParseGraphQL::query("query FindTestMovie { testMovies { count } }");
 
     QSignalSpy querySpy(reply, &ParseReply::finished);
     QVERIFY(querySpy.wait(SPY_WAIT));

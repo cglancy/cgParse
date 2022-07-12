@@ -18,147 +18,43 @@
 #include "parsereply.h"
 #include "parserequest.h"
 
-#include <QCoreApplication>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDebug>
 
 namespace cg
 {
-    const QString ParseGraphQL::JsonContentType = QStringLiteral("application/json");
-
-    ParseReply* ParseGraphQL::request(const QString& queryStr, const QString& operationStr, const QVariantMap& variables)
+    ParseReply* ParseGraphQL::query(const QString& queryStr, const QString& operationStr, const QVariantMap& variables)
     {
         return new ParseReply(ParseGraphQL(queryStr, operationStr, variables));
     }
 
     ParseGraphQL::ParseGraphQL(const QString& queryStr, const QString& operationStr, const QVariantMap& variableMap)
-        : _query(queryStr)
-        , _operation(operationStr)
-        , _variableMap(variableMap)
-        , _contentType(JsonContentType)
     {
-        init();
-    }
+        setApiRoute("graphql");
+        setHttpMethod(PostHttpMethod);
+        setContentType(JsonContentType);
 
-    ParseGraphQL::ParseGraphQL(const ParseGraphQL & request)
-    {
-        _contentType = request._contentType;
-        _query = request._query;
-        _operation = request._operation;
-        _variableMap = request._variableMap;
-        _headers = request._headers;
-    }
+        setHeader("User-Agent", ParseRequest::userAgent());
+        setHeader("X-Parse-Application-Id", ParseClient::get()->applicationId());
+        setHeader("X-Parse-Master-Key", ParseClient::get()->masterKey());
+        setHeader("X-Parse-Client-Key", ParseClient::get()->clientKey());
 
-    ParseGraphQL & ParseGraphQL::operator=(const ParseGraphQL &request)
-    {
-        _contentType = request._contentType;
-        _query = request._query;
-        _operation = request._operation;
-        _variableMap = request._variableMap;
-        _headers = request._headers;
-        return *this;
-    }
-
-    void ParseGraphQL::init()
-    {
-        _headers.insert("User-Agent", ParseRequest::userAgent());
-        _headers.insert("X-Parse-Application-Id", ParseClient::get()->applicationId());
-        _headers.insert("X-Parse-Master-Key", ParseClient::get()->masterKey());
-        _headers.insert("X-Parse-Client-Key", ParseClient::get()->clientKey());
-    }
-
-    QString ParseGraphQL::fullUrl() const
-    {
-        return ParseClient::get()->serverUrl() + "graphql";
-    }
-
-    QString ParseGraphQL::contentType() const
-    {
-        return _contentType;
-    }
-
-    void ParseGraphQL::setContentType(const QString &contentType)
-    {
-        _contentType = contentType;
-    }
-
-    QByteArray ParseGraphQL::content() const
-    {
         QJsonObject jsonObject;
-        jsonObject["query"] = _query;
+        jsonObject["query"] = queryStr;
 
-        if (!_operation.isEmpty())
-            jsonObject["operationName"] = _operation;
+        if (!operationStr.isEmpty())
+            jsonObject["operationName"] = operationStr;
 
-        if (!_variableMap.isEmpty())
+        if (!variableMap.isEmpty())
         {
-            QJsonObject variableObject = QJsonObject::fromVariantMap(_variableMap);
+            QJsonObject variableObject = QJsonObject::fromVariantMap(variableMap);
             jsonObject["variables"] = variableObject;
         }
 
         QJsonDocument doc;
         doc.setObject(jsonObject);
-        
-        return doc.toJson();
-    }
 
-    QByteArray ParseGraphQL::header(const QByteArray & header) const
-    {
-        return _headers.value(header);
-    }
-
-    void ParseGraphQL::setHeader(const QByteArray & header, const QByteArray & value)
-    {
-        _headers.insert(header, value);
-    }
-
-    void ParseGraphQL::removeHeader(const QByteArray & header)
-    {
-        _headers.remove(header);
-    }
-
-    QNetworkRequest ParseGraphQL::networkRequest() const
-    {
-        QUrl url(fullUrl());
-        QNetworkRequest request(url);
-
-        if (!_contentType.isEmpty())
-            request.setHeader(QNetworkRequest::ContentTypeHeader, _contentType.toUtf8());
-
-        for (auto & header : _headers.keys())
-            request.setRawHeader(header, _headers.value(header));
-
-        return request;
-    }
-
-    QNetworkReply* ParseGraphQL::sendRequest(QNetworkAccessManager *pNam) const
-    {
-        QNetworkReply *pReply = nullptr;
-
-        if (ParseClient::get()->isLoggingEnabled())
-            logRequest();
-
-        if (!pNam)
-            pNam = ParseClient::networkAccessManager();
-
-        pReply = pNam->post(networkRequest(), content());
-
-        return pReply;
-    }
-
-    void ParseGraphQL::logRequest() const
-    {
-        QString method = "POST";
-
-        qDebug() << QString("Network Request: %1 %2").arg(method, fullUrl());
-        
-        for (auto const& key : _headers.keys())
-            qDebug() << "Header " << key << ": " << _headers.value(key);
-
-        qDebug() << "Content Type " << _contentType;
-        qDebug().noquote() << content();
+        setContent(doc.toJson());
     }
 }

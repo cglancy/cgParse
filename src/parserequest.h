@@ -48,6 +48,7 @@ namespace cg
         ParseRequest(HttpMethod method, const QString &apiRoute, const QByteArray &content,
             const QString &contentType = JsonContentType);
         ParseRequest(const ParseRequest &request);
+        virtual ~ParseRequest() = default;
 
         ParseRequest & operator=(const ParseRequest &request);
 
@@ -66,6 +67,7 @@ namespace cg
         void setApiRoute(const QString &apiRoute);
 
         QByteArray content() const;
+        void setContent(const QByteArray& content);
 
         QByteArray header(const QByteArray &header) const;
         void setHeader(const QByteArray &header, const QByteArray &value);
