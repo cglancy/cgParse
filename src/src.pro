@@ -33,6 +33,7 @@ HEADERS +=  \
 	../include/parsequerymodel.h \
 	../include/parserelation.h \
 	../include/parsereply.h \
+	../include/parserequest.h \
 	../include/parserole.h \
 	../include/parsesession.h \
 	../include/parseuser.h \
@@ -40,7 +41,6 @@ HEADERS +=  \
 	parsefilerequest.h \
 	parseobjectimpl.h \
 	parseobjectrequest.h \
-	parserequest.h \
 	parseuserrequest.h
 	
 SOURCES += parse.cpp \
