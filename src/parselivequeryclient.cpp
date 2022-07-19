@@ -16,6 +16,7 @@
 #include "parselivequeryclient.h"
 #include "parselivequerysubscription.h"
 #include "parseconvert.h"
+#include "parseclient.h"
 
 #include <QJsonDocument>
 #include <QDebug>
@@ -70,14 +71,16 @@ namespace cg {
     {
         if (_webSocket.state() != QAbstractSocket::ConnectedState)
         {
-            qDebug() << "Error: WebSocket is not connected.";
+            if (ParseClient::get()->isLoggingEnabled())
+                qDebug() << "Error: WebSocket is not connected.";
             return;
         }
 
         QJsonDocument doc(jsonObject);
         QByteArray byteArray = doc.toJson(QJsonDocument::Compact);
 
-        qDebug() << "ParseLiveQueryClient::sendJsonObject() " << byteArray;
+        if (ParseClient::get()->isLoggingEnabled())
+            qDebug() << "ParseLiveQueryClient::sendJsonObject() " << byteArray;
 
         _webSocket.sendTextMessage(byteArray);
     }
@@ -134,7 +137,8 @@ namespace cg {
 
     void ParseLiveQueryClient::textMessageReceived(const QString & message)
     {
-        qDebug() << "ParseLiveQueryClient::textMessageReceived() " << message;
+        if (ParseClient::get()->isLoggingEnabled())
+            qDebug() << "ParseLiveQueryClient::textMessageReceived() " << message;
 
         QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
         if (doc.isObject())
