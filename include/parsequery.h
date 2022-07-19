@@ -206,6 +206,41 @@ namespace cg
             return *this;
         }
 
+        QJsonObject whereObject() const
+        {
+            return _pImpl->whereObject;
+        }
+
+        template <class T2>
+        ParseQuery<T>& whereInQuery(const QString& key, const ParseQuery<T2>& q2)
+        {
+            QJsonObject queryObject;
+            queryObject.insert("where", q2.whereObject());
+            queryObject.insert("className", q2.className());
+
+            QJsonObject keyObject;
+            keyObject.insert("$inQuery", queryObject);
+
+            _pImpl->whereObject.insert(key, keyObject);
+
+            return *this;
+        }
+
+        template <class T2>
+        ParseQuery<T>& whereNotInQuery(const QString& key, const ParseQuery<T2>& q2)
+        {
+            QJsonObject queryObject;
+            queryObject.insert("where", q2.whereObject());
+            queryObject.insert("className", q2.className());
+
+            QJsonObject keyObject;
+            keyObject.insert("$notInQuery", queryObject);
+
+            _pImpl->whereObject.insert(key, keyObject);
+
+            return *this;
+        }
+
         void clear(const QString &key)
         {
             _pImpl->whereObject.remove(key);

@@ -159,6 +159,8 @@ private slots:
     void testQueryFullText();
     void testQueryOr();
     void testQueryModel();
+    void testQueryInQuery();
+    void testQueryNotInQuery();
 
     void testFile();
 

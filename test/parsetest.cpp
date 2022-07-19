@@ -300,11 +300,13 @@ void ParseTest::initTestCase()
     deleteTestObjects();
     createTestObjects();
 
+#ifdef TEST_LIVE_QUERY
 	ParseLiveQueryClient *pClient = ParseLiveQueryClient::get();
 
 	pClient->open(PARSE_APPLICATION_ID, PARSE_LIVEQUERY_URL, PARSE_CLIENT_API_KEY);
 	QSignalSpy openedSpy(pClient, &ParseLiveQueryClient::opened);
 	QVERIFY(openedSpy.wait(SPY_WAIT));
+#endif
 }
 
 void ParseTest::createTestObjects()
@@ -996,6 +998,52 @@ void ParseTest::testQueryModel()
     pFindReply->deleteLater();
 }
 
+void ParseTest::testQueryInQuery()
+{
+    auto query1 = ParseQuery<TestCharacter>();
+    query1.whereExists("picture");
+    ParseReply* reply1 = query1.find();
+    QSignalSpy spy1(reply1, &ParseReply::finished);
+    QVERIFY(spy1.wait(SPY_WAIT));
+    auto characterList = reply1->objects<TestCharacter>();
+
+    // luke and leia have pictures
+    QCOMPARE(characterList.size(), 2);
+
+    auto query2 = ParseQuery<TestQuote>();
+    query2.whereInQuery("character", query1);
+    ParseReply* reply2 = query2.find();
+    QSignalSpy sp2(reply2, &ParseReply::finished);
+    QVERIFY(sp2.wait(SPY_WAIT));
+    auto quoteList = reply2->objects<TestQuote>();
+
+    // 5 quotes by luke and leia
+    QCOMPARE(quoteList.size(), 5);
+}
+
+void ParseTest::testQueryNotInQuery()
+{
+    auto query1 = ParseQuery<TestCharacter>();
+    query1.whereExists("picture");
+    ParseReply* reply1 = query1.find();
+    QSignalSpy spy1(reply1, &ParseReply::finished);
+    QVERIFY(spy1.wait(SPY_WAIT));
+    auto characterList = reply1->objects<TestCharacter>();
+
+    // luke and leia have pictures
+    QCOMPARE(characterList.size(), 2);
+
+    auto query2 = ParseQuery<TestQuote>();
+    query2.whereNotInQuery("character", query1);
+    ParseReply* reply2 = query2.find();
+    QSignalSpy sp2(reply2, &ParseReply::finished);
+    QVERIFY(sp2.wait(SPY_WAIT));
+    auto quoteList = reply2->objects<TestQuote>();
+
+    // 5 quotes by luke and leia
+    QCOMPARE(quoteList.size(), 32-5);
+}
+
 void ParseTest::testFile()
 {
     QString imagePath = _testImagesDir.absolutePath() + "/star_wars.jpeg";
@@ -1027,7 +1075,7 @@ void ParseTest::testFile()
 
 void ParseTest::testLiveQueryClient()
 {
-#if 0
+#ifdef TEST_LIVE_QUERY
     QJsonObject whereObject;
     whereObject.insert("playerName", "Charles");
 
@@ -1069,7 +1117,7 @@ void ParseTest::testLiveQueryClient()
 
 void ParseTest::testLiveQueryModel()
 {
-#if 0
+#ifdef TEST_LIVE_QUERY
 	QVariantMap whereMap;
 	whereMap.insert("playerName", "Charles");
 
