@@ -1044,6 +1044,56 @@ void ParseTest::testQueryNotInQuery()
     QCOMPARE(quoteList.size(), 32-5);
 }
 
+void ParseTest::testQueryContainedIn()
+{
+    auto query1 = ParseQuery<TestQuote>();
+    QList<int> ranks;
+    ranks << 1 << 3 << 5;
+    query1.whereContainedIn("rank", ranks);
+    ParseReply* reply1 = query1.find();
+    QSignalSpy spy1(reply1, &ParseReply::finished);
+    QVERIFY(spy1.wait(SPY_WAIT));
+
+    auto list1 = reply1->objects<TestQuote>();
+    QCOMPARE(list1.size(), 3);
+
+    auto query2 = ParseQuery<TestCharacter>();
+    QStringList names;
+    names << "Luke Skywalker" << "Han Solo";
+    query2.whereContainedIn("name", names);
+    ParseReply* reply2 = query2.find();
+    QSignalSpy spy2(reply2, &ParseReply::finished);
+    QVERIFY(spy2.wait(SPY_WAIT));
+
+    auto list2 = reply2->objects<TestCharacter>();
+    QCOMPARE(list2.size(), 2);
+
+    auto query3 = ParseQuery<TestQuote>();
+    QList<ParseObject> movies;
+    movies << episode1 << episode2;
+    query3.whereContainedIn("movie", movies);
+    ParseReply* reply3 = query3.find();
+    QSignalSpy spy3(reply3, &ParseReply::finished);
+    QVERIFY(spy3.wait(SPY_WAIT));
+
+    auto list3 = reply3->objects<TestQuote>();
+    QCOMPARE(list3.size(), 8);
+}
+
+void ParseTest::testQueryNotContainedIn()
+{
+    auto query2 = ParseQuery<TestCharacter>();
+    QStringList names;
+    names << "Luke Skywalker" << "Han Solo";
+    query2.whereNotContainedIn("name", names);
+    ParseReply* reply2 = query2.find();
+    QSignalSpy spy2(reply2, &ParseReply::finished);
+    QVERIFY(spy2.wait(SPY_WAIT));
+
+    auto list2 = reply2->objects<TestCharacter>();
+    QCOMPARE(list2.size(), 18);
+}
+
 void ParseTest::testFile()
 {
     QString imagePath = _testImagesDir.absolutePath() + "/star_wars.jpeg";

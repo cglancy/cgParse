@@ -161,6 +161,8 @@ private slots:
     void testQueryModel();
     void testQueryInQuery();
     void testQueryNotInQuery();
+    void testQueryContainedIn();
+    void testQueryNotContainedIn();
 
     void testFile();
 

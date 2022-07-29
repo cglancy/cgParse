@@ -36,11 +36,11 @@ namespace cg
 
     signals:
         void subscribed();
-        void createEvent(const ParseObject& object);
-        void enterEvent(const ParseObject& object);
-        void leaveEvent(const ParseObject& object);
-        void updateEvent(const ParseObject& object);
-        void deleteEvent(const ParseObject& object);
+        void createEvent(const cg::ParseObject& object);
+        void enterEvent(const cg::ParseObject& object);
+        void leaveEvent(const cg::ParseObject& object);
+        void updateEvent(const cg::ParseObject& object);
+        void deleteEvent(const cg::ParseObject& object);
 
     private:
         int _id;

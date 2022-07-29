@@ -206,6 +206,58 @@ namespace cg
             return *this;
         }
 
+        template <class T2>
+        ParseQuery<T>& whereContainedIn(const QString& key, const QList<T2>& list)
+        {
+            QVariantList variantList;
+            for (auto & value : list)
+                variantList.append(value);
+
+            QJsonArray jsonArray = QJsonArray::fromVariantList(variantList);
+            QJsonObject inObject;
+            inObject.insert("$in", jsonArray);
+            _pImpl->whereObject.insert(key, inObject);
+            return *this;
+        }
+
+        ParseQuery<T>& whereContainedIn(const QString& key, const QList<ParseObject>& objectList)
+        {
+            QJsonArray jsonArray;
+            for (auto & object : objectList)
+                jsonArray.append(QJsonObject::fromVariantMap(object.toPointer().toMap()));
+
+            QJsonObject inObject;
+            inObject.insert("$in", jsonArray);
+            _pImpl->whereObject.insert(key, inObject);
+            return *this;
+        }
+
+        template <class T2>
+        ParseQuery<T>& whereNotContainedIn(const QString& key, const QList<T2>& list)
+        {
+            QVariantList variantList;
+            for (auto & value : list)
+                variantList.append(value);
+
+            QJsonArray jsonArray = QJsonArray::fromVariantList(variantList);
+            QJsonObject ninObject;
+            ninObject.insert("$nin", jsonArray);
+            _pImpl->whereObject.insert(key, ninObject);
+            return *this;
+        }
+
+        ParseQuery<T>& whereNotContainedIn(const QString& key, const QList<ParseObject>& objectList)
+        {
+            QJsonArray jsonArray;
+            for (auto & object : objectList)
+                jsonArray.append(QJsonObject::fromVariantMap(object.toPointer().toMap()));
+
+            QJsonObject inObject;
+            inObject.insert("$nin", jsonArray);
+            _pImpl->whereObject.insert(key, inObject);
+            return *this;
+        }
+
         QJsonObject whereObject() const
         {
             return _pImpl->whereObject;
