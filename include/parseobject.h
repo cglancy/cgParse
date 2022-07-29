@@ -37,6 +37,7 @@ namespace cg
     class ParseReply;
     class ParseFile;
     class ParseUser;
+    class ParseACL;
 
     class CGPARSE_API ParseObject
     {
@@ -110,6 +111,9 @@ namespace cg
 
         ParseGeoPoint geoPoint(const QString &key) const;
         void setGeoPoint(const QString &key, const ParseGeoPoint &geoPoint);
+
+        ParseACL ACL() const;
+        void setACL(const ParseACL& acl);
 
         template <class T>
         T object(const QString &key) const

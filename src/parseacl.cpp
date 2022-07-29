@@ -44,6 +44,11 @@ namespace cg
     {
     }
 
+    ParseACL::ParseACL(const QVariantMap& map)
+        : _map(map)
+    {
+    }
+
     ParseACL::ParseACL(const ParseUser& user)
     {
         if (!user.isNull())
@@ -91,9 +96,9 @@ namespace cg
     bool ParseACL::readAccess(const ParseUser& user) const
     {
         if (!user.isNull())
-            return false;
+            return readAccess(user.objectId());
 
-        return readAccess(user.objectId());
+        return false;
     }
 
     bool ParseACL::readAccess(const QString & userId) const
@@ -112,9 +117,9 @@ namespace cg
     bool ParseACL::writeAccess(const ParseUser& user) const
     {
         if (!user.isNull())
-            return false;
+            return writeAccess(user.objectId());
 
-        return writeAccess(user.objectId());
+        return false;
     }
 
     bool ParseACL::writeAccess(const QString & userId) const
@@ -136,6 +141,7 @@ namespace cg
         {
             QVariantMap publicMap = _map.value(Parse::PublicAccessKey).toMap();
             publicMap.insert(Parse::ReadKey, allowed);
+            _map.insert(Parse::PublicAccessKey, publicMap);
         }
         else
         {
@@ -151,6 +157,7 @@ namespace cg
         {
             QVariantMap publicMap = _map.value(Parse::PublicAccessKey).toMap();
             publicMap.insert(Parse::WriteKey, allowed);
+            _map.insert(Parse::PublicAccessKey, publicMap);
         }
         else
         {
@@ -172,6 +179,7 @@ namespace cg
         {
             QVariantMap userMap = _map.value(userId).toMap();
             userMap.insert(Parse::ReadKey, allowed);
+            _map.insert(userId, userMap);
         }
         else
         {
@@ -193,6 +201,7 @@ namespace cg
         {
             QVariantMap userMap = _map.value(userId).toMap();
             userMap.insert(Parse::WriteKey, allowed);
+            _map.insert(userId, userMap);
         }
         else
         {

@@ -165,6 +165,7 @@ private slots:
     void testQueryNotContainedIn();
 
     void testFile();
+    void testACL();
 
     void testLiveQueryClient();
 	void testLiveQueryModel();

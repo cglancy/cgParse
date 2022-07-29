@@ -21,6 +21,7 @@
 #include "parserelation.h"
 #include "parseobjectrequest.h"
 #include "parsedatetime.h"
+#include "parseacl.h"
 
 #include <QJsonObject>
 #include <QJsonArray>
@@ -281,6 +282,16 @@ namespace cg
     void ParseObject::setGeoPoint(const QString & key, const ParseGeoPoint & geoPoint)
     {
         setValue(key, geoPoint);
+    }
+
+    ParseACL ParseObject::ACL() const
+    {
+        return value(Parse::ACLKey).toMap();
+    }
+
+    void ParseObject::setACL(const ParseACL& acl)
+    {
+        setValue(Parse::ACLKey, acl.toMap());
     }
 
     bool ParseObject::contains(const QString &key) const

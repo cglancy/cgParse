@@ -30,6 +30,7 @@
 #include "parselivequerymodel.h"
 #include "parsegraphql.h"
 #include "parseanalytics.h"
+#include "parseacl.h"
 
 #include <QTimer>
 #include <QFile>
@@ -1121,6 +1122,45 @@ void ParseTest::testFile()
     QSignalSpy deleteSpy(pDeleteReply, &ParseReply::finished);
     QVERIFY(deleteSpy.wait(SPY_WAIT));
     pDeleteReply->deleteLater();
+}
+
+void ParseTest::testACL()
+{
+    ParseReply* pLoginReply = ParseUser::login("TestLogin", "Parse123");
+    QSignalSpy loginSpy(pLoginReply, &ParseReply::finished);
+    QVERIFY(loginSpy.wait(SPY_WAIT));
+
+    ParseUser user = ParseUser::currentUser();
+
+    vader.setACL(ParseACL(user));
+    ParseACL acl = vader.ACL();
+
+    QVERIFY(acl.readAccess(user));
+    QVERIFY(acl.writeAccess(user));
+
+    QVERIFY(!acl.publicReadAccess());
+    QVERIFY(!acl.publicWriteAccess());
+
+    ParseReply* reply1 = vader.save();
+    QSignalSpy spy1(reply1, &ParseReply::finished);
+    QVERIFY(spy1.wait(SPY_WAIT));
+
+    ParseACL publicACL;
+    publicACL.setPublicReadAccess(true);
+    publicACL.setPublicWriteAccess(true);
+    vader.setACL(publicACL);
+
+    ParseReply* reply2 = vader.save();
+    QSignalSpy spy2(reply2, &ParseReply::finished);
+    QVERIFY(spy2.wait(SPY_WAIT));
+
+    acl = vader.ACL();
+    QVERIFY(acl.publicReadAccess());
+    QVERIFY(acl.publicWriteAccess());
+
+    ParseReply* pLogoutReply = ParseUser::logout();
+    QSignalSpy logoutSpy(pLogoutReply, &ParseReply::finished);
+    QVERIFY(logoutSpy.wait(SPY_WAIT));
 }
 
 void ParseTest::testLiveQueryClient()

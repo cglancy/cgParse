@@ -32,6 +32,7 @@ namespace cg
 
     public:
         ParseACL();
+        ParseACL(const QVariantMap& map);
         ParseACL(const ParseUser& user);
         ParseACL(const ParseACL &acl);
         ~ParseACL();
