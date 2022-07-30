@@ -48,8 +48,10 @@ namespace cg
         void setPublicWriteAccess(bool allowed);
         void setReadAccess(const ParseUser& user, bool allowed);
         void setReadAccess(const QString& userId, bool allowed);
+        void setReadAccess(const QStringList& userIdList, bool allowed);
         void setWriteAccess(const ParseUser& user, bool allowed);
         void setWriteAccess(const QString& userId, bool allowed);
+        void setWriteAccess(const QStringList& userIdList, bool allowed);
 
         QVariantMap toMap() const;
 

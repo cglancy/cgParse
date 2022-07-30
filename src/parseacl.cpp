@@ -189,6 +189,12 @@ namespace cg
         }
     }
 
+    void ParseACL::setReadAccess(const QStringList& userIdList, bool allowed)
+    {
+        for (auto const& userId : userIdList)
+            setReadAccess(userId, allowed);
+    }
+
     void ParseACL::setWriteAccess(const ParseUser& user, bool allowed)
     {
         if (!user.isNull())
@@ -209,6 +215,12 @@ namespace cg
             userMap.insert(Parse::WriteKey, allowed);
             _map.insert(userId, userMap);
         }
+    }
+
+    void ParseACL::setWriteAccess(const QStringList& userIdList, bool allowed)
+    {
+        for (auto const& userId : userIdList)
+            setWriteAccess(userId, allowed);
     }
 
     QVariantMap ParseACL::toMap() const
