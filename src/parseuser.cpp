@@ -63,7 +63,7 @@ namespace cg
     // static 
     ParseUser ParseUser::create()
     {
-        return ParseObject(Parse::UserClassNameKey);
+        return ParseUser(ParseObject(Parse::UserClassNameKey));
     }
 
     // static

@@ -38,7 +38,7 @@ namespace cg
     public:
         ParseUser();
         ParseUser(const ParseUser &user);
-        ParseUser(const ParseObject& object);
+        explicit ParseUser(const ParseObject& object);
         ~ParseUser();
 
         ParseUser& operator=(const ParseUser& user);

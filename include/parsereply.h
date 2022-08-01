@@ -89,7 +89,7 @@ namespace cg
                             ParseObject object = ParseObject(_className);
                             object.setValues(ParseConvert::toVariantMap(jsonObject));
                             object.clearDirtyState();
-                            list.append(object);
+                            list.append(T(object));
                         }
                     }
                 }

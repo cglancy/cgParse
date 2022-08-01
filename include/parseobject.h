@@ -53,7 +53,7 @@ namespace cg
         {
             ParseObject object(classNameFromType<T>());
             object.setValue(Parse::ObjectIdKey, objectId);
-            return object;
+            return T(object);
         }
 
         static ParseObject create(const QString &className);
@@ -118,7 +118,7 @@ namespace cg
         template <class T>
         T object(const QString &key) const
         {
-            return value(key).value<ParseObject>();
+            return T(value(key).value<ParseObject>());
         }
 
         void setObject(const QString &key, const ParseObject& object)
@@ -140,7 +140,7 @@ namespace cg
                     for (auto & variant : list)
                     {
                         ParseObject baseObject = ParseConvert::toObject(variant);
-                        relation.add(baseObject);
+                        relation.add(T(baseObject));
                     }
                 }
                 else if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::RemoveRelationValue)
@@ -149,7 +149,7 @@ namespace cg
                     for (auto & variant : list)
                     {
                         ParseObject baseObject = ParseConvert::toObject(variant);
-                        relation.remove(baseObject);
+                        relation.remove(T(baseObject));
                     }
                 }
             }

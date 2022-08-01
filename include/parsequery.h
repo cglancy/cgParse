@@ -358,7 +358,7 @@ namespace cg
         T first()
         {
             if (_pImpl->results.size() > 0)
-                return _pImpl->results.first();
+                return T(_pImpl->results.first());
 
             return T();
         }
@@ -368,7 +368,7 @@ namespace cg
             QList<T> list;
 
             for (auto const& object : _pImpl->results)
-                list.append(object);
+                list.append(T(object));
 
             return list;
         }

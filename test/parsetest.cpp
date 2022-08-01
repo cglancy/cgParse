@@ -935,6 +935,27 @@ void ParseTest::testQueryFullText()
     }
 }
 
+void ParseTest::testQueryContainedInFullText()
+{
+    QVariantList idList;
+    for (int i = 0; i < 10; i++)
+    {
+        TestQuote quote = TestQuote(_quotes.at(i));
+        idList.append(quote.objectId());
+    }
+
+    auto query = ParseQuery<TestQuote>();
+    query.whereContainedIn("objectId", idList);
+    query.whereFullText("quote", "Force");
+    ParseReply* pFindReply = query.find();
+    QSignalSpy findSpy(pFindReply, &ParseReply::finished);
+    QVERIFY(findSpy.wait(SPY_WAIT));
+    pFindReply->deleteLater();
+
+    QList<TestQuote> quotes = query.results();
+    QCOMPARE(quotes.size(), 2);
+}
+
 void ParseTest::testQueryOr()
 {
     QList<ParseQuery<TestQuote>> list;

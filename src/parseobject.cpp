@@ -246,7 +246,7 @@ namespace cg
 
     ParseUser ParseObject::user(const QString & key) const
     {
-        return value(key).value<ParseObject>();
+        return ParseUser(value(key).value<ParseObject>());
     }
 
     void ParseObject::setUser(const QString & key, const ParseUser& user)

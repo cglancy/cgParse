@@ -30,7 +30,7 @@ class TestMovie : public cg::ParseObject
 public:
     TestMovie();
     TestMovie(const TestMovie &movie);
-    TestMovie(const ParseObject& object);
+    explicit TestMovie(const ParseObject& object);
     TestMovie(const QString &title);
     ~TestMovie() {}
 
@@ -54,7 +54,7 @@ public:
     TestCharacter();
     TestCharacter(const QString &name);
     TestCharacter(const TestCharacter &character);
-    TestCharacter(const ParseObject& object);
+    explicit TestCharacter(const ParseObject& object);
     ~TestCharacter() {}
 
     void assign(const ParseObject& object) override;
@@ -79,7 +79,7 @@ public:
     TestQuote();
     TestQuote(const TestMovie& movie, const TestCharacter& character, int rank, const QString &quote);
     TestQuote(const TestQuote &quote);
-    TestQuote(const ParseObject& object);
+    explicit TestQuote(const ParseObject& object);
     ~TestQuote() {}
 
     void assign(const ParseObject& object) override;
@@ -157,6 +157,7 @@ private slots:
     void testQueryOrder();
     void testQueryComparison();
     void testQueryFullText();
+    void testQueryContainedInFullText();
     void testQueryOr();
     void testQueryModel();
     void testQueryInQuery();
