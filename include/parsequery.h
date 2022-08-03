@@ -224,7 +224,7 @@ namespace cg
         {
             QJsonArray jsonArray;
             for (auto & object : objectList)
-                jsonArray.append(QJsonObject::fromVariantMap(object.toPointer().toMap()));
+                jsonArray.append(QJsonObject::fromVariantMap(ParseConvert::toVariantMap(object)));
 
             QJsonObject inObject;
             inObject.insert("$in", jsonArray);
@@ -250,7 +250,7 @@ namespace cg
         {
             QJsonArray jsonArray;
             for (auto & object : objectList)
-                jsonArray.append(QJsonObject::fromVariantMap(object.toPointer().toMap()));
+                jsonArray.append(QJsonObject::fromVariantMap(ParseConvert::toVariantMap(object)));
 
             QJsonObject inObject;
             inObject.insert("$nin", jsonArray);

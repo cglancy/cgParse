@@ -19,7 +19,6 @@
 
 #include "parse.h"
 #include "parserelation.h"
-#include "parseerror.h"
 #include "parseobjectpointer.h"
 #include "parsegeopoint.h"
 #include "parseconvert.h"
