@@ -293,6 +293,44 @@ namespace cg
             return *this;
         }
 
+        template <class T2>
+        ParseQuery<T>& whereSelect(const QString& key1, const ParseQuery<T2>& q2, const QString &key2)
+        {
+            QJsonObject queryObject;
+            queryObject.insert("where", q2.whereObject());
+            queryObject.insert("className", q2.className());
+
+            QJsonObject selectObject;
+            selectObject.insert("query", queryObject);
+            selectObject.insert("key", key2);
+
+            QJsonObject keyObject;
+            keyObject.insert("$select", selectObject);
+
+            _pImpl->whereObject.insert(key1, keyObject);
+
+            return *this;
+        }
+
+        template <class T2>
+        ParseQuery<T>& whereDontSelect(const QString& key1, const ParseQuery<T2>& q2, const QString& key2)
+        {
+            QJsonObject queryObject;
+            queryObject.insert("where", q2.whereObject());
+            queryObject.insert("className", q2.className());
+
+            QJsonObject selectObject;
+            selectObject.insert("query", queryObject);
+            selectObject.insert("key", key2);
+
+            QJsonObject keyObject;
+            keyObject.insert("$dontSelect", selectObject);
+
+            _pImpl->whereObject.insert(key1, keyObject);
+
+            return *this;
+        }
+
         void clear(const QString &key)
         {
             _pImpl->whereObject.remove(key);
