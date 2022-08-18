@@ -44,6 +44,11 @@ namespace cg {
         return _pInstance;
     }
 
+    bool ParseLiveQueryClient::isOpened() const
+    {
+        return _webSocket.state() == QAbstractSocket::ConnectedState;
+    }
+
     void ParseLiveQueryClient::open(const QString &appId, const QString &serverUrl, const QString &restApiKey, const QString &sessionToken)
     {
         _appId = appId;
