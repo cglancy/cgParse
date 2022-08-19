@@ -1,4 +1,4 @@
 ## cgParse
 
-A Qt wrapper for the Parse REST API.
+A Qt wrapper for the Parse Framework REST API.
 
