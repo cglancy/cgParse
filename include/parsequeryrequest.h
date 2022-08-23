@@ -19,6 +19,7 @@
 
 #include <QObject>
 #include <QSharedPointer>
+#include "parse.h"
 #include "parsequeryimpl.h"
 
 class QNetworkAccessManager;
@@ -28,7 +29,7 @@ namespace cg
 {
 	class ParseReply;
 
-	class ParseQueryRequest : public QObject
+	class CGPARSE_API ParseQueryRequest : public QObject
 	{
 	public:
 		static ParseQueryRequest* get();

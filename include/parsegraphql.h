@@ -17,13 +17,14 @@
 #define CGPARSE_PARSEGRAPHQL_H
 #pragma once
 
+#include "parse.h"
 #include "parserequest.h"
 
 namespace cg
 {
     class ParseReply;
 
-    class ParseGraphQL : public ParseRequest
+    class CGPARSE_API ParseGraphQL : public ParseRequest
     {
     public:
         static ParseReply* query(const QString& queryStr, const QString& operationStr = QString(), const QVariantMap& variables = QVariantMap());

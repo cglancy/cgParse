@@ -17,6 +17,7 @@
 #define CGPARSE_PARSEANALYTICS_H
 #pragma once
 
+#include "parse.h"
 #include "parserequest.h"
 #include <QDateTime>
 
@@ -24,7 +25,7 @@ namespace cg
 {
     class ParseReply;
 
-    class ParseAnalytics : public ParseRequest
+    class CGPARSE_API ParseAnalytics : public ParseRequest
     {
     public:
         static const QString AppOpenedEvent;
