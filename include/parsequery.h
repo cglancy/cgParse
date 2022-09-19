@@ -160,6 +160,12 @@ namespace cg
             return *this;
         }
 
+        ParseQuery<T>& whereNotEqualTo(const QString& key, const ParseObject& object)
+        {
+            addConstraint(key, "$ne", QJsonValue::fromVariant(ParseConvert::toVariantMap(object)));
+            return *this;
+        }
+
         ParseQuery<T>& whereGreaterThan(const QString &key, const QVariant &value)
         {
             addConstraint(key, "$gt", value);

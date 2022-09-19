@@ -17,6 +17,7 @@
 #include "parseclient.h"
 #include "parsereply.h"
 #include "parserequest.h"
+#include "parseuser.h"
 
 #include <QCoreApplication>
 #include <QNetworkAccessManager>
@@ -56,6 +57,10 @@ namespace cg
         setHeader("User-Agent", ParseRequest::userAgent());
         setHeader("X-Parse-Application-Id", ParseClient::get()->applicationId());
         setHeader("X-Parse-REST-API-Key", ParseClient::get()->clientKey());
+
+        ParseUser user = ParseUser::currentUser();
+        if (!user.sessionToken().isEmpty())
+            setHeader("X-Parse-Session-Token", user.sessionToken().toUtf8());
 
         QJsonObject jsonObject;
         QJsonObject dimensionsObject;
