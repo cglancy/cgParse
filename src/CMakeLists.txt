@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-add_library(cgParse SHARED
+add_library(cgParse STATIC
     ../include/parse.h
     ../include/parseacl.h
 	../include/parseanalytics.h
@@ -61,9 +61,7 @@ add_library(cgParse SHARED
     parseuserrequest.h
 )
 
-add_compile_definitions(CGPARSE_DLL CGPARSE_EXPORTS)
-
-target_include_directories(cgParse PRIVATE
+target_include_directories(cgParse PUBLIC
 	"${PROJECT_SOURCE_DIR}/include")
 
 target_link_libraries(cgParse Qt::Network Qt::WebSockets)
