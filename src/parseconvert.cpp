@@ -6,12 +6,12 @@ namespace cg
 {
     QJsonObject ParseConvert::toJsonObject(const QVariantMap &map)
     {
-        return QJsonObject::fromVariantMap(convertMap(map, true));
+        return QJsonObject::fromVariantMap(convertMapToJson(map));
     }
 
     QVariantMap ParseConvert::toVariantMap(const QJsonObject &object)
     {
-        return convertMap(object.toVariantMap(), false);
+        return convertMap(object.toVariantMap());
     }
 
     QVariantMap ParseConvert::toVariantMap(const ParseObject& object)
@@ -19,7 +19,7 @@ namespace cg
         return object.toPointer().toMap(); 
     }
 
-    QVariantMap ParseConvert::convertMap(const QVariantMap &map, bool toJson)
+    QVariantMap ParseConvert::convertMap(const QVariantMap &map)
     {
         QVariantMap convertedMap = map;
 
@@ -27,20 +27,39 @@ namespace cg
         {
             QVariant variant = map.value(key);
 
-            if (toJson && isReadOnlyKey(key))
-                convertedMap.remove(key);
-            else if (canConvert(variant, toJson))
-                convertedMap[key] = convertVariant(variant, toJson);
-            else if (variant.canConvert<QVariantMap>())
-                convertedMap[key] = convertMap(variant.toMap(), toJson);
-            else if (variant.canConvert<QVariantList>())
-                convertedMap[key] = convertList(variant.toList(), toJson);
+            if (canConvert(variant))
+                convertedMap[key] = convertVariant(variant);
+            else if (variant.typeId() == QMetaType::QVariantMap)
+                convertedMap[key] = convertMap(variant.toMap());
+            else if (variant.typeId() == QMetaType::QVariantList)
+                convertedMap[key] = convertList(variant.toList());
         }
 
         return convertedMap;
     }
 
-    QVariantList ParseConvert::convertList(const QVariantList &list, bool toJson)
+    QVariantMap ParseConvert::convertMapToJson(const QVariantMap& map)
+    {
+       QVariantMap convertedMap = map;
+
+       for (auto& key : map.keys())
+       {
+          QVariant variant = map.value(key);
+
+          if (isReadOnlyKey(key))
+             convertedMap.remove(key);
+          else if (canConvertToJson(variant))
+             convertedMap[key] = convertVariantToJson(variant);
+          else if (variant.typeId() == QMetaType::QVariantMap)
+             convertedMap[key] = convertMapToJson(variant.toMap());
+          else if (variant.typeId() == QMetaType::QVariantList)
+             convertedMap[key] = convertListToJson(variant.toList());
+       }
+
+       return convertedMap;
+    }
+
+    QVariantList ParseConvert::convertList(const QVariantList &list)
     {
         QVariantList convertedList = list;
 
@@ -48,61 +67,83 @@ namespace cg
         {
             QVariant variant = list.at(i);
 
-            if (canConvert(variant, toJson))
-                convertedList[i] = convertVariant(variant, toJson);
+            if (canConvert(variant))
+                convertedList[i] = convertVariant(variant);
             else if (variant.canConvert<QVariantMap>())
-                convertedList[i] = convertMap(variant.toMap(), toJson);
+                convertedList[i] = convertMap(variant.toMap());
             else if (variant.canConvert<QVariantList>())
-                convertedList[i] = convertList(variant.toList(), toJson);
+                convertedList[i] = convertList(variant.toList());
         }
 
         return convertedList;
     }
 
-    bool ParseConvert::canConvert(const QVariant &variant, bool toJson)
+    QVariantList ParseConvert::convertListToJson(const QVariantList& list)
     {
-        bool canConvert = false;
-        if (toJson)
-            canConvert = variant.canConvert<ParseFile>() || variant.canConvert<ParseObject>();
-        else
-            canConvert = isObject(variant) || isPointer(variant) || isFile(variant);
-        return canConvert;
+       QVariantList convertedList = list;
+
+       for (int i = 0; i < list.size(); i++)
+       {
+          QVariant variant = list.at(i);
+
+          if (canConvertToJson(variant))
+             convertedList[i] = convertVariantToJson(variant);
+          else if (variant.canConvert<QVariantMap>())
+             convertedList[i] = convertMapToJson(variant.toMap());
+          else if (variant.canConvert<QVariantList>())
+             convertedList[i] = convertListToJson(variant.toList());
+       }
+
+       return convertedList;
     }
 
-    QVariant ParseConvert::convertVariant(const QVariant &variant, bool toJson)
+    bool ParseConvert::canConvert(const QVariant &variant)
     {
-        QVariant convertedVariant = variant;
-        if (toJson)
-        {
-            if (variant.canConvert<ParseObject>())
-            {
-                ParseObject object = variant.value<ParseObject>();
-                if (!object.isNull())
-                    convertedVariant = object.toPointer().toMap();
-                else
-                    convertedVariant = QVariant();
-            }
-            else if (variant.canConvert<ParseFile>())
-            {
-                ParseFile file = variant.value<ParseFile>();
-                convertedVariant = file.toMap();
-            }
-        }
-        else
-        {
-            if (isObject(variant) || isPointer(variant))
-            {
-                ParseObject object = toObject(variant);
-                convertedVariant = QVariant::fromValue(object);
-            }
-            else if (isFile(variant))
-            {
-                ParseFile file = fileFromVariant(variant);
-                convertedVariant = QVariant::fromValue(file);
-            }
-        }
+        return isObject(variant) || isPointer(variant) || isFile(variant);
+    }
 
-        return convertedVariant;
+    bool ParseConvert::canConvertToJson(const QVariant& variant)
+    {
+       return variant.canConvert<ParseFile>() || variant.canConvert<ParseObject>();
+    }
+
+    QVariant ParseConvert::convertVariant(const QVariant &variant)
+    {
+         QVariant convertedVariant = variant;
+
+         if (isObject(variant) || isPointer(variant))
+         {
+               ParseObject object = toObject(variant);
+               convertedVariant = QVariant::fromValue(object);
+         }
+         else if (isFile(variant))
+         {
+               ParseFile file = fileFromVariant(variant);
+               convertedVariant = QVariant::fromValue(file);
+         }
+
+         return convertedVariant;
+    }
+
+    QVariant ParseConvert::convertVariantToJson(const QVariant& variant)
+    {
+       QVariant convertedVariant = variant;
+
+       if (variant.canConvert<ParseObject>())
+       {
+          ParseObject object = variant.value<ParseObject>();
+          if (!object.isNull())
+             convertedVariant = object.toPointer().toMap();
+          else
+             convertedVariant = QVariant();
+       }
+       else if (variant.canConvert<ParseFile>())
+       {
+          ParseFile file = variant.value<ParseFile>();
+          convertedVariant = file.toMap();
+       }
+
+       return convertedVariant;
     }
 
     ParseObject ParseConvert::toObject(const QVariant &variant)
@@ -112,7 +153,7 @@ namespace cg
         if (variant.canConvert<QVariantMap>())
         {
             // convert sub-objects
-            QVariantMap map = convertMap(variant.toMap(), false);
+            QVariantMap map = convertMap(variant.toMap());
 
             if (map.contains(Parse::TypeKey) && map.value(Parse::TypeKey).toString() == Parse::PointerValue)
             {

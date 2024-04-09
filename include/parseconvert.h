@@ -38,11 +38,15 @@ namespace cg
         static bool isObject(const QVariant &variant);
 
     private:
-        static QVariantMap convertMap(const QVariantMap &map, bool toJson);
-        static QVariantList convertList(const QVariantList &list, bool toJson);
-        static bool canConvert(const QVariant &variant, bool toJson);
-        static QVariant convertVariant(const QVariant &variant, bool toJson);
+        static QVariantMap convertMap(const QVariantMap &map);
+        static QVariantList convertList(const QVariantList &list);
+        static bool canConvert(const QVariant &variant);
+        static QVariant convertVariant(const QVariant &variant);
 
+        static QVariantMap convertMapToJson(const QVariantMap& map);
+        static QVariantList convertListToJson(const QVariantList& list);
+        static bool canConvertToJson(const QVariant& variant);
+        static QVariant convertVariantToJson(const QVariant& variant);
 
         static bool isFile(const QVariant &variant);
         static ParseFile fileFromVariant(const QVariant &variant);
