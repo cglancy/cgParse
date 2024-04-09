@@ -81,7 +81,7 @@ namespace cg
         if (!map.isEmpty())
         {
             QJsonObject mapObject = QJsonObject::fromVariantMap(map);
-            int count = MaxDimensions - dimensionsObject.size();
+            qsizetype count = MaxDimensions - dimensionsObject.size();
             count = std::min(count, mapObject.size());
             auto it = mapObject.begin();
             for (int i = 0; i < count; i++, it++)
