@@ -69,9 +69,9 @@ namespace cg
 
             if (canConvert(variant))
                 convertedList[i] = convertVariant(variant);
-            else if (variant.canConvert<QVariantMap>())
+            else if (variant.typeId() == QMetaType::QVariantMap)
                 convertedList[i] = convertMap(variant.toMap());
-            else if (variant.canConvert<QVariantList>())
+            else if (variant.typeId() == QMetaType::QVariantList)
                 convertedList[i] = convertList(variant.toList());
         }
 
@@ -88,9 +88,9 @@ namespace cg
 
           if (canConvertToJson(variant))
              convertedList[i] = convertVariantToJson(variant);
-          else if (variant.canConvert<QVariantMap>())
+          else if (variant.typeId() == QMetaType::QVariantMap)
              convertedList[i] = convertMapToJson(variant.toMap());
-          else if (variant.canConvert<QVariantList>())
+          else if (variant.typeId() == QMetaType::QVariantList)
              convertedList[i] = convertListToJson(variant.toList());
        }
 
@@ -150,7 +150,7 @@ namespace cg
     {
         ParseObject object;
 
-        if (variant.canConvert<QVariantMap>())
+        if (variant.typeId() == QMetaType::QVariantMap)
         {
             // convert sub-objects
             QVariantMap map = convertMap(variant.toMap());
@@ -176,7 +176,7 @@ namespace cg
     bool ParseConvert::isPointer(const QVariant &variant)
     {
         bool pointer = false;
-        if (variant.canConvert<QVariantMap>())
+        if (variant.typeId() == QMetaType::QVariantMap)
         {
             QVariantMap map = variant.toMap();
             pointer = map.contains(Parse::TypeKey) &&
@@ -189,7 +189,7 @@ namespace cg
     bool ParseConvert::isObject(const QVariant &variant)
     {
         bool object = false;
-        if (variant.canConvert<QVariantMap>())
+        if (variant.typeId() == QMetaType::QVariantMap)
         {
             QVariantMap map = variant.toMap();
             object = map.contains(Parse::TypeKey) &&
@@ -202,7 +202,7 @@ namespace cg
     bool ParseConvert::isFile(const QVariant &variant)
     {
         bool file = false;
-        if (variant.canConvert<QVariantMap>())
+        if (variant.typeId() == QMetaType::QVariantMap)
         {
             QVariantMap map = variant.toMap();
             file = map.contains(Parse::TypeKey) &&
@@ -216,7 +216,7 @@ namespace cg
     {
         ParseFile file;
 
-        if (variant.canConvert<QVariantMap>())
+        if (variant.typeId() == QMetaType::QVariantMap)
         {
             QVariantMap map = variant.toMap();
             if (map.contains(Parse::TypeKey) && map.value(Parse::TypeKey).toString() == Parse::FileValue)
