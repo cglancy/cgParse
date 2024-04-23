@@ -98,6 +98,18 @@ namespace cg
         }
     }
 
+    QString ParseObjectRequest::classPath(const QString& className)
+    {
+       QString path;
+
+       if (className == Parse::UserClassNameKey)
+          path = "/users";
+       else
+          path = "/classes/" + className;
+
+       return path;
+    }
+
     void ParseObjectRequest::saveChildrenIfNeeded(const ParseObject& object)
     {
         _objectsBeingSaved.insert(object);
@@ -146,7 +158,7 @@ namespace cg
         QJsonDocument doc(jsonObject);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
-        ParseRequest request(ParseRequest::PostHttpMethod, "/classes/" + object.className(), content);
+        ParseRequest request(ParseRequest::PostHttpMethod, classPath(object.className()), content);
 
         ParseReply *pReply = new ParseReply(request, object.className(), pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectRequest::privateCreateObjectFinished);
@@ -183,7 +195,7 @@ namespace cg
 
     ParseReply* ParseObjectRequest::fetchObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
-        ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + object.className() + "/" + object.objectId());
+        ParseRequest request(ParseRequest::GetHttpMethod, classPath(object.className()) + "/" + object.objectId());
         ParseReply *pReply = new ParseReply(request, object.className(), pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectRequest::privateFetchObjectFinished);
         _replyObjectMap.insert(pReply, object);
@@ -222,7 +234,7 @@ namespace cg
         QJsonDocument doc(jsonObject);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
-        ParseRequest request(ParseRequest::PutHttpMethod, "/classes/" + object.className() + "/" + object.objectId(), content);
+        ParseRequest request(ParseRequest::PutHttpMethod, classPath(object.className()) + "/" + object.objectId(), content);
         ParseReply *pReply = new ParseReply(request, object.className(), pNam);
         connect(pReply, &ParseReply::preFinished, this, &ParseObjectRequest::privateUpdateObjectFinished);
         _replyObjectMap.insert(pReply, object);
@@ -263,7 +275,7 @@ namespace cg
             return new ParseReply(ParseError::UnknownError);
         }
 
-        ParseRequest request(ParseRequest::DeleteHttpMethod, "/classes/" + object.className() + "/" + object.objectId());
+        ParseRequest request(ParseRequest::DeleteHttpMethod, classPath(object.className()) + "/" + object.objectId());
         return new ParseReply(request, object.className(), pNam);
     }
 
@@ -274,7 +286,6 @@ namespace cg
             return new ParseReply(ParseError::UnknownError);
         }
 
-        QString pathStr = "/classes/";
         QJsonArray requestsArray;
 
         for (auto & object : objects)
@@ -282,16 +293,17 @@ namespace cg
             saveChildrenIfNeeded(object);
 
             QJsonObject requestObject;
+            QString pathStr = classPath(object.className());
 
             if (object.objectId().isEmpty())
             {
-                QString apiPath = pathStr + object.className();
+                QString apiPath = pathStr;
                 requestObject.insert("method", "POST");
                 requestObject.insert("path", apiPath);
             }
             else
             {
-                QString apiPath = pathStr + object.className() + "/" + object.objectId();
+                QString apiPath = pathStr + "/" + object.objectId();
                 requestObject.insert("method", "PUT");
                 requestObject.insert("path", apiPath);
             }
@@ -349,12 +361,12 @@ namespace cg
             return new ParseReply(ParseError::UnknownError);
         }
 
-        QString pathStr = "/classes/";
         QJsonArray requestsArray;
 
         for (auto & object : objects)
         {
-            QString apiPath = pathStr + object.className() + "/" +object.objectId();
+            QString pathStr = classPath(object.className());
+            QString apiPath = pathStr + "/" + object.objectId();
             QJsonObject requestObject;
             requestObject.insert("method", "DELETE");
             requestObject.insert("path", apiPath);
