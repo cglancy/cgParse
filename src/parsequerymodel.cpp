@@ -136,7 +136,7 @@ namespace cg
 	{
 		QUrlQuery urlQuery;
 
-		if (_queryMap.contains("where") && _queryMap.value("where").canConvert<QVariantMap>())
+		if (_queryMap.contains("where") && _queryMap.value("where").typeId() == QMetaType::QVariantMap)
 		{
 			QJsonObject whereObject = QJsonObject::fromVariantMap(_queryMap.value("where").toMap());
 			QJsonDocument doc(whereObject);

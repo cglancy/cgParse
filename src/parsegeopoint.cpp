@@ -25,7 +25,7 @@ namespace cg
     bool ParseGeoPoint::isGeoPoint(const QVariant &variant)
     {
         bool geoPoint = false;
-        if (variant.canConvert<QVariantMap>())
+        if (variant.typeId() == QMetaType::QVariantMap)
         {
             QVariantMap map = variant.toMap();
             geoPoint = map.contains(Parse::TypeKey) &&

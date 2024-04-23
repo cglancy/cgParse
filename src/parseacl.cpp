@@ -71,7 +71,7 @@ namespace cg
     {
         bool readAllowed = false;
 
-        if (_map.contains(Parse::PublicAccessKey) && _map.value(Parse::PublicAccessKey).canConvert<QVariantMap>())
+        if (_map.contains(Parse::PublicAccessKey) && _map.value(Parse::PublicAccessKey).typeId() == QMetaType::QVariantMap)
         {
             QVariantMap publicMap = _map.value(Parse::PublicAccessKey).toMap();
             readAllowed = publicMap.value(Parse::ReadKey, false).toBool();
@@ -84,7 +84,7 @@ namespace cg
     {
         bool writeAllowed = false;
 
-        if (_map.contains(Parse::PublicAccessKey) && _map.value(Parse::PublicAccessKey).canConvert<QVariantMap>())
+        if (_map.contains(Parse::PublicAccessKey) && _map.value(Parse::PublicAccessKey).typeId() == QMetaType::QVariantMap)
         {
             QVariantMap publicMap = _map.value(Parse::PublicAccessKey).toMap();
             writeAllowed = publicMap.value(Parse::WriteKey, false).toBool();
@@ -105,7 +105,7 @@ namespace cg
     {
         bool readAllowed = false;
 
-        if (_map.contains(userId) && _map.value(userId).canConvert<QVariantMap>())
+        if (_map.contains(userId) && _map.value(userId).typeId() == QMetaType::QVariantMap)
         {
             QVariantMap userMap = _map.value(userId).toMap();
             readAllowed = userMap.value(Parse::ReadKey, false).toBool();
@@ -126,7 +126,7 @@ namespace cg
     {
         bool writeAllowed = false;
 
-        if (_map.contains(userId) && _map.value(userId).canConvert<QVariantMap>())
+        if (_map.contains(userId) && _map.value(userId).typeId() == QMetaType::QVariantMap)
         {
             QVariantMap userMap = _map.value(userId).toMap();
             writeAllowed = userMap.value(Parse::WriteKey, false).toBool();
@@ -137,7 +137,7 @@ namespace cg
 
     void ParseACL::setPublicReadAccess(bool allowed)
     {
-        if (_map.contains(Parse::PublicAccessKey) && _map.value(Parse::PublicAccessKey).canConvert<QVariantMap>())
+        if (_map.contains(Parse::PublicAccessKey) && _map.value(Parse::PublicAccessKey).typeId() == QMetaType::QVariantMap)
         {
             QVariantMap publicMap = _map.value(Parse::PublicAccessKey).toMap();
             publicMap.insert(Parse::ReadKey, allowed);
@@ -153,7 +153,7 @@ namespace cg
 
     void ParseACL::setPublicWriteAccess(bool allowed)
     {
-        if (_map.contains(Parse::PublicAccessKey) && _map.value(Parse::PublicAccessKey).canConvert<QVariantMap>())
+        if (_map.contains(Parse::PublicAccessKey) && _map.value(Parse::PublicAccessKey).typeId() == QMetaType::QVariantMap)
         {
             QVariantMap publicMap = _map.value(Parse::PublicAccessKey).toMap();
             publicMap.insert(Parse::WriteKey, allowed);
@@ -175,7 +175,7 @@ namespace cg
 
     void ParseACL::setReadAccess(const QString & userId, bool allowed)
     {
-        if (_map.contains(userId) && _map.value(userId).canConvert<QVariantMap>())
+        if (_map.contains(userId) && _map.value(userId).typeId() == QMetaType::QVariantMap)
         {
             QVariantMap userMap = _map.value(userId).toMap();
             userMap.insert(Parse::ReadKey, allowed);
@@ -197,7 +197,7 @@ namespace cg
 
     void ParseACL::setWriteAccess(const QString & userId, bool allowed)
     {
-        if (_map.contains(userId) && _map.value(userId).canConvert<QVariantMap>())
+        if (_map.contains(userId) && _map.value(userId).typeId() == QMetaType::QVariantMap)
         {
             QVariantMap userMap = _map.value(userId).toMap();
             userMap.insert(Parse::WriteKey, allowed);

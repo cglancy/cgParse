@@ -130,7 +130,7 @@ namespace cg
         {
             ParseRelation<T> relation = ParseRelation<T>(className(), objectId(), key);
 
-            if (valueMapHasKey(key) && value(key).canConvert<QVariantMap>())
+            if (valueMapHasKey(key) && value(key).typeId() == QMetaType::QVariantMap)
             {
                 QVariantMap map = value(key).toMap();
                 if (map.contains(Parse::OperatorKey) && map.value(Parse::OperatorKey).toString() == Parse::AddRelationValue)

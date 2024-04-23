@@ -48,7 +48,7 @@ namespace cg
 		QJsonObject subscriptionQueryObject;
 		subscriptionQueryObject.insert("className", _className);
 
-		if (_queryMap.contains("where") && _queryMap.value("where").canConvert<QVariantMap>())
+		if (_queryMap.contains("where") && _queryMap.value("where").typeId() == QMetaType::QVariantMap)
 		{
 			QJsonObject whereObject = QJsonObject::fromVariantMap(_queryMap.value("where").toMap());
 			subscriptionQueryObject.insert("where", whereObject);

@@ -23,7 +23,7 @@ namespace cg
     {
         QDateTime dateTime;
 
-        if (variant.canConvert<QVariantMap>() && isDateTime(variant))
+        if (variant.typeId() == QMetaType::QVariantMap && isDateTime(variant))
         {
             QVariantMap map = variant.toMap();
             dateTime = QDateTime::fromString(map.value(Parse::IsoDateKey).toString(), Qt::ISODateWithMs);
@@ -37,7 +37,7 @@ namespace cg
     {
         QDate date;
 
-        if (variant.canConvert<QVariantMap>() && isDateTime(variant))
+        if (variant.typeId() == QMetaType::QVariantMap && isDateTime(variant))
         {
             QVariantMap map = variant.toMap();
             date = QDate::fromString(map.value(Parse::IsoDateKey).toString(), Qt::ISODateWithMs);
@@ -104,7 +104,7 @@ namespace cg
     bool ParseDateTime::isDateTime(const QVariant & variant)
     {
         bool dateTime = false;
-        if (variant.canConvert<QVariantMap>())
+        if (variant.typeId() == QMetaType::QVariantMap)
         {
             QVariantMap map = variant.toMap();
             dateTime = map.contains(Parse::TypeKey) &&

@@ -31,7 +31,7 @@ namespace cg
 
     ParseObjectPointer::ParseObjectPointer(const QVariant &variant)
     {
-        if (variant.canConvert<QVariantMap>() && ParseConvert::isPointer(variant))
+        if (variant.typeId() == QMetaType::QVariantMap && ParseConvert::isPointer(variant))
         {
             QVariantMap map = variant.toMap();
             _className = map.value(Parse::ClassNameKey).toString();

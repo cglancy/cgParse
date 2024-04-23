@@ -57,9 +57,9 @@ namespace cg
                     objects.append(variant.value<ParseObject>());
                 else if (variant.canConvert<ParseFile>())
                     files.append(variant.value<ParseFile>());
-                else if (variant.canConvert<QVariantMap>())
+                else if (variant.typeId() == QMetaType::QVariantMap)
                     collectDirtyChildren(variant.toMap(), files, objects);
-                else if (variant.canConvert<QVariantList>())
+                else if (variant.typeId() == QMetaType::QVariantList)
                     collectDirtyChildren(variant.toList(), files, objects);
             }
         }
@@ -76,9 +76,9 @@ namespace cg
                 objects.append(variant.value<ParseObject>());
             else if (variant.canConvert<ParseFile>())
                 files.append(variant.value<ParseFile>());
-            else if (variant.canConvert<QVariantMap>())
+            else if (variant.typeId() == QMetaType::QVariantMap)
                 collectDirtyChildren(variant.toMap(), files, objects);
-            else if (variant.canConvert<QVariantList>())
+            else if (variant.typeId() == QMetaType::QVariantList)
                 collectDirtyChildren(variant.toList(), files, objects);
         }
     }
@@ -91,9 +91,9 @@ namespace cg
                 objects.append(variant.value<ParseObject>());
             else if (variant.canConvert<ParseFile>())
                 files.append(variant.value<ParseFile>());
-            else if (variant.canConvert<QVariantMap>())
+            else if (variant.typeId() == QMetaType::QVariantMap)
                 collectDirtyChildren(variant.toMap(), files, objects);
-            else if (variant.canConvert<QVariantList>())
+            else if (variant.typeId() == QMetaType::QVariantList)
                 collectDirtyChildren(variant.toList(), files, objects);
         }
     }
