@@ -63,6 +63,7 @@ namespace cg
         void collectDirtyChildren(const QVariantMap &map, QList<ParseFile> &files, QList<ParseObject> &objects);
         void collectDirtyChildren(const QVariantList &list, QList<ParseFile> &files, QList<ParseObject> &objects);
         static QString classPath(const QString& className);
+        static QVariantMap removeReadOnlyValues(const QString& className, const QVariantMap& map);
 
     private:
         static ParseObjectRequest* _instance;

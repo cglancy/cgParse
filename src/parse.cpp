@@ -34,6 +34,7 @@ namespace cg
         CGPARSE_API const QString OperatorKey = QStringLiteral("__op");
         CGPARSE_API const QString EmailVerifiedKey = QStringLiteral("emailVerified");
         CGPARSE_API const QString PerishableTokenKey = QStringLiteral("_perishable_token");
+        CGPARSE_API const QString SessionTokenKey = QStringLiteral("sessionToken");
         CGPARSE_API const QString UserClassNameKey = QStringLiteral("_User");
         CGPARSE_API const QString SessionClassNameKey = QStringLiteral("_Session");
         CGPARSE_API const QString RoleClassNameKey = QStringLiteral("_Role");

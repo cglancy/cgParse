@@ -221,6 +221,34 @@ namespace cg
         }
     }
 
+    QVariantMap ParseObjectRequest::removeReadOnlyValues(const QString& className, const QVariantMap& map)
+    {
+       QVariantMap modifiedMap = map;
+
+       for (auto const& key : map.keys())
+       {
+          if (key == Parse::ObjectIdKey ||
+             key == Parse::CreatedAtKey ||
+             key == Parse::UpdatedAtKey ||
+             key == Parse::ClassNameKey)
+             modifiedMap.remove(key);
+       }
+
+       if (className == Parse::UserClassNameKey)
+       {
+          for (auto const& key : map.keys())
+          {
+             if (key == Parse::EmailVerifiedKey ||
+                key == Parse::SessionTokenKey ||
+                key == "email" ||
+                key == "username")
+                modifiedMap.remove(key);
+          }
+       }
+
+       return modifiedMap;
+    }
+
     ParseReply* ParseObjectRequest::updateObject(const ParseObject& object, QNetworkAccessManager* pNam)
     {
         if (object.isNull() || object.objectId().isEmpty())
@@ -230,7 +258,9 @@ namespace cg
 
         saveChildrenIfNeeded(object);
 
-        QJsonObject jsonObject = ParseConvert::toJsonObject(object.toMap());
+        QVariantMap map = removeReadOnlyValues(object.className(), object.toMap());
+
+        QJsonObject jsonObject = ParseConvert::toJsonObject(map);
         QJsonDocument doc(jsonObject);
         QByteArray content = doc.toJson(QJsonDocument::Compact);
 
