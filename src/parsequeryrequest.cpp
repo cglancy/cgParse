@@ -50,7 +50,7 @@ namespace cg
 		QUrlQuery urlQuery;
 		urlQuery.setQuery(queryStr);
 
-		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pQueryImpl->className);
+		ParseRequest request(ParseRequest::GetHttpMethod, classPath(pQueryImpl->className));
 		request.setUrlQuery(urlQuery);
 
 		ParseReply* pReply = new ParseReply(request, pQueryImpl->className, pNam);
@@ -88,7 +88,7 @@ namespace cg
 
 		pQueryImpl->results.clear();
 
-		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pQueryImpl->className);
+		ParseRequest request(ParseRequest::GetHttpMethod, classPath(pQueryImpl->className));
 		request.setUrlQuery(urlQuery);
 
 		ParseReply* pReply = new ParseReply(request, pQueryImpl->className, pNam);
@@ -127,7 +127,7 @@ namespace cg
 		pQueryImpl->results.clear();
 		pQueryImpl->countResult = 0;
 
-		ParseRequest request(ParseRequest::GetHttpMethod, "/classes/" + pQueryImpl->className);
+		ParseRequest request(ParseRequest::GetHttpMethod, classPath(pQueryImpl->className));
 		request.setUrlQuery(urlQuery);
 
 		ParseReply* pReply = new ParseReply(request, pQueryImpl->className, pNam);
@@ -171,6 +171,18 @@ namespace cg
 				}
 			}
 		}
+	}
+
+	QString ParseQueryRequest::classPath(const QString& className)
+	{
+		QString path;
+
+		if (className == Parse::UserClassNameKey)
+			path = "/users";
+		else
+			path = "/classes/" + className;
+
+		return path;
 	}
 
 }

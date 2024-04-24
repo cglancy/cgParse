@@ -49,6 +49,7 @@ namespace cg
 		~ParseQueryRequest();
 
 		void setResults(QSharedPointer<ParseQueryImpl>, const QJsonArray& jsonArray);
+		static QString classPath(const QString& className);
 
 	private:
 		static ParseQueryRequest* _instance;
