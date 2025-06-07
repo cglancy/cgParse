@@ -64,4 +64,4 @@ add_library(cgParse STATIC
 target_include_directories(cgParse PUBLIC
 	"${PROJECT_SOURCE_DIR}/include")
 
-target_link_libraries(cgParse Qt::Network Qt::WebSockets)
+target_link_libraries(cgParse Qt6::Network Qt6::WebSockets)
