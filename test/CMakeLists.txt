@@ -9,5 +9,6 @@ target_include_directories(cgParseTest PRIVATE "${PROJECT_SOURCE_DIR}/include")
 	
 target_link_libraries(cgParseTest cgParse Qt6::Network Qt6::WebSockets Qt6::Test)
 
-set(DEBUG_PATH "PATH=%PATH%" "${CMAKE_PREFIX_PATH}/bin")
+set(DEBUG_PATH "PATH=%PATH%" "${CMAKE_PREFIX_PATH}/bin" $<TARGET_FILE_DIR:cgParse>)
 set_target_properties(cgParseTest PROPERTIES VS_DEBUGGER_ENVIRONMENT "${DEBUG_PATH}")
+

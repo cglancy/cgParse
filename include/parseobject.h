@@ -229,9 +229,9 @@ namespace cg
         QStringList keys() const;
         static bool isUserValue(const QString &key);
 
-        friend bool operator==(const ParseObject& object1, const ParseObject& object2);
-        friend bool operator<(const ParseObject& object1, const ParseObject& object2);
-        friend uint qHash(const ParseObject& object, uint seed);
+        friend CGPARSE_API bool operator==(const ParseObject& object1, const ParseObject& object2);
+        friend CGPARSE_API bool operator<(const ParseObject& object1, const ParseObject& object2);
+        friend CGPARSE_API uint qHash(const ParseObject& object, uint seed);
 
     private:
         bool valueMapHasKey(const QString& key) const;

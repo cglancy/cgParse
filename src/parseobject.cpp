@@ -380,17 +380,17 @@ namespace cg
     // The logical thing would be to use the objectId for uniqueness, however,
     // when a ParseObject is first created it does not have an objectId until
     // the server assigns one.
-    bool operator==(const ParseObject& object1, const ParseObject& object2)
+    CGPARSE_API bool operator==(const ParseObject& object1, const ParseObject& object2)
     {
         return object1._pImpl == object2._pImpl;
     }
 
-    bool operator<(const ParseObject& object1, const ParseObject& object2)
+    CGPARSE_API bool operator<(const ParseObject& object1, const ParseObject& object2)
     {
         return object1._pImpl < object2._pImpl;
     }
 
-    uint qHash(const ParseObject& object, uint seed)
+    CGPARSE_API uint qHash(const ParseObject& object, uint seed)
     {
         return qHash(object._pImpl, seed);
     }

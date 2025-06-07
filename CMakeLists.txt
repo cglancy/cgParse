@@ -13,6 +13,10 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 COMPONENTS Core Network WebSockets Test REQUIRED)
 
+if(BUILD_SHARED_LIBS)
+	add_compile_definitions(CGPARSE_DLL)
+endif()
+
 add_subdirectory(src)
 
 if (BUILD_UNIT_TESTS)

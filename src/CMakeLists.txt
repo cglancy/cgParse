@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
-add_library(cgParse STATIC
+if(BUILD_SHARED_LIBS)
+	add_compile_definitions(CGPARSE_EXPORTS)
+endif()
+
+add_library(cgParse
     ../include/parse.h
     ../include/parseacl.h
 	../include/parseanalytics.h
