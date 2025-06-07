@@ -33,6 +33,34 @@
       "environment": {
         "PATH": "C:/Qt/6.9.0/msvc2022_64/bin;$penv{PATH}"
       }
+    },
+    {
+      "name": "StaticLib",
+      "displayName": "StaticLib",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+		"CMAKE_PREFIX_PATH": "C:/Qt/6.9.0/msvc2022_64",
+		"BUILD_SHARED_LIBS": "OFF",
+		"BUILD_UNIT_TESTS": "OFF"
+      },
+      "environment": {
+        "PATH": "C:/Qt/6.9.0/msvc2022_64/bin;$penv{PATH}"
+      }
+    },
+    {
+      "name": "SharedLib",
+      "displayName": "SharedLib",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+		"CMAKE_PREFIX_PATH": "C:/Qt/6.9.0/msvc2022_64",
+		"BUILD_SHARED_LIBS": "ON",
+		"BUILD_UNIT_TESTS": "OFF"
+      },
+      "environment": {
+        "PATH": "C:/Qt/6.9.0/msvc2022_64/bin;$penv{PATH}"
+      }
     }
   ]
 }
